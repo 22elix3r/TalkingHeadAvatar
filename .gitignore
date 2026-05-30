@@ -1,0 +1,47 @@
+.venv/
+.pytest_cache/
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+tmp/
+.ninja_*
+
+# Local editor and agent state
+.vscode/
+.agent/
+.agents/
+.codex/
+.kilo/
+.git-local/
+
+# Generated output/data artifacts
+/output/*
+!/output/README.md
+/models/*
+!/models/README.md
+/data/*
+!/data/README.md
+/audio_driver/checkpoints/*
+!/audio_driver/checkpoints/README.md
+*.log
+events.out.tfevents.*
+
+# Large generated/downloaded model and dataset artifacts
+*.ckpt
+*.gguf
+*.onnx
+*.pkl
+*.npz
+*.npy
+*.ply
+*.part
+*.pt
+*.pth
+*.safetensors
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.gif
+*.mp4
