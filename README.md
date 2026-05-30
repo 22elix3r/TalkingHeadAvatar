@@ -65,14 +65,6 @@ The runtime loop is designed around these steps:
 - Load persona JSON and build meeting-aware orchestration prompts.
 - Route generated TTS audio into the audio driver and optional system playback.
 
-## Public Repository Scope
-
-This public repo intentionally tracks code and documentation, not local experiment payloads.
-
-Large files are excluded because many are either too large for normal GitHub blobs, generated during training, machine-specific, or governed by separate licenses/download terms. Examples include FLAME model assets, Gaussian point clouds, subject videos, extracted frame datasets, checkpoints, TensorBoard logs, GGUF/model weights, and `.venv`.
-
-See [ARTIFACTS.md](ARTIFACTS.md) for the local artifact inventory and expected directory contracts.
-
 ## Requirements
 
 The project is GPU-oriented. Exact dependencies depend on whether you only run tests, render video, train models, or run the full speech/TTS/orchestration stack.
