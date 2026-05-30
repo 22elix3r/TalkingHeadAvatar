@@ -9,6 +9,7 @@ import time
 from queue import Empty, Full, Queue
 
 import numpy as np
+from PIL import Image
 
 
 class VirtualCameraOutput:
@@ -98,17 +99,21 @@ class VirtualCameraOutput:
 
         idle_tick = 0
         try:
+            if self.width % 2 or self.height % 2:
+                raise ValueError(
+                    f"I420 virtual camera dimensions must be even, got {self.width}x{self.height}"
+                )
             with pyvirtualcam.Camera(
                 width=self.width,
                 height=self.height,
                 fps=self.fps,
                 device=self.device,
-                fmt=pyvirtualcam.PixelFormat.RGB,
+                fmt=pyvirtualcam.PixelFormat.I420,
             ) as cam:
                 print(
                     f"[VirtualCameraOutput] Opened {self.device} "
                     f"{self.width}x{self.height}@{self.fps}fps "
-                    f"native_fmt={cam.native_fmt}"
+                    f"input_fmt=I420 native_fmt={cam.native_fmt}"
                 )
                 self._startup_event.set()
                 sent_count = 0
@@ -123,7 +128,7 @@ class VirtualCameraOutput:
                         # never shows a solid-black screen.
                         frame = self._make_idle_frame(idle_tick)
                         idle_tick += 1
-                    cam.send(frame)
+                    cam.send(self._rgb_to_i420(frame))
                     cam.sleep_until_next_frame()
                     sent_count += 1
                     if sent_count % 100 == 0:
@@ -160,7 +165,62 @@ class VirtualCameraOutput:
             frame = (frame * 255.0).astype(np.uint8)
 
         if frame.shape[0] != self.height or frame.shape[1] != self.width:
-            raise ValueError(
-                f"Frame size mismatch. Expected ({self.height}, {self.width}), got {frame.shape[:2]}"
-            )
+            frame = self._letterbox(frame)
         return frame
+
+    def _letterbox(self, frame: np.ndarray) -> np.ndarray:
+        """Resize an RGB frame into the configured camera canvas without distortion."""
+        src_h, src_w = frame.shape[:2]
+        scale = min(self.width / src_w, self.height / src_h)
+        out_w = max(1, int(round(src_w * scale)))
+        out_h = max(1, int(round(src_h * scale)))
+
+        image = Image.fromarray(frame, mode="RGB").resize((out_w, out_h), Image.Resampling.BILINEAR)
+        canvas = np.full((self.height, self.width, 3), 255, dtype=np.uint8)
+        x0 = (self.width - out_w) // 2
+        y0 = (self.height - out_h) // 2
+        canvas[y0 : y0 + out_h, x0 : x0 + out_w] = np.asarray(image, dtype=np.uint8)
+        return canvas
+
+    def _rgb_to_i420(self, frame: np.ndarray) -> np.ndarray:
+        """Convert HWC RGB uint8 to flat I420/YU12 byte layout."""
+        if frame.shape != (self.height, self.width, 3):
+            raise ValueError(
+                f"Expected RGB frame shape ({self.height}, {self.width}, 3), got {frame.shape}"
+            )
+        if self.width % 2 or self.height % 2:
+            raise ValueError(
+                f"I420 virtual camera dimensions must be even, got {self.width}x{self.height}"
+            )
+
+        rgb = frame.astype(np.float32, copy=False)
+        r = rgb[:, :, 0]
+        g = rgb[:, :, 1]
+        b = rgb[:, :, 2]
+
+        # BT.601 limited-range YUV, matching common V4L2/OBS expectations.
+        y = 16.0 + (0.257 * r) + (0.504 * g) + (0.098 * b)
+        u = 128.0 - (0.148 * r) - (0.291 * g) + (0.439 * b)
+        v = 128.0 + (0.439 * r) - (0.368 * g) - (0.071 * b)
+
+        y_plane = np.clip(y, 16, 235).astype(np.uint8)
+        u_plane = self._subsample_420(u)
+        v_plane = self._subsample_420(v)
+        return np.concatenate(
+            [
+                y_plane.reshape(-1),
+                u_plane.reshape(-1),
+                v_plane.reshape(-1),
+            ]
+        )
+
+    @staticmethod
+    def _subsample_420(plane: np.ndarray) -> np.ndarray:
+        h, w = plane.shape
+        subsampled = (
+            plane[0:h:2, 0:w:2]
+            + plane[1:h:2, 0:w:2]
+            + plane[0:h:2, 1:w:2]
+            + plane[1:h:2, 1:w:2]
+        ) * 0.25
+        return np.clip(subsampled, 16, 240).astype(np.uint8)

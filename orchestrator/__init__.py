@@ -12,6 +12,7 @@ from .gemma_loader import load_gemma, GEMMA_MODEL_ID
 from .gemma_loader import (
     AVATAR_TOOLS,
     build_audio_generation_inputs,
+    clean_avatar_speech_text,
     process_gemma_output,
     split_first_sentence,
     stream_gemma_with_early_tts,
@@ -26,6 +27,7 @@ __all__ = [
     "GEMMA_MODEL_ID",
     "AVATAR_TOOLS",
     "build_audio_generation_inputs",
+    "clean_avatar_speech_text",
     "process_gemma_output",
     "split_first_sentence",
     "stream_gemma_with_early_tts",

@@ -254,9 +254,17 @@ class AvatarRenderer:
     # ─────────────────────────────────────────────────────────────────────
 
     @torch.no_grad()
-    def render(self, expression: np.ndarray, jaw_pose: np.ndarray) -> np.ndarray:
+    def render(
+        self,
+        expression: np.ndarray,
+        jaw_pose: np.ndarray,
+        rotation_delta: np.ndarray | None = None,
+        neck_delta: np.ndarray | None = None,
+        eyes_delta: np.ndarray | None = None,
+        translation_delta: np.ndarray | None = None,
+    ) -> np.ndarray:
         """
-        Render one frame driven by FLAME expression + jaw parameters.
+        Render one frame driven by FLAME expression plus optional pose deltas.
 
         Args:
             expression: (n_expr,) float32 — FLAME expression coefficients
@@ -265,19 +273,47 @@ class AvatarRenderer:
         Returns:
             (H, W, 3) uint8 RGB image
         """
+        base_rotation = self.gaussians.flame_param["rotation"][[self.base_timestep]]
+        base_neck = self.gaussians.flame_param["neck_pose"][[self.base_timestep]]
+        base_eyes = self.gaussians.flame_param["eyes_pose"][[self.base_timestep]]
+        base_translation = self.gaussians.flame_param["translation"][[self.base_timestep]]
+
         flame_param = {
             "expr":        torch.from_numpy(expression).float().to(self.device).unsqueeze(0),
-            "rotation":    self.gaussians.flame_param["rotation"][[self.base_timestep]],
-            "neck":        self.gaussians.flame_param["neck_pose"][[self.base_timestep]],
+            "rotation":    base_rotation + self._delta_tensor(rotation_delta, 3),
+            "neck":        base_neck + self._delta_tensor(neck_delta, 3),
             "jaw":         torch.from_numpy(jaw_pose).float().to(self.device).unsqueeze(0),
-            "eyes":        self.gaussians.flame_param["eyes_pose"][[self.base_timestep]],
-            "translation": self.gaussians.flame_param["translation"][[self.base_timestep]],
+            "eyes":        base_eyes + self._delta_tensor(eyes_delta, 6),
+            "translation": base_translation + self._delta_tensor(translation_delta, 3),
         }
         self._update_mesh_from_live_params(flame_param)
 
         out = render(self.cam, self.gaussians, self.pipe, self.bg_color)
         img = out["render"]                        # (3, H, W) float [0,1]
         return (img.permute(1, 2, 0).clamp(0, 1).cpu().numpy() * 255).astype(np.uint8)
+
+    def _delta_tensor(self, value: np.ndarray | None, width: int) -> torch.Tensor:
+        if value is None:
+            return torch.zeros((1, width), dtype=torch.float32, device=self.device)
+        arr = np.asarray(value, dtype=np.float32).reshape(-1)
+        out = np.zeros(width, dtype=np.float32)
+        out[: min(width, arr.shape[0])] = arr[:width]
+        return torch.from_numpy(out).float().to(self.device).unsqueeze(0)
+
+    def expression_motion_basis(self, n_components: int = 4) -> np.ndarray:
+        """Return a small PCA basis from tracked expressions for micro-animation."""
+        expr = self.gaussians.flame_param["expr"].detach().float().cpu().numpy()
+        if expr.ndim != 2 or expr.shape[0] < 2:
+            return np.zeros((0, self.n_expr), dtype=np.float32)
+
+        stride = max(1, expr.shape[0] // 2000)
+        sample = expr[::stride]
+        sample = sample - sample.mean(axis=0, keepdims=True)
+        try:
+            _, _s, vh = np.linalg.svd(sample, full_matrices=False)
+        except np.linalg.LinAlgError:
+            return np.zeros((0, self.n_expr), dtype=np.float32)
+        return vh[: max(0, int(n_components))].astype(np.float32, copy=False)
 
     def _update_mesh_from_live_params(self, flame_param: dict[str, torch.Tensor]) -> None:
         stored = self.gaussians.flame_param

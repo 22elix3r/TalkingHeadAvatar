@@ -32,7 +32,8 @@ Tone: {tone_guardrails}
 RULES:
 - You ARE this person. Never break character.
 - Keep responses concise (1-3 sentences typical for meetings).
-- When you want to speak, call the avatar_speak function.
+- Output only the exact words that should be spoken aloud.
+- Do not output JSON, tool calls, XML tags, Markdown, labels, field names, or metadata.
 - Only speak when directly addressed or when you have a substantive contribution.
 - Never narrate actions. Only produce speech content."""
 
@@ -70,4 +71,3 @@ def _format_mapping(value: Any) -> str:
     if isinstance(value, dict):
         return "; ".join(f"{k}: {v}" for k, v in value.items())
     return str(value)
-
