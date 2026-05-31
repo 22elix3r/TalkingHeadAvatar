@@ -61,13 +61,10 @@ def _default_gemma_gguf_path() -> str:
     return str(min(existing, key=score))
 
 
-DEFAULT_CONFIG = {
-    "session_name": "e2e_demo",
+COMMON_DEFAULT_CONFIG = {
+    "profile": "new_speaker_pilot",
+    "session_name": "new_speaker_pilot",
     "gpu": "0",
-    "avatar_ckpt": "output/sam_altman/ga_phase4_recovered_300k",
-    "audio_driver_ckpt": "audio_driver/checkpoints/sam_altman_phase5/best_model.pt",
-    "persona_file": "data/sam_altman/persona.json",
-    "voice_ref": "data/sam_altman/voice_reference.wav",
     "camera_device": "/dev/video10",
     "resolution": 512,
     "camera_width": 640,
@@ -86,6 +83,7 @@ DEFAULT_CONFIG = {
     "skip_audio_listener": False,
     "audio_input_device": "",
     "audio_output_device": "",
+    "audio_playback_delay_ms": 0.0,
     "disable_stt": False,
     "stt_model": "openai/whisper-tiny.en",
     "stt_language": "en",
@@ -93,6 +91,9 @@ DEFAULT_CONFIG = {
     "enable_stdin_fallback": True,
     "play_audio": True,
     "motion_chunk_ms": 80,
+    "audio_driver_ema": 0.3,
+    "audio_context_seconds": 1.0,
+    "motion_delay_ms": 0.0,
     "motion_expr_scale": 1.0,
     "motion_jaw_scale": 2.0,
     "head_motion_scale": 1.35,
@@ -102,10 +103,61 @@ DEFAULT_CONFIG = {
     "blink_rate": 12,
     "disable_runtime_animation": False,
     "preview_fps": 10,
-    "preview_frame_path": "output/sam_altman/runtime_app/preview.jpg",
-    "control_state_path": "output/sam_altman/runtime_app/control_state.json",
-    "log_path": "output/sam_altman/logs/e2e_demo.log",
 }
+
+RUNTIME_PROFILES = {
+    "new_speaker_pilot": {
+        "label": "New Speaker Pilot",
+        "session_name": "new_speaker_pilot",
+        "avatar_ckpt": "output/new_speaker/ga_pilot",
+        "audio_driver_ckpt": "audio_driver/checkpoints/new_speaker/best_model.pt",
+        "persona_file": "data/new_speaker/persona.json",
+        "voice_ref": "data/new_speaker/voice_reference.wav",
+        "preview_frame_path": "output/new_speaker/runtime_app/preview.jpg",
+        "control_state_path": "output/new_speaker/runtime_app/control_state.json",
+        "log_path": "output/new_speaker/logs/runtime_pilot.log",
+        "motion_chunk_ms": 40,
+        "audio_driver_ema": 0.15,
+        "audio_context_seconds": 0.8,
+        "motion_delay_ms": 80,
+        "motion_jaw_scale": 2.0,
+        "motion_expr_scale": 1.0,
+        "head_motion_scale": 1.25,
+        "eye_motion_scale": 1.0,
+        "expression_runtime_scale": 0.4,
+        "idle_motion_scale": 1.0,
+        "blink_rate": 12,
+    },
+    "sam_altman": {
+        "label": "Sam Altman",
+        "session_name": "e2e_demo",
+        "avatar_ckpt": "output/sam_altman/ga_phase4_recovered_300k",
+        "audio_driver_ckpt": "audio_driver/checkpoints/sam_altman_phase5/best_model.pt",
+        "persona_file": "data/sam_altman/persona.json",
+        "voice_ref": "data/sam_altman/voice_reference.wav",
+        "preview_frame_path": "output/sam_altman/runtime_app/preview.jpg",
+        "control_state_path": "output/sam_altman/runtime_app/control_state.json",
+        "log_path": "output/sam_altman/logs/e2e_demo.log",
+        "motion_jaw_scale": 2.0,
+        "motion_expr_scale": 1.0,
+        "head_motion_scale": 1.35,
+        "eye_motion_scale": 1.0,
+        "expression_runtime_scale": 0.45,
+        "idle_motion_scale": 1.0,
+        "blink_rate": 12,
+    },
+}
+
+
+def _default_config_for_profile(profile: str = "new_speaker_pilot") -> dict:
+    config = COMMON_DEFAULT_CONFIG.copy()
+    selected = RUNTIME_PROFILES.get(profile) or RUNTIME_PROFILES["new_speaker_pilot"]
+    config.update({key: value for key, value in selected.items() if key != "label"})
+    config["profile"] = profile if profile in RUNTIME_PROFILES else "new_speaker_pilot"
+    return config
+
+
+DEFAULT_CONFIG = _default_config_for_profile("new_speaker_pilot")
 
 DEFAULT_CONTROL_STATE = {
     "mic_muted": False,
@@ -135,7 +187,11 @@ FLOAT_FIELDS = {
     "gemma_temperature",
     "gemma_top_p",
     "stt_min_audio_rms",
+    "audio_playback_delay_ms",
     "motion_chunk_ms",
+    "audio_driver_ema",
+    "audio_context_seconds",
+    "motion_delay_ms",
     "motion_expr_scale",
     "motion_jaw_scale",
     "head_motion_scale",
@@ -340,8 +396,12 @@ class RuntimeDemoManager:
         }
 
     def _coerce_config(self, config: dict) -> dict:
-        merged = DEFAULT_CONFIG.copy()
+        requested = config or {}
+        profile = str(requested.get("profile") or DEFAULT_CONFIG["profile"])
+        merged = _default_config_for_profile(profile)
         merged.update(config or {})
+        if merged.get("profile") not in RUNTIME_PROFILES:
+            merged["profile"] = DEFAULT_CONFIG["profile"]
         for key in BOOL_FIELDS:
             value = merged.get(key)
             if isinstance(value, str):
@@ -399,8 +459,16 @@ class RuntimeDemoManager:
             config["stt_language"],
             "--stt_min_audio_rms",
             str(config["stt_min_audio_rms"]),
+            "--audio_playback_delay_ms",
+            str(config["audio_playback_delay_ms"]),
             "--motion_chunk_ms",
             str(config["motion_chunk_ms"]),
+            "--audio_driver_ema",
+            str(config["audio_driver_ema"]),
+            "--audio_context_seconds",
+            str(config["audio_context_seconds"]),
+            "--motion_delay_ms",
+            str(config["motion_delay_ms"]),
             "--motion_expr_scale",
             str(config["motion_expr_scale"]),
             "--motion_jaw_scale",
@@ -470,7 +538,7 @@ class RuntimeAppHandler(BaseHTTPRequestHandler):
             _json_response(self, MANAGER.status())
             return
         if path == "/api/config":
-            _json_response(self, DEFAULT_CONFIG)
+            _json_response(self, {"default": DEFAULT_CONFIG, "profiles": RUNTIME_PROFILES})
             return
         if path == "/preview.jpg":
             self._serve_preview_jpeg()
@@ -544,6 +612,7 @@ class RuntimeAppHandler(BaseHTTPRequestHandler):
 
     def _html(self) -> str:
         config_json = json.dumps(DEFAULT_CONFIG)
+        profiles_json = json.dumps(RUNTIME_PROFILES)
         return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -553,56 +622,84 @@ class RuntimeAppHandler(BaseHTTPRequestHandler):
   <style>
     :root {{
       color-scheme: dark;
-      --bg: #101214;
-      --panel: #181c20;
-      --panel-2: #20262b;
-      --line: #313940;
-      --text: #e9edf1;
-      --muted: #a4adb7;
-      --accent: #39a7ff;
-      --ok: #44c27c;
-      --bad: #ff6d6d;
-      --warn: #f3bc4d;
+      --bg: #0f1215;
+      --surface: #151a1f;
+      --surface-2: #1d242a;
+      --surface-3: #242c33;
+      --line: #303a43;
+      --line-2: #3c4852;
+      --text: #e8edf2;
+      --muted: #9da8b3;
+      --subtle: #73808c;
+      --accent: #2f9fe8;
+      --accent-2: #1c6ea6;
+      --ok: #39bd78;
+      --bad: #ef6868;
+      --warn: #e5b448;
+      --radius: 8px;
     }}
     * {{ box-sizing: border-box; }}
     body {{
       margin: 0;
       background: var(--bg);
       color: var(--text);
-      font: 14px/1.4 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font: 14px/1.45 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }}
     header {{
-      height: 56px;
+      height: 58px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 18px;
+      padding: 0 18px 0 20px;
       border-bottom: 1px solid var(--line);
-      background: #12161a;
+      background: #11161a;
     }}
-    h1 {{ margin: 0; font-size: 18px; font-weight: 650; }}
+    h1 {{ margin: 0; font-size: 18px; font-weight: 700; }}
+    .top-status {{ display: flex; gap: 10px; align-items: center; }}
+    .chip {{
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 28px;
+      padding: 4px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+    }}
+    .chip.live {{ color: #dff9ec; border-color: rgba(57, 189, 120, 0.55); }}
+    .chip.muted {{ color: #ffe2e2; border-color: rgba(239, 104, 104, 0.55); }}
+    .dot {{ width: 8px; height: 8px; border-radius: 50%; background: var(--bad); }}
+    .dot.running {{ background: var(--ok); }}
     main {{
       display: grid;
-      grid-template-columns: minmax(360px, 440px) minmax(480px, 1fr);
-      gap: 16px;
+      grid-template-columns: 360px minmax(560px, 1fr) 430px;
+      gap: 14px;
       padding: 16px;
-      height: calc(100vh - 56px);
+      height: calc(100vh - 58px);
+      min-height: 0;
     }}
     section {{
       min-width: 0;
-      background: var(--panel);
+      background: var(--surface);
       border: 1px solid var(--line);
-      border-radius: 8px;
+      border-radius: var(--radius);
       overflow: hidden;
     }}
-    .left, .right {{
+    .left, .center, .right {{
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
       min-height: 0;
     }}
     .panel-title {{
-      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 38px;
+      padding: 9px 12px;
       border-bottom: 1px solid var(--line);
       color: var(--muted);
       font-size: 12px;
@@ -611,52 +708,68 @@ class RuntimeAppHandler(BaseHTTPRequestHandler):
       letter-spacing: 0.04em;
     }}
     .panel-body {{ padding: 12px; }}
+    .stack {{ display: flex; flex-direction: column; gap: 10px; }}
     .grid {{
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px 12px;
     }}
-    label {{ display: flex; flex-direction: column; gap: 5px; color: var(--muted); font-size: 12px; }}
+    .span-2 {{ grid-column: span 2; }}
+    label {{ display: flex; flex-direction: column; gap: 5px; color: var(--muted); font-size: 12px; min-width: 0; }}
     input, select, textarea {{
       width: 100%;
       border: 1px solid var(--line);
       border-radius: 6px;
-      background: #0d1013;
+      background: #0b0f12;
       color: var(--text);
       padding: 8px 9px;
       font: inherit;
+      min-height: 36px;
     }}
+    textarea {{ resize: vertical; min-height: 96px; }}
     input[type="checkbox"] {{ width: auto; }}
-    .checkrow {{ display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }}
+    .checkrow {{ display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }}
     .checkrow label {{ flex-direction: row; align-items: center; color: var(--text); }}
     button {{
       border: 1px solid var(--line);
       border-radius: 6px;
-      background: var(--panel-2);
+      background: var(--surface-2);
       color: var(--text);
       padding: 9px 12px;
       font-weight: 650;
       cursor: pointer;
+      min-height: 38px;
     }}
-    button.primary {{ background: #0f5f93; border-color: #1878b8; }}
+    button.primary {{ background: var(--accent-2); border-color: var(--accent); }}
     button.danger {{ background: #743333; border-color: #9c4141; }}
+    button.good {{ background: #1d6944; border-color: #2e9f68; }}
+    button.warn {{ background: #7c4d19; border-color: #b87321; }}
+    button.full {{ width: 100%; }}
     button:hover {{ filter: brightness(1.12); }}
-    .actions {{ display: flex; gap: 8px; flex-wrap: wrap; }}
-    .status {{
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      color: var(--muted);
+    .actions {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }}
+    .metric-grid {{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }}
+    .metric {{
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 8px;
+      background: #11161a;
+      min-height: 58px;
     }}
-    .dot {{ width: 10px; height: 10px; border-radius: 50%; background: var(--bad); }}
-    .dot.running {{ background: var(--ok); }}
+    .metric .k {{
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-weight: 700;
+    }}
+    .metric .v {{ margin-top: 4px; font-size: 13px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }}
     .video-wrap {{
       display: flex;
       align-items: center;
       justify-content: center;
       background: #050607;
-      min-height: 360px;
-      height: 54vh;
+      height: min(64vh, calc(100vh - 300px));
+      min-height: 420px;
     }}
     .video-wrap img {{
       max-width: 100%;
@@ -664,127 +777,216 @@ class RuntimeAppHandler(BaseHTTPRequestHandler):
       object-fit: contain;
       background: #0b0d0f;
     }}
-    .prompt-row {{ display: grid; grid-template-columns: 1fr auto; gap: 8px; }}
+    .preview-meta {{ color: var(--subtle); font-size: 12px; text-transform: none; letter-spacing: 0; font-weight: 600; }}
+    .prompt-row {{ display: grid; grid-template-columns: 1fr; gap: 8px; }}
     pre {{
       margin: 0;
       padding: 12px;
-      height: 28vh;
-      min-height: 180px;
+      flex: 1;
+      min-height: 190px;
       overflow: auto;
       background: #080a0c;
       color: #c9d3dd;
-      border-top: 1px solid var(--line);
       white-space: pre-wrap;
       font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     }}
-    .hint {{ color: var(--muted); font-size: 12px; margin-top: 8px; }}
-    @media (max-width: 980px) {{
+    details {{
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #11161a;
+      overflow: hidden;
+    }}
+    summary {{
+      cursor: pointer;
+      padding: 10px 12px;
+      color: var(--text);
+      font-weight: 700;
+      border-bottom: 1px solid transparent;
+    }}
+    details[open] summary {{ border-bottom-color: var(--line); }}
+    details .details-body {{ padding: 12px; }}
+    .hint {{ color: var(--muted); font-size: 12px; min-height: 18px; }}
+    .log-section {{ display: flex; flex-direction: column; min-height: 0; flex: 1; }}
+    .config-scroll {{ overflow: auto; min-height: 0; }}
+    .path-input {{ font-size: 12px; }}
+    @media (max-width: 1260px) {{
+      main {{ grid-template-columns: 340px minmax(500px, 1fr); }}
+      .right {{ grid-column: 1 / -1; }}
+    }}
+    @media (max-width: 860px) {{
       main {{ grid-template-columns: 1fr; height: auto; }}
-      .video-wrap {{ height: 42vh; }}
+      .video-wrap {{ min-height: 320px; height: 46vh; }}
+      .actions {{ grid-template-columns: 1fr; }}
     }}
   </style>
 </head>
 <body>
   <header>
     <h1>Talking Head Runtime</h1>
-    <div class="status"><span id="statusDot" class="dot"></span><span id="statusText">Checking</span></div>
+    <div class="top-status">
+      <div id="micChip" class="chip"><span class="dot"></span><span id="micChipText">Mic unknown</span></div>
+      <div id="runChip" class="chip"><span id="statusDot" class="dot"></span><span id="statusText">Checking</span></div>
+    </div>
   </header>
   <main>
     <div class="left">
       <section>
-        <div class="panel-title">Run</div>
+        <div class="panel-title">Session</div>
         <div class="panel-body">
           <div class="actions">
             <button class="primary" onclick="startRun()">Start</button>
             <button onclick="restartRun()">Restart</button>
             <button class="danger" onclick="stopRun()">Stop</button>
           </div>
+          <div class="metric-grid" style="margin-top: 10px;">
+            <div class="metric"><div class="k">Session</div><div id="sessionMetric" class="v">-</div></div>
+            <div class="metric"><div class="k">Device</div><div id="deviceMetric" class="v">-</div></div>
+            <div class="metric"><div class="k">Camera</div><div id="cameraMetric" class="v">-</div></div>
+            <div class="metric"><div class="k">Preview</div><div id="previewMetric" class="v">-</div></div>
+          </div>
           <div class="hint" id="message"></div>
         </div>
       </section>
       <section>
-        <div class="panel-title">Input</div>
+        <div class="panel-title">Live Input</div>
         <div class="panel-body">
-          <div class="prompt-row">
-            <textarea id="prompt" rows="3" placeholder="Type avatar text..."></textarea>
-            <button onclick="sendPrompt()">Send</button>
+          <div class="stack">
+            <button id="micToggle" class="good full" onclick="toggleMic()">Mic On</button>
+            <div class="prompt-row">
+              <textarea id="prompt" rows="4" placeholder="Typed turn for the avatar"></textarea>
+              <button onclick="sendPrompt()">Send Text</button>
+            </div>
           </div>
         </div>
       </section>
-      <section style="min-height: 0; overflow: auto;">
-        <div class="panel-title">Parameters</div>
+      <section>
+        <div class="panel-title">Fast Controls</div>
         <div class="panel-body">
-          <div class="grid">
-            <label>Session <input id="session_name"></label>
-            <label>GPU <input id="gpu"></label>
-            <label>Camera <input id="camera_device"></label>
-            <label>Device <select id="device"><option>cuda</option><option>cpu</option></select></label>
-            <label>Resolution <input id="resolution" type="number"></label>
-            <label>FPS <input id="fps" type="number"></label>
-            <label>Camera Width <input id="camera_width" type="number"></label>
-            <label>Camera Height <input id="camera_height" type="number"></label>
-            <label>Emotion <select id="emotion_mode"><option>neutral</option><option>engaged</option><option>emphatic</option><option>concerned</option></select></label>
-            <label>Gemma GPU Layers <input id="gemma_n_gpu_layers" type="number"></label>
-            <label>Gemma Context <input id="gemma_n_ctx" type="number"></label>
-            <label>Gemma Max Tokens <input id="gemma_max_tokens" type="number"></label>
-            <label>Gemma Temp <input id="gemma_temperature" type="number" step="0.05"></label>
-            <label>Gemma Top P <input id="gemma_top_p" type="number" step="0.05"></label>
-            <label>STT RMS <input id="stt_min_audio_rms" type="number" step="0.001"></label>
-            <label>Motion Chunk ms <input id="motion_chunk_ms" type="number" step="1"></label>
-            <label>Jaw Scale <input id="motion_jaw_scale" type="number" step="0.05"></label>
-            <label>Expr Scale <input id="motion_expr_scale" type="number" step="0.05"></label>
-            <label>Head Scale <input id="head_motion_scale" type="number" step="0.05"></label>
-            <label>Eye Scale <input id="eye_motion_scale" type="number" step="0.05"></label>
-            <label>Runtime Expr <input id="expression_runtime_scale" type="number" step="0.05"></label>
-            <label>Idle Scale <input id="idle_motion_scale" type="number" step="0.05"></label>
-            <label>Blinks/min <input id="blink_rate" type="number" step="1"></label>
-            <label>Preview FPS <input id="preview_fps" type="number" step="1"></label>
-          </div>
-          <div class="grid" style="margin-top: 10px;">
-            <label>Avatar CKPT <input id="avatar_ckpt"></label>
-            <label>Audio Driver CKPT <input id="audio_driver_ckpt"></label>
-            <label>Persona <input id="persona_file"></label>
-            <label>Voice Ref <input id="voice_ref"></label>
-            <label>Gemma GGUF <input id="gemma_gguf_path"></label>
-            <label>Mic Input <input id="audio_input_device"></label>
-            <label>Audio Output <input id="audio_output_device"></label>
-            <label>STT Model <input id="stt_model"></label>
-            <label>STT Language <input id="stt_language"></label>
-            <label>Preview Path <input id="preview_frame_path"></label>
-            <label>Log Path <input id="log_path"></label>
-          </div>
-          <div class="checkrow">
-            <label><input id="skip_gemma" type="checkbox"> Skip Gemma</label>
-            <label><input id="gemma_verbose" type="checkbox"> Gemma Verbose</label>
-            <label><input id="skip_audio_listener" type="checkbox"> Skip Listener</label>
-            <label><input id="disable_stt" type="checkbox"> Disable STT</label>
-            <label><input id="enable_stdin_fallback" type="checkbox"> Stdin Input</label>
-            <label><input id="play_audio" type="checkbox"> Play Audio</label>
-            <label><input id="disable_runtime_animation" type="checkbox"> Disable Runtime Animation</label>
+          <div class="prompt-row">
+            <label>Emotion
+              <select id="emotion_mode">
+                <option>neutral</option><option>engaged</option><option>emphatic</option><option>concerned</option>
+              </select>
+            </label>
+            <div class="grid">
+              <label>Jaw <input id="motion_jaw_scale" type="number" step="0.05"></label>
+              <label>Expr <input id="motion_expr_scale" type="number" step="0.05"></label>
+              <label>Head <input id="head_motion_scale" type="number" step="0.05"></label>
+              <label>Eyes <input id="eye_motion_scale" type="number" step="0.05"></label>
+              <label>Runtime Expr <input id="expression_runtime_scale" type="number" step="0.05"></label>
+              <label>Blinks/min <input id="blink_rate" type="number" step="1"></label>
+              <label>Chunk ms <input id="motion_chunk_ms" type="number" step="1"></label>
+              <label>Motion Delay ms <input id="motion_delay_ms" type="number" step="10"></label>
+              <label>Audio Delay ms <input id="audio_playback_delay_ms" type="number" step="10"></label>
+              <label>Driver EMA <input id="audio_driver_ema" type="number" step="0.05"></label>
+              <label>Audio Context s <input id="audio_context_seconds" type="number" step="0.1"></label>
+              <label>Idle <input id="idle_motion_scale" type="number" step="0.05"></label>
+            </div>
           </div>
         </div>
       </section>
     </div>
-    <div class="right">
+    <div class="center">
       <section>
-        <div class="panel-title">Output Preview</div>
+        <div class="panel-title"><span>Output Preview</span><span id="previewMeta" class="preview-meta">-</span></div>
         <div class="video-wrap">
           <img id="preview" src="/preview.mjpg" alt="Runtime preview">
         </div>
       </section>
-      <section style="min-height: 0;">
-        <div class="panel-title">Logs</div>
+      <section class="log-section">
+        <div class="panel-title"><span>Logs</span><button onclick="refreshStatus()">Refresh</button></div>
         <pre id="logs"></pre>
+      </section>
+    </div>
+    <div class="right">
+      <section class="config-scroll">
+        <div class="panel-title">Configuration</div>
+        <div class="panel-body stack">
+          <details open>
+            <summary>Runtime</summary>
+            <div class="details-body grid">
+              <label class="span-2">Profile <select id="profile"></select></label>
+              <label>Session <input id="session_name"></label>
+              <label>GPU <input id="gpu"></label>
+              <label>Device <select id="device"><option>cuda</option><option>cpu</option></select></label>
+              <label>FPS <input id="fps" type="number"></label>
+              <label>Resolution <input id="resolution" type="number"></label>
+              <label>Preview FPS <input id="preview_fps" type="number" step="1"></label>
+              <label>Camera <input id="camera_device"></label>
+              <label>Camera Width <input id="camera_width" type="number"></label>
+              <label>Camera Height <input id="camera_height" type="number"></label>
+            </div>
+          </details>
+          <details>
+            <summary>Conversation</summary>
+            <div class="details-body grid">
+              <label>Gemma GPU Layers <input id="gemma_n_gpu_layers" type="number"></label>
+              <label>Gemma Context <input id="gemma_n_ctx" type="number"></label>
+              <label>Gemma Max Tokens <input id="gemma_max_tokens" type="number"></label>
+              <label>Gemma Temp <input id="gemma_temperature" type="number" step="0.05"></label>
+              <label>Gemma Top P <input id="gemma_top_p" type="number" step="0.05"></label>
+              <label>STT RMS <input id="stt_min_audio_rms" type="number" step="0.001"></label>
+              <label>STT Model <input id="stt_model"></label>
+              <label>STT Language <input id="stt_language"></label>
+              <label class="span-2">Gemma GGUF <input id="gemma_gguf_path" class="path-input"></label>
+            </div>
+          </details>
+          <details>
+            <summary>Audio</summary>
+            <div class="details-body grid">
+              <label>Mic Input <input id="audio_input_device"></label>
+              <label>Audio Output <input id="audio_output_device"></label>
+              <label class="span-2">Voice Ref <input id="voice_ref" class="path-input"></label>
+            </div>
+          </details>
+          <details>
+            <summary>Files</summary>
+            <div class="details-body grid">
+              <label class="span-2">Avatar CKPT <input id="avatar_ckpt" class="path-input"></label>
+              <label class="span-2">Audio Driver CKPT <input id="audio_driver_ckpt" class="path-input"></label>
+              <label class="span-2">Persona <input id="persona_file" class="path-input"></label>
+              <label class="span-2">Preview Path <input id="preview_frame_path" class="path-input"></label>
+              <label class="span-2">Control State <input id="control_state_path" class="path-input"></label>
+              <label class="span-2">Log Path <input id="log_path" class="path-input"></label>
+            </div>
+          </details>
+          <details>
+            <summary>Flags</summary>
+            <div class="details-body checkrow">
+              <label><input id="skip_gemma" type="checkbox"> Skip Gemma</label>
+              <label><input id="gemma_verbose" type="checkbox"> Gemma Verbose</label>
+              <label><input id="skip_audio_listener" type="checkbox"> Skip Listener</label>
+              <label><input id="disable_stt" type="checkbox"> Disable STT</label>
+              <label><input id="enable_stdin_fallback" type="checkbox"> Stdin Input</label>
+              <label><input id="play_audio" type="checkbox"> Play Audio</label>
+              <label><input id="disable_runtime_animation" type="checkbox"> Disable Runtime Animation</label>
+            </div>
+          </details>
+        </div>
       </section>
     </div>
   </main>
   <script>
     const DEFAULT_CONFIG = {config_json};
+    const RUNTIME_PROFILES = {profiles_json};
     const boolFields = new Set({json.dumps(sorted(BOOL_FIELDS))});
     const intFields = new Set({json.dumps(sorted(INT_FIELDS))});
     const floatFields = new Set({json.dumps(sorted(FLOAT_FIELDS))});
     const fieldIds = Object.keys(DEFAULT_CONFIG);
     let formDirty = false;
+    let currentControl = {{mic_muted: false}};
+
+    function initProfiles() {{
+      const select = document.getElementById('profile');
+      if (!select) return;
+      select.innerHTML = '';
+      for (const [key, profile] of Object.entries(RUNTIME_PROFILES)) {{
+        const option = document.createElement('option');
+        option.value = key;
+        option.textContent = profile.label || key;
+        select.appendChild(option);
+      }}
+    }}
 
     function setMessage(text) {{
       document.getElementById('message').textContent = text || '';
@@ -797,6 +999,17 @@ class RuntimeAppHandler(BaseHTTPRequestHandler):
         if (el.type === 'checkbox') el.checked = !!cfg[key];
         else el.value = cfg[key] ?? '';
       }}
+    }}
+
+    function applyProfile(profileKey) {{
+      const profile = RUNTIME_PROFILES[profileKey];
+      if (!profile) return;
+      const current = collectConfig();
+      const next = Object.assign({{}}, current, profile, {{profile: profileKey}});
+      delete next.label;
+      loadConfig(next);
+      formDirty = true;
+      setMessage('Profile loaded: ' + (profile.label || profileKey));
     }}
 
     function collectConfig() {{
@@ -828,26 +1041,67 @@ class RuntimeAppHandler(BaseHTTPRequestHandler):
     function startRun() {{ postJSON('/api/start', collectConfig()); }}
     function stopRun() {{ postJSON('/api/stop', collectConfig()); }}
     function restartRun() {{ postJSON('/api/restart', collectConfig()); }}
+    function toggleMic() {{
+      postJSON('/api/mic', {{muted: !currentControl.mic_muted, config: collectConfig()}});
+    }}
     function sendPrompt() {{
       const text = document.getElementById('prompt').value;
       postJSON('/api/prompt', {{text, session_name: document.getElementById('session_name').value}});
+    }}
+
+    function updateMic(control) {{
+      currentControl = control || {{mic_muted: false}};
+      const muted = !!currentControl.mic_muted;
+      const button = document.getElementById('micToggle');
+      const chip = document.getElementById('micChip');
+      button.textContent = muted ? 'Mic Muted' : 'Mic On';
+      button.classList.toggle('good', !muted);
+      button.classList.toggle('warn', muted);
+      chip.classList.toggle('muted', muted);
+      chip.classList.toggle('live', !muted);
+      chip.querySelector('.dot').classList.toggle('running', !muted);
+      document.getElementById('micChipText').textContent = muted ? 'Mic muted' : 'Mic live';
+    }}
+
+    function updateMetrics(data) {{
+      const cfg = data.config || DEFAULT_CONFIG;
+      document.getElementById('sessionMetric').textContent = data.running ? data.session_name : 'stopped';
+      document.getElementById('deviceMetric').textContent = cfg.device + ' / gpu ' + cfg.gpu;
+      document.getElementById('cameraMetric').textContent = cfg.camera_device;
+      document.getElementById('previewMetric').textContent = cfg.camera_width + 'x' + cfg.camera_height + ' @ ' + cfg.fps;
+      document.getElementById('previewMeta').textContent = cfg.camera_width + 'x' + cfg.camera_height + ' / ' + cfg.preview_fps + ' fps preview';
     }}
 
     async function refreshStatus() {{
       const res = await fetch('/api/status');
       const data = await res.json();
       const dot = document.getElementById('statusDot');
+      const runChip = document.getElementById('runChip');
       dot.classList.toggle('running', !!data.running);
+      runChip.classList.toggle('live', !!data.running);
       document.getElementById('statusText').textContent = data.running ? 'Running: ' + data.session_name : 'Stopped';
-      document.getElementById('logs').textContent = data.logs || '';
+      const logs = document.getElementById('logs');
+      logs.textContent = data.logs || '';
+      logs.scrollTop = logs.scrollHeight;
+      updateMic(data.control);
+      updateMetrics(data);
       if (data.config && !formDirty) loadConfig(data.config);
     }}
 
+    initProfiles();
     loadConfig(DEFAULT_CONFIG);
     for (const key of fieldIds) {{
       const el = document.getElementById(key);
-      if (el) el.addEventListener('input', () => {{ formDirty = true; }});
+      if (el) {{
+        el.addEventListener('input', () => {{ formDirty = true; }});
+        el.addEventListener('change', () => {{ formDirty = true; }});
+      }}
     }}
+    const profileEl = document.getElementById('profile');
+    if (profileEl) {{
+      profileEl.addEventListener('change', () => applyProfile(profileEl.value));
+    }}
+    updateMic({{mic_muted: false}});
     refreshStatus();
     setInterval(refreshStatus, 1500);
   </script>

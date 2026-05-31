@@ -13,6 +13,7 @@ Current behavior:
 from __future__ import annotations
 
 import argparse
+from collections import deque
 from importlib import metadata as importlib_metadata
 import json
 import threading
@@ -155,10 +156,34 @@ def parse_args():
         help="Optional sounddevice output device index/name for --play_audio",
     )
     parser.add_argument(
+        "--audio_playback_delay_ms",
+        type=float,
+        default=0.0,
+        help="Delay generated audio playback; useful if lips lag behind audio in OBS",
+    )
+    parser.add_argument(
         "--motion_chunk_ms",
         type=float,
         default=80.0,
         help="Audio chunk duration for HuBERT-driven motion updates (default: 80 ms)",
+    )
+    parser.add_argument(
+        "--audio_driver_ema",
+        type=float,
+        default=0.3,
+        help="Motion smoothing alpha for the audio driver (0 = fastest, 0.3 = smoother)",
+    )
+    parser.add_argument(
+        "--audio_context_seconds",
+        type=float,
+        default=1.0,
+        help="Sliding audio context window for HuBERT motion prediction",
+    )
+    parser.add_argument(
+        "--motion_delay_ms",
+        type=float,
+        default=0.0,
+        help="Delay motion updates after TTS audio time; useful if lips lead audio in OBS",
     )
     parser.add_argument(
         "--disable_motion_realtime_pacing",
@@ -323,9 +348,11 @@ class AudioPlaybackOutput:
         sample_rate: int = 16000,
         device: str | int | None = None,
         queue_maxsize: int = 50,
+        delay_ms: float = 0.0,
     ):
         self.sample_rate = sample_rate
         self.device = device
+        self.delay_ms = max(0.0, float(delay_ms))
         self.audio_queue: Queue[np.ndarray] = Queue(maxsize=queue_maxsize)
         self._stop_event = threading.Event()
         self._thread: threading.Thread | None = None
@@ -354,15 +381,25 @@ class AudioPlaybackOutput:
         ) as stream:
             print(
                 f"[AudioPlaybackOutput] Opened output device={self.device or 'default'} "
-                f"{self.sample_rate}Hz mono"
+                f"{self.sample_rate}Hz mono delay={self.delay_ms:.1f}ms"
             )
+            delay_samples = int(round(self.sample_rate * self.delay_ms / 1000.0))
+            delay_chunk = np.zeros((delay_samples, 1), dtype=np.float32)
+            utterance_active = False
+            last_audio_at = 0.0
             while not self._stop_event.is_set():
                 try:
                     chunk = self.audio_queue.get(timeout=0.2)
                 except Empty:
+                    if utterance_active and time.monotonic() - last_audio_at > 0.5:
+                        utterance_active = False
                     continue
                 chunk = np.asarray(chunk, dtype=np.float32).reshape(-1, 1)
+                if delay_samples > 0 and not utterance_active:
+                    stream.write(delay_chunk)
+                utterance_active = True
                 stream.write(chunk)
+                last_audio_at = time.monotonic()
 
 
 class AudioFanoutQueue:
@@ -599,11 +636,19 @@ def main():
         print("[2/6] Skipping audio driver (--video_only).")
         driver = None
     else:
+        audio_driver_ema = min(max(args.audio_driver_ema, 0.0), 0.99)
+        audio_context_seconds = max(0.2, args.audio_context_seconds)
+        if audio_driver_ema != args.audio_driver_ema:
+            print(f"[motion] clamped audio_driver_ema to {audio_driver_ema:.3f}")
+        if audio_context_seconds != args.audio_context_seconds:
+            print(f"[motion] clamped audio_context_seconds to {audio_context_seconds:.3f}")
         print("[2/6] Initializing audio driver...")
         driver = StreamingAudioDriver(
             motion_translator_ckpt=args.audio_driver_ckpt,
             device=args.device,
             fp16=args.device.startswith("cuda"),
+            ema_alpha=audio_driver_ema,
+            context_seconds=audio_context_seconds,
         )
         if not args.skip_audio_driver_warmup:
             print("[2/6] Warming up audio driver...")
@@ -712,6 +757,21 @@ def main():
     stop_event = threading.Event()
 
     motion_chunk_count = 0
+    motion_delay_seconds = max(0.0, args.motion_delay_ms / 1000.0)
+    pending_motion: deque[tuple[float, np.ndarray, np.ndarray]] = deque()
+    pending_motion_lock = threading.Lock()
+
+    def apply_due_motion_updates():
+        if motion_delay_seconds <= 0:
+            return
+        latest_motion = None
+        now = time.monotonic()
+        with pending_motion_lock:
+            while pending_motion and pending_motion[0][0] <= now:
+                _, expr, jaw = pending_motion.popleft()
+                latest_motion = (expr, jaw)
+        if latest_motion is not None:
+            motion_state.update(*latest_motion)
 
     def consume_audio_chunk(chunk_16k: np.ndarray):
         nonlocal motion_chunk_count
@@ -720,7 +780,13 @@ def main():
         expr, jaw = driver.step_from_numpy(chunk_16k)
         expr = np.clip(expr * args.motion_expr_scale, -5.0, 5.0)
         jaw = np.clip(jaw * args.motion_jaw_scale, -0.45, 0.45)
-        motion_state.update(expr, jaw)
+        if motion_delay_seconds > 0:
+            with pending_motion_lock:
+                pending_motion.append((time.monotonic() + motion_delay_seconds, expr, jaw))
+                while len(pending_motion) > 1000:
+                    pending_motion.popleft()
+        else:
+            motion_state.update(expr, jaw)
         motion_chunk_count += 1
         if motion_chunk_count == 1 or motion_chunk_count % 25 == 0:
             expr_rms = float(np.sqrt(np.mean(np.square(expr))))
@@ -749,11 +815,17 @@ def main():
             "[motion] "
             f"chunk_size={motion_chunk_size} samples "
             f"({motion_chunk_size / 16000 * 1000:.1f} ms), "
-            f"realtime_pacing={not args.disable_motion_realtime_pacing}"
+            f"realtime_pacing={not args.disable_motion_realtime_pacing}, "
+            f"ema={min(max(args.audio_driver_ema, 0.0), 0.99):.3f}, "
+            f"context={max(0.2, args.audio_context_seconds):.3f}s, "
+            f"motion_delay={motion_delay_seconds * 1000:.1f}ms"
         )
     audio_playback = None
     if args.play_audio and not args.video_only:
-        audio_playback = AudioPlaybackOutput(device=args.audio_output_device)
+        audio_playback = AudioPlaybackOutput(
+            device=args.audio_output_device,
+            delay_ms=args.audio_playback_delay_ms,
+        )
 
     tts_audio_sink = None
     if bridge is not None and audio_playback is not None:
@@ -919,6 +991,7 @@ def main():
         while not stop_event.is_set():
             frame_start = time.perf_counter()
             if renderer:
+                apply_due_motion_updates()
                 expr, jaw, has_motion, _age = motion_state.snapshot(renderer.n_expr)
                 if animation_controller is not None:
                     anim = animation_controller.step(

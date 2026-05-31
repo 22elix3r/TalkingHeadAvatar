@@ -270,9 +270,24 @@ def train(args):
     if feature_cache.exists() and not args.no_feature_cache:
         print(f"Loading cached HuBERT features: {feature_cache}")
         cache = torch.load(str(feature_cache), map_location="cpu", weights_only=True)
-        features = cache["features"].float()
-        print(f"  → Cached HuBERT frames: {features.shape[0]}")
+        cache_audio_path = str(cache.get("audio_path", ""))
+        cache_audio_samples = int(cache.get("audio_samples", -1))
+        cache_flame_frames = int(cache.get("n_flame_frames", -1))
+        cache_matches = (
+            cache_audio_path == str(Path(args.audio_path))
+            and cache_audio_samples == int(len(audio_np))
+            and cache_flame_frames == int(n_frames)
+        )
+        if cache_matches:
+            features = cache["features"].float()
+            print(f"  → Cached HuBERT frames: {features.shape[0]}")
+        else:
+            print("  → Cache metadata does not match this audio/FLAME pair; recomputing.")
+            features = None
     else:
+        features = None
+
+    if features is None:
         print("Encoding with HuBERT (this may take a minute) …")
         encoder = AudioEncoder(device=device, fp16=(device.type == "cuda"))
         features = encode_audio_with_hubert(
