@@ -25,6 +25,7 @@ from queue import Empty, Full, Queue
 import numpy as np
 import torch
 
+from audio_driver.motion_frame import FlameMotionFrame
 from orchestrator import (
     MeetingAudioListener,
     MeetingSpeechRecognizer,
@@ -203,6 +204,30 @@ def parse_args():
         help="Multiplier applied to predicted jaw pose before rendering (default: 2.0)",
     )
     parser.add_argument(
+        "--learned_pose_scale",
+        type=float,
+        default=1.0,
+        help="Multiplier for learned audio-driver head rotation deltas.",
+    )
+    parser.add_argument(
+        "--learned_neck_scale",
+        type=float,
+        default=1.0,
+        help="Multiplier for learned audio-driver neck pose deltas.",
+    )
+    parser.add_argument(
+        "--learned_eye_scale",
+        type=float,
+        default=1.0,
+        help="Multiplier for learned audio-driver eye pose deltas.",
+    )
+    parser.add_argument(
+        "--learned_translation_scale",
+        type=float,
+        default=1.0,
+        help="Multiplier for learned audio-driver translation deltas.",
+    )
+    parser.add_argument(
         "--skip_audio_driver_warmup",
         action="store_true",
         help="Do not run a silent HuBERT warmup at startup",
@@ -275,6 +300,10 @@ class AvatarMotionState:
         self._n_expr = int(n_expr)
         self._expr = np.zeros(self._n_expr, dtype=np.float32)
         self._jaw = np.zeros(3, dtype=np.float32)
+        self._rotation = np.zeros(3, dtype=np.float32)
+        self._neck = np.zeros(3, dtype=np.float32)
+        self._eyes = np.zeros(6, dtype=np.float32)
+        self._translation = np.zeros(3, dtype=np.float32)
         self._has_motion = False
         self._updated_at = 0.0
         self._idle_hold_s = float(idle_hold_s)
@@ -299,6 +328,13 @@ class AvatarMotionState:
         out[:n] = arr[:n]
         return out
 
+    @staticmethod
+    def _coerce_width(value: np.ndarray, width: int) -> np.ndarray:
+        arr = np.asarray(value, dtype=np.float32).reshape(-1)
+        out = np.zeros(width, dtype=np.float32)
+        out[: min(width, arr.shape[0])] = arr[:width]
+        return out
+
     def configure_expression_dim(self, n_expr: int) -> None:
         n_expr = int(n_expr)
         with self._lock:
@@ -311,6 +347,21 @@ class AvatarMotionState:
         with self._lock:
             self._expr = self._coerce_expr(expr, self._n_expr)
             self._jaw = self._coerce_jaw(jaw)
+            self._rotation = np.zeros(3, dtype=np.float32)
+            self._neck = np.zeros(3, dtype=np.float32)
+            self._eyes = np.zeros(6, dtype=np.float32)
+            self._translation = np.zeros(3, dtype=np.float32)
+            self._has_motion = True
+            self._updated_at = time.monotonic()
+
+    def update_frame(self, frame: FlameMotionFrame) -> None:
+        with self._lock:
+            self._expr = self._coerce_expr(frame.expression, self._n_expr)
+            self._jaw = self._coerce_jaw(frame.jaw)
+            self._rotation = self._coerce_width(frame.rotation, 3)
+            self._neck = self._coerce_width(frame.neck, 3)
+            self._eyes = self._coerce_width(frame.eyes, 6)
+            self._translation = self._coerce_width(frame.translation, 3)
             self._has_motion = True
             self._updated_at = time.monotonic()
 
@@ -322,11 +373,15 @@ class AvatarMotionState:
         with self._lock:
             return self._emotion
 
-    def snapshot(self, n_expr: int | None = None) -> tuple[np.ndarray, np.ndarray, bool, float]:
+    def snapshot(self, n_expr: int | None = None) -> tuple[FlameMotionFrame, bool, float]:
         with self._lock:
             target_n_expr = self._n_expr if n_expr is None else int(n_expr)
             expr = self._coerce_expr(self._expr, target_n_expr)
             jaw = self._jaw.copy()
+            rotation = self._rotation.copy()
+            neck = self._neck.copy()
+            eyes = self._eyes.copy()
+            translation = self._translation.copy()
             has_motion = self._has_motion
             updated_at = self._updated_at
 
@@ -335,9 +390,24 @@ class AvatarMotionState:
             fade = max(0.0, 1.0 - ((age - self._idle_hold_s) / max(self._idle_decay_s, 1e-6)))
             expr *= fade
             jaw *= fade
+            rotation *= fade
+            neck *= fade
+            eyes *= fade
+            translation *= fade
             if fade <= 0.001:
                 has_motion = False
-        return expr, jaw, has_motion, age
+        return (
+            FlameMotionFrame(
+                expression=expr,
+                jaw=jaw,
+                rotation=rotation,
+                neck=neck,
+                eyes=eyes,
+                translation=translation,
+            ),
+            has_motion,
+            age,
+        )
 
 
 class AudioPlaybackOutput:
@@ -758,7 +828,7 @@ def main():
 
     motion_chunk_count = 0
     motion_delay_seconds = max(0.0, args.motion_delay_ms / 1000.0)
-    pending_motion: deque[tuple[float, np.ndarray, np.ndarray]] = deque()
+    pending_motion: deque[tuple[float, FlameMotionFrame]] = deque()
     pending_motion_lock = threading.Lock()
 
     def apply_due_motion_updates():
@@ -768,34 +838,51 @@ def main():
         now = time.monotonic()
         with pending_motion_lock:
             while pending_motion and pending_motion[0][0] <= now:
-                _, expr, jaw = pending_motion.popleft()
-                latest_motion = (expr, jaw)
+                _, frame = pending_motion.popleft()
+                latest_motion = frame
         if latest_motion is not None:
-            motion_state.update(*latest_motion)
+            motion_state.update_frame(latest_motion)
 
     def consume_audio_chunk(chunk_16k: np.ndarray):
         nonlocal motion_chunk_count
         if driver is None:
             return
-        expr, jaw = driver.step_from_numpy(chunk_16k)
-        expr = np.clip(expr * args.motion_expr_scale, -5.0, 5.0)
-        jaw = np.clip(jaw * args.motion_jaw_scale, -0.45, 0.45)
+        if hasattr(driver, "step_motion_from_numpy"):
+            frame = driver.step_motion_from_numpy(chunk_16k).scaled(
+                expr_scale=args.motion_expr_scale,
+                jaw_scale=args.motion_jaw_scale,
+                rotation_scale=args.learned_pose_scale,
+                neck_scale=args.learned_neck_scale,
+                eyes_scale=args.learned_eye_scale,
+                translation_scale=args.learned_translation_scale,
+            )
+        else:
+            expr, jaw = driver.step_from_numpy(chunk_16k)
+            frame = FlameMotionFrame.from_channels(
+                {
+                    "expr": np.clip(expr * args.motion_expr_scale, -5.0, 5.0),
+                    "jaw": np.clip(jaw * args.motion_jaw_scale, -0.45, 0.45),
+                },
+                n_expr=getattr(motion_state, "_n_expr", 100),
+            )
         if motion_delay_seconds > 0:
             with pending_motion_lock:
-                pending_motion.append((time.monotonic() + motion_delay_seconds, expr, jaw))
+                pending_motion.append((time.monotonic() + motion_delay_seconds, frame))
                 while len(pending_motion) > 1000:
                     pending_motion.popleft()
         else:
-            motion_state.update(expr, jaw)
+            motion_state.update_frame(frame)
         motion_chunk_count += 1
         if motion_chunk_count == 1 or motion_chunk_count % 25 == 0:
-            expr_rms = float(np.sqrt(np.mean(np.square(expr))))
-            jaw_norm = float(np.linalg.norm(jaw))
+            expr_rms = float(np.sqrt(np.mean(np.square(frame.expression))))
+            jaw_norm = float(np.linalg.norm(frame.jaw))
+            pose_norm = float(np.linalg.norm(frame.rotation) + np.linalg.norm(frame.neck))
             print(
                 "[motion] "
                 f"chunks={motion_chunk_count} "
                 f"expr_rms={expr_rms:.5f} "
                 f"jaw_norm={jaw_norm:.5f} "
+                f"pose_norm={pose_norm:.5f} "
                 f"latency_ms={getattr(driver, 'latency_ms', 0.0):.1f}"
             )
 
@@ -992,24 +1079,31 @@ def main():
             frame_start = time.perf_counter()
             if renderer:
                 apply_due_motion_updates()
-                expr, jaw, has_motion, _age = motion_state.snapshot(renderer.n_expr)
+                motion_frame, has_motion, _age = motion_state.snapshot(renderer.n_expr)
                 if animation_controller is not None:
                     anim = animation_controller.step(
-                        expression=expr,
-                        jaw=jaw,
+                        expression=motion_frame.expression,
+                        jaw=motion_frame.jaw,
                         has_motion=has_motion,
                         emotion_mode=motion_state.emotion(),
                     )
                     frame = renderer.render(
                         anim.expression,
                         anim.jaw,
-                        rotation_delta=anim.rotation_delta,
-                        neck_delta=anim.neck_delta,
-                        eyes_delta=anim.eyes_delta,
-                        translation_delta=anim.translation_delta,
+                        rotation_delta=motion_frame.rotation + anim.rotation_delta,
+                        neck_delta=motion_frame.neck + anim.neck_delta,
+                        eyes_delta=motion_frame.eyes + anim.eyes_delta,
+                        translation_delta=motion_frame.translation + anim.translation_delta,
                     )
                 elif has_motion:
-                    frame = renderer.render(expr, jaw)
+                    frame = renderer.render(
+                        motion_frame.expression,
+                        motion_frame.jaw,
+                        rotation_delta=motion_frame.rotation,
+                        neck_delta=motion_frame.neck,
+                        eyes_delta=motion_frame.eyes,
+                        translation_delta=motion_frame.translation,
+                    )
                 else:
                     frame = renderer.render_idle()
                 if preview_writer is not None:

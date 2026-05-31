@@ -96,6 +96,10 @@ COMMON_DEFAULT_CONFIG = {
     "motion_delay_ms": 0.0,
     "motion_expr_scale": 1.0,
     "motion_jaw_scale": 2.0,
+    "learned_pose_scale": 1.0,
+    "learned_neck_scale": 1.0,
+    "learned_eye_scale": 1.0,
+    "learned_translation_scale": 1.0,
     "head_motion_scale": 1.35,
     "eye_motion_scale": 1.0,
     "expression_runtime_scale": 0.45,
@@ -122,6 +126,10 @@ RUNTIME_PROFILES = {
         "motion_delay_ms": 80,
         "motion_jaw_scale": 2.0,
         "motion_expr_scale": 1.0,
+        "learned_pose_scale": 1.0,
+        "learned_neck_scale": 1.0,
+        "learned_eye_scale": 1.0,
+        "learned_translation_scale": 1.0,
         "head_motion_scale": 1.25,
         "eye_motion_scale": 1.0,
         "expression_runtime_scale": 0.4,
@@ -140,6 +148,10 @@ RUNTIME_PROFILES = {
         "log_path": "output/sam_altman/logs/e2e_demo.log",
         "motion_jaw_scale": 2.0,
         "motion_expr_scale": 1.0,
+        "learned_pose_scale": 1.0,
+        "learned_neck_scale": 1.0,
+        "learned_eye_scale": 1.0,
+        "learned_translation_scale": 1.0,
         "head_motion_scale": 1.35,
         "eye_motion_scale": 1.0,
         "expression_runtime_scale": 0.45,
@@ -194,6 +206,10 @@ FLOAT_FIELDS = {
     "motion_delay_ms",
     "motion_expr_scale",
     "motion_jaw_scale",
+    "learned_pose_scale",
+    "learned_neck_scale",
+    "learned_eye_scale",
+    "learned_translation_scale",
     "head_motion_scale",
     "eye_motion_scale",
     "expression_runtime_scale",
@@ -473,6 +489,14 @@ class RuntimeDemoManager:
             str(config["motion_expr_scale"]),
             "--motion_jaw_scale",
             str(config["motion_jaw_scale"]),
+            "--learned_pose_scale",
+            str(config["learned_pose_scale"]),
+            "--learned_neck_scale",
+            str(config["learned_neck_scale"]),
+            "--learned_eye_scale",
+            str(config["learned_eye_scale"]),
+            "--learned_translation_scale",
+            str(config["learned_translation_scale"]),
             "--head_motion_scale",
             str(config["head_motion_scale"]),
             "--eye_motion_scale",
@@ -871,6 +895,10 @@ class RuntimeAppHandler(BaseHTTPRequestHandler):
             <div class="grid">
               <label>Jaw <input id="motion_jaw_scale" type="number" step="0.05"></label>
               <label>Expr <input id="motion_expr_scale" type="number" step="0.05"></label>
+              <label>Learned Head <input id="learned_pose_scale" type="number" step="0.05"></label>
+              <label>Learned Neck <input id="learned_neck_scale" type="number" step="0.05"></label>
+              <label>Learned Eyes <input id="learned_eye_scale" type="number" step="0.05"></label>
+              <label>Learned Move <input id="learned_translation_scale" type="number" step="0.05"></label>
               <label>Head <input id="head_motion_scale" type="number" step="0.05"></label>
               <label>Eyes <input id="eye_motion_scale" type="number" step="0.05"></label>
               <label>Runtime Expr <input id="expression_runtime_scale" type="number" step="0.05"></label>

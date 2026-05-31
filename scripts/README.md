@@ -3,7 +3,7 @@
 Utility scripts for training, evaluation, and data processing.
 
 ## Scripts
-- `train_audio_driver.py` — Train the speaker-specific MotionTranslator
+- `train_audio_driver.py` — Train the speaker-specific MotionTranslator. By default it now learns full FLAME motion channels: `expr,jaw,rotation,neck,eyes,translation`. Use `--motion_outputs expr,jaw` for the legacy lip-only driver.
 - `preprocess_data.py` — Validate/prepare subject data + generate persona template
 - `prepare_avatar_training_source.py` — Build a clean master/pilot video from a trim manifest
 - `run_avatar_retrain_pipeline.sh` — Run VHAP export, GaussianAvatars training, and audio-driver training for a new subject

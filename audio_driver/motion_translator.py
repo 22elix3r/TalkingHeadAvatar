@@ -1,38 +1,43 @@
 """
-Motion Translator — HuBERT Features → FLAME Parameters
-=======================================================
-Speaker-specific Transformer that maps audio features to FLAME expression
-coefficients and jaw pose (axis-angle).
+Motion Translator — HuBERT Features → FLAME Motion
+==================================================
+Speaker-specific Transformer that maps audio features to FLAME motion
+channels.
 
-Architecture:
-  - 4-layer Transformer Encoder (causal mask optional for streaming)
-  - Expression head: linear → (T, n_expr)
-  - Jaw pose head:   linear → (T, 3)
-
-Training: supervised regression on VHAP-tracked FLAME params paired
-          with corresponding audio windows.
+Version-1 checkpoints predict expression + jaw only. Version-2 checkpoints can
+also predict head rotation, neck pose, eye pose, and translation, while keeping
+the old tuple-return API compatible.
 """
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import torch
 import torch.nn as nn
-from pathlib import Path
+
+
+MOTION_CHANNEL_DIMS = {
+    "expr": 100,
+    "jaw": 3,
+    "rotation": 3,
+    "neck": 3,
+    "eyes": 6,
+    "translation": 3,
+}
 
 
 class MotionTranslator(nn.Module):
     """
-    Maps audio features → FLAME expression + jaw parameters.
+    Maps audio features to ordered FLAME motion channels.
 
     Args:
-        audio_dim:      Dimensionality of input audio features (1024 for HuBERT-Large).
-        n_expr:         Number of FLAME expression coefficients (default 100).
-        n_jaw:          Number of jaw pose dims (3 for axis-angle).
-        n_layers:       Transformer encoder depth.
-        n_heads:        Multi-head attention heads.
-        ff_dim:         Feed-forward hidden dim.
-        dropout:        Dropout rate.
-        causal:         If True, use causal attention mask (required for streaming).
+        audio_dim: Dimensionality of HuBERT features.
+        n_expr: Number of FLAME expression coefficients.
+        n_jaw: Number of jaw pose dims.
+        output_channels: Ordered channels to predict. Defaults to expression
+            and jaw for legacy checkpoint compatibility.
+        causal: If True, use a causal attention mask for streaming.
     """
 
     def __init__(
@@ -45,20 +50,32 @@ class MotionTranslator(nn.Module):
         ff_dim: int = 2048,
         dropout: float = 0.1,
         causal: bool = False,
+        output_channels: tuple[str, ...] | list[str] | None = None,
+        channel_dims: dict[str, int] | None = None,
     ):
         super().__init__()
-        self.audio_dim = audio_dim
-        self.n_expr = n_expr
-        self.n_jaw = n_jaw
-        self.causal = causal
+        self.audio_dim = int(audio_dim)
+        self.n_expr = int(n_expr)
+        self.n_jaw = int(n_jaw)
+        self.causal = bool(causal)
+        self.output_channels = tuple(output_channels or ("expr", "jaw"))
+        self.channel_dims = dict(MOTION_CHANNEL_DIMS)
+        self.channel_dims["expr"] = self.n_expr
+        self.channel_dims["jaw"] = self.n_jaw
+        if channel_dims:
+            self.channel_dims.update({str(k): int(v) for k, v in channel_dims.items()})
+
+        unknown = [name for name in self.output_channels if name not in self.channel_dims]
+        if unknown:
+            raise ValueError(f"Unknown motion output channel(s): {unknown}")
 
         encoder_layer = nn.TransformerEncoderLayer(
-            d_model=audio_dim,
+            d_model=self.audio_dim,
             nhead=n_heads,
             dim_feedforward=ff_dim,
             dropout=dropout,
             batch_first=True,
-            norm_first=True,  # Pre-LN for training stability
+            norm_first=True,
         )
         self.temporal_encoder = nn.TransformerEncoder(
             encoder_layer,
@@ -66,145 +83,156 @@ class MotionTranslator(nn.Module):
             enable_nested_tensor=False,
         )
 
-        self.expr_head = nn.Sequential(
-            nn.LayerNorm(audio_dim),
-            nn.Linear(audio_dim, n_expr),
-        )
-        self.jaw_head = nn.Sequential(
-            nn.LayerNorm(audio_dim),
-            nn.Linear(audio_dim, n_jaw),
-            nn.Tanh(),  # jaw angle bounded to (-1, 1) rad ≈ ±57°
-        )
+        self.heads = nn.ModuleDict()
+        for name in self.output_channels:
+            layers: list[nn.Module] = [
+                nn.LayerNorm(self.audio_dim),
+                nn.Linear(self.audio_dim, self.channel_dims[name]),
+            ]
+            if name in {"jaw", "rotation", "neck", "eyes"}:
+                layers.append(nn.Tanh())
+            self.heads[name] = nn.Sequential(*layers)
+
+        # Backward-compatible names for code that expects these attributes.
+        self.expr_head = self.heads["expr"] if "expr" in self.heads else None
+        self.jaw_head = self.heads["jaw"] if "jaw" in self.heads else None
 
         self._init_weights()
 
-    def _init_weights(self):
-        """Small-magnitude init for the output heads to prevent training instability."""
-        for head in [self.expr_head, self.jaw_head]:
-            for m in head.modules():
-                if isinstance(m, nn.Linear):
-                    nn.init.xavier_uniform_(m.weight, gain=0.1)
-                    if m.bias is not None:
-                        nn.init.zeros_(m.bias)
+    def _init_weights(self) -> None:
+        for head in self.heads.values():
+            for module in head.modules():
+                if isinstance(module, nn.Linear):
+                    nn.init.xavier_uniform_(module.weight, gain=0.1)
+                    if module.bias is not None:
+                        nn.init.zeros_(module.bias)
 
-    def _make_causal_mask(self, T: int, device: torch.device) -> torch.Tensor:
-        """Upper-triangular mask (True = ignore) for causal attention."""
-        mask = torch.triu(torch.ones(T, T, device=device, dtype=torch.bool), diagonal=1)
-        return mask
+    def _make_causal_mask(self, length: int, device: torch.device) -> torch.Tensor:
+        return torch.triu(torch.ones(length, length, device=device, dtype=torch.bool), diagonal=1)
 
-    def forward(
-        self,
-        audio_features: torch.Tensor,
-    ) -> tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, audio_features: torch.Tensor) -> tuple[torch.Tensor, ...]:
         """
         Args:
             audio_features: (B, T, audio_dim)
 
         Returns:
-            expression: (B, T, n_expr) — FLAME expression coefficients
-            jaw_pose:   (B, T, n_jaw)  — jaw rotation (axis-angle, radians)
+            Tuple of tensors ordered by self.output_channels.
         """
-        B, T, _ = audio_features.shape
+        _, length, _ = audio_features.shape
+        mask = self._make_causal_mask(length, audio_features.device) if self.causal else None
+        encoded = self.temporal_encoder(audio_features, mask=mask)
+        return tuple(self.heads[name](encoded) for name in self.output_channels)
 
-        mask = None
-        if self.causal:
-            mask = self._make_causal_mask(T, audio_features.device)
+    def forward_dict(self, audio_features: torch.Tensor) -> dict[str, torch.Tensor]:
+        return dict(zip(self.output_channels, self.forward(audio_features)))
 
-        encoded = self.temporal_encoder(audio_features, mask=mask)  # (B, T, audio_dim)
-        expression = self.expr_head(encoded)                          # (B, T, n_expr)
-        jaw_pose = self.jaw_head(encoded)                             # (B, T, n_jaw)
-        return expression, jaw_pose
-
-    # ──────────────────────────────────────────────
-    # Persistence helpers
-    # ──────────────────────────────────────────────
-
-    def save(self, path: str | Path):
+    def save(self, path: str | Path) -> None:
         """Save model weights + config to a single file."""
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
-        torch.save({
-            "config": {
-                "audio_dim": self.audio_dim,
-                "n_expr": self.n_expr,
-                "n_jaw": self.n_jaw,
-                "causal": self.causal,
+        torch.save(
+            {
+                "config": {
+                    "model_version": 2,
+                    "audio_dim": self.audio_dim,
+                    "n_expr": self.n_expr,
+                    "n_jaw": self.n_jaw,
+                    "causal": self.causal,
+                    "output_channels": list(self.output_channels),
+                    "channel_dims": {
+                        name: self.channel_dims[name] for name in self.output_channels
+                    },
+                },
+                "state_dict": self.state_dict(),
             },
-            "state_dict": self.state_dict(),
-        }, str(path))
+            str(path),
+        )
         print(f"[MotionTranslator] Saved to {path}")
 
     @classmethod
     def load(cls, path: str | Path, device: str | torch.device = "cuda") -> "MotionTranslator":
-        """Load a checkpoint saved with .save()."""
         path = Path(path)
         ckpt = torch.load(str(path), map_location=device, weights_only=True)
-        model = cls(**ckpt["config"])
+        config = dict(ckpt["config"])
+        config.pop("model_version", None)
+        model = cls(**config)
         model.load_state_dict(ckpt["state_dict"])
         model.eval()
         return model.to(device)
 
 
-# ──────────────────────────────────────────────────────────
-# Training Loss
-# ──────────────────────────────────────────────────────────
-
 class MotionTranslatorLoss(nn.Module):
     """
-    Combined loss for Motion Translator training:
-      L = λ_expr * ||expr_pred - expr_gt||₁
-        + λ_jaw  * ||jaw_pred  - jaw_gt||₁
-        + λ_vel  * ||Δexpr_pred - Δexpr_gt||₁   (velocity smoothing)
+    Weighted L1 loss over enabled FLAME channels plus a velocity term.
 
-    All terms use L1 (MAE) which is more robust than MSE for noisy FLAME tracks.
+    The forward method accepts either the legacy four-tensor signature or the
+    v2 dict signature: loss(pred_dict, target_dict).
     """
 
     def __init__(
         self,
         lambda_expr: float = 1.0,
-        lambda_jaw: float = 5.0,   # jaw is low-dim, upweight it
+        lambda_jaw: float = 5.0,
         lambda_vel: float = 0.1,
+        channel_weights: dict[str, float] | None = None,
+        velocity_channels: tuple[str, ...] | list[str] | None = None,
     ):
         super().__init__()
-        self.lambda_expr = lambda_expr
-        self.lambda_jaw = lambda_jaw
-        self.lambda_vel = lambda_vel
+        self.lambda_expr = float(lambda_expr)
+        self.lambda_jaw = float(lambda_jaw)
+        self.lambda_vel = float(lambda_vel)
+        self.channel_weights = {
+            "expr": self.lambda_expr,
+            "jaw": self.lambda_jaw,
+            "rotation": 0.8,
+            "neck": 0.6,
+            "eyes": 0.5,
+            "translation": 0.35,
+        }
+        if channel_weights:
+            self.channel_weights.update({str(k): float(v) for k, v in channel_weights.items()})
+        self.velocity_channels = tuple(
+            velocity_channels or ("expr", "jaw", "rotation", "neck", "eyes")
+        )
 
     def forward(
         self,
-        expr_pred: torch.Tensor,
-        jaw_pred: torch.Tensor,
-        expr_gt: torch.Tensor,
-        jaw_gt: torch.Tensor,
+        expr_pred: torch.Tensor | dict[str, torch.Tensor],
+        jaw_pred: torch.Tensor | dict[str, torch.Tensor],
+        expr_gt: torch.Tensor | None = None,
+        jaw_gt: torch.Tensor | None = None,
     ) -> dict[str, torch.Tensor]:
-        """
-        Args:
-            expr_pred, expr_gt: (B, T, n_expr)
-            jaw_pred,  jaw_gt:  (B, T, 3)
-
-        Returns:
-            dict with 'total' and individual term losses.
-        """
-        l_expr = torch.abs(expr_pred - expr_gt).mean()
-        l_jaw = torch.abs(jaw_pred - jaw_gt).mean()
-
-        # Velocity loss on expressions (temporal smoothness)
-        if expr_pred.shape[1] > 1:
-            vel_pred = expr_pred[:, 1:] - expr_pred[:, :-1]
-            vel_gt = expr_gt[:, 1:] - expr_gt[:, :-1]
-            l_vel = torch.abs(vel_pred - vel_gt).mean()
+        if isinstance(expr_pred, dict):
+            pred = expr_pred
+            assert isinstance(jaw_pred, dict)
+            gt = jaw_pred
         else:
-            l_vel = torch.zeros(1, device=expr_pred.device)
+            assert expr_gt is not None and jaw_gt is not None
+            pred = {"expr": expr_pred, "jaw": jaw_pred}
+            gt = {"expr": expr_gt, "jaw": jaw_gt}
 
-        total = (
-            self.lambda_expr * l_expr
-            + self.lambda_jaw * l_jaw
-            + self.lambda_vel * l_vel
-        )
+        first = next(iter(pred.values()))
+        total = torch.zeros((), dtype=first.dtype, device=first.device)
+        losses: dict[str, torch.Tensor] = {}
+        velocity_losses = []
 
-        return {
-            "total": total,
-            "expr": l_expr,
-            "jaw": l_jaw,
-            "vel": l_vel,
-        }
+        for name, pred_tensor in pred.items():
+            if name not in gt:
+                continue
+            l_channel = torch.abs(pred_tensor - gt[name]).mean()
+            losses[name] = l_channel
+            total = total + self.channel_weights.get(name, 1.0) * l_channel
+            if name in self.velocity_channels and pred_tensor.shape[1] > 1:
+                vel_pred = pred_tensor[:, 1:] - pred_tensor[:, :-1]
+                vel_gt = gt[name][:, 1:] - gt[name][:, :-1]
+                velocity_losses.append(torch.abs(vel_pred - vel_gt).mean())
+
+        if velocity_losses:
+            l_vel = torch.stack(velocity_losses).mean()
+        else:
+            l_vel = torch.zeros((), dtype=first.dtype, device=first.device)
+
+        total = total + self.lambda_vel * l_vel
+        losses["vel"] = l_vel
+        losses["total"] = total
+        return losses

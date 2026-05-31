@@ -26,6 +26,7 @@ import numpy as np
 import torch
 
 from .audio_encoder import AudioEncoder
+from .motion_frame import FlameMotionFrame
 from .motion_translator import MotionTranslator
 
 
@@ -120,9 +121,8 @@ class StreamingAudioDriver:
         chunk_size = int(context_seconds * sr)
         self.buffer = StreamingAudioBuffer(chunk_size=chunk_size, hop_size=320, sample_rate=sr)
 
-        # EMA state
-        self._ema_expr: Optional[torch.Tensor] = None
-        self._ema_jaw: Optional[torch.Tensor] = None
+        # EMA state, keyed by model output channel.
+        self._ema_channels: dict[str, torch.Tensor] = {}
 
         # Latency tracking
         self._last_latency_ms: float = 0.0
@@ -153,24 +153,52 @@ class StreamingAudioDriver:
         # FLAME parameter prediction
         dtype = next(self.translator.parameters()).dtype
         features = features.to(dtype=dtype, device=self.device)
-        expr_seq, jaw_seq = self.translator(features)  # (1, T', n_expr), (1, T', 3)
-
-        # Take the last frame (most recent)
-        expr = expr_seq[0, -1].float()   # (n_expr,)
-        jaw = jaw_seq[0, -1].float()     # (3,)
-
-        # Exponential moving average smoothing
-        if self._ema_expr is None:
-            self._ema_expr = expr
-            self._ema_jaw = jaw
-        else:
-            alpha = self.ema_alpha
-            self._ema_expr = alpha * self._ema_expr + (1 - alpha) * expr
-            self._ema_jaw = alpha * self._ema_jaw + (1 - alpha) * jaw
+        outputs = self.translator.forward_dict(features)
+        latest = {name: tensor[0, -1].float() for name, tensor in outputs.items()}
+        smoothed = self._smooth_channels(latest)
 
         self._last_latency_ms = (time.perf_counter() - t0) * 1000
 
-        return self._ema_expr.clone(), self._ema_jaw.clone()
+        expr = smoothed.get(
+            "expr",
+            torch.zeros(getattr(self.translator, "n_expr", 100), dtype=torch.float32, device=self.device),
+        )
+        jaw = smoothed.get("jaw", torch.zeros(3, dtype=torch.float32, device=self.device))
+        return expr.clone(), jaw.clone()
+
+    @torch.no_grad()
+    def step_motion(self, audio_chunk: torch.Tensor) -> FlameMotionFrame:
+        """Process a chunk and return all channels predicted by the checkpoint."""
+        t0 = time.perf_counter()
+
+        if audio_chunk.dim() == 2:
+            audio_chunk = audio_chunk.squeeze(0)
+
+        window = self.buffer.push(audio_chunk)
+        features = self.encoder(window)
+        dtype = next(self.translator.parameters()).dtype
+        features = features.to(dtype=dtype, device=self.device)
+        outputs = self.translator.forward_dict(features)
+        latest = {name: tensor[0, -1].float() for name, tensor in outputs.items()}
+        smoothed = self._smooth_channels(latest)
+        self._last_latency_ms = (time.perf_counter() - t0) * 1000
+
+        channels_np = {name: value.detach().cpu().numpy() for name, value in smoothed.items()}
+        return FlameMotionFrame.from_channels(
+            channels_np,
+            n_expr=getattr(self.translator, "n_expr", 100),
+        )
+
+    def _smooth_channels(self, latest: dict[str, torch.Tensor]) -> dict[str, torch.Tensor]:
+        alpha = float(self.ema_alpha)
+        smoothed: dict[str, torch.Tensor] = {}
+        for name, value in latest.items():
+            if name not in self._ema_channels:
+                self._ema_channels[name] = value
+            else:
+                self._ema_channels[name] = alpha * self._ema_channels[name] + (1 - alpha) * value
+            smoothed[name] = self._ema_channels[name]
+        return smoothed
 
     def step_from_numpy(self, audio_np: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         """Convenience wrapper for numpy audio input."""
@@ -178,11 +206,15 @@ class StreamingAudioDriver:
         expr, jaw = self.step(chunk)
         return expr.cpu().numpy(), jaw.cpu().numpy()
 
+    def step_motion_from_numpy(self, audio_np: np.ndarray) -> FlameMotionFrame:
+        """Convenience wrapper returning a full FLAME motion frame."""
+        chunk = torch.from_numpy(audio_np.astype(np.float32))
+        return self.step_motion(chunk)
+
     def reset(self):
         """Reset buffer and EMA state (call between speakers or sessions)."""
         self.buffer.reset()
-        self._ema_expr = None
-        self._ema_jaw = None
+        self._ema_channels = {}
 
     @property
     def latency_ms(self) -> float:

@@ -42,7 +42,17 @@ from torch.utils.data import DataLoader, Dataset
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from audio_driver.audio_encoder import AudioEncoder
-from audio_driver.motion_translator import MotionTranslator, MotionTranslatorLoss
+from audio_driver.motion_translator import MOTION_CHANNEL_DIMS, MotionTranslator, MotionTranslatorLoss
+
+
+NPZ_KEYS = {
+    "expr": "expr",
+    "jaw": "jaw_pose",
+    "rotation": "rotation",
+    "neck": "neck_pose",
+    "eyes": "eyes_pose",
+    "translation": "translation",
+}
 
 
 # ──────────────────────────────────────────────────────────
@@ -58,35 +68,32 @@ class AudioFlameDataset(Dataset):
 
     Args:
         hubert_features: (T_total, 1024) pre-encoded features.
-        expr_params:     (T_total, n_expr) FLAME expression per frame.
-        jaw_params:      (T_total, 3)     FLAME jaw pose per frame.
+        labels:          Dict of (T_total, D) FLAME motion channels.
         context_frames:  Number of consecutive HuBERT frames per sample.
     """
 
     def __init__(
         self,
         hubert_features: torch.Tensor,
-        expr_params: torch.Tensor,
-        jaw_params: torch.Tensor,
+        labels: dict[str, torch.Tensor],
         context_frames: int = 50,
     ):
-        assert hubert_features.shape[0] == expr_params.shape[0] == jaw_params.shape[0], \
-            "Feature and label lengths must match"
+        for name, values in labels.items():
+            assert hubert_features.shape[0] == values.shape[0], \
+                f"Feature and label lengths must match for {name}"
         self.features = hubert_features  # (T, 1024)
-        self.expr = expr_params           # (T, n_expr)
-        self.jaw = jaw_params             # (T, 3)
+        self.labels = labels
         self.ctx = context_frames
         self.valid_starts = range(0, len(self.features) - context_frames)
 
     def __len__(self) -> int:
         return len(self.valid_starts)
 
-    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
         i = self.valid_starts[idx]
         return (
-            self.features[i : i + self.ctx],   # (ctx, 1024)
-            self.expr[i : i + self.ctx],        # (ctx, n_expr)
-            self.jaw[i : i + self.ctx],         # (ctx, 3)
+            self.features[i : i + self.ctx],
+            {name: values[i : i + self.ctx] for name, values in self.labels.items()},
         )
 
 
@@ -124,19 +131,25 @@ def load_flame_params(
     flame_param_dir: Path,
     n_expr: int = 100,
     param_files: list[Path] | None = None,
-) -> tuple[np.ndarray, np.ndarray]:
-    """Load per-frame FLAME params from VHAP output, returning (T, D) arrays."""
+    output_channels: tuple[str, ...] = ("expr", "jaw"),
+) -> dict[str, np.ndarray]:
+    """Load per-frame FLAME params from VHAP output."""
     if param_files is None:
         param_files = sorted(flame_param_dir.glob("*.npz"))
     if not param_files:
         raise FileNotFoundError(f"No FLAME .npz files found for {flame_param_dir}")
 
-    exprs, jaws = [], []
+    widths = dict(MOTION_CHANNEL_DIMS)
+    widths["expr"] = n_expr
+    values: dict[str, list[np.ndarray]] = {name: [] for name in output_channels}
     for f in param_files:
         d = np.load(str(f))
-        exprs.append(_squeeze_param(d["expr"], n_expr))
-        jaws.append(_squeeze_param(d["jaw_pose"], 3))
-    return np.stack(exprs), np.stack(jaws)   # (T, n_expr), (T, 3)
+        for name in output_channels:
+            key = NPZ_KEYS[name]
+            if key not in d:
+                raise KeyError(f"Missing '{key}' in {f}")
+            values[name].append(_squeeze_param(d[key], widths[name]))
+    return {name: np.stack(channel_values) for name, channel_values in values.items()}
 
 
 def load_audio_wav(audio_path: Path, target_sr: int = 16000) -> np.ndarray:
@@ -254,9 +267,22 @@ def train(args):
     print("Loading FLAME parameters …")
     flame_dir = Path(args.flame_params)
     transforms_dir = Path(args.transforms_dir) if args.transforms_dir else None
-    exprs_np, jaws_np = load_flame_params(flame_dir, n_expr=args.n_expr)
-    n_frames = exprs_np.shape[0]
-    print(f"  → {n_frames} frames, {exprs_np.shape[1]} expression dims")
+    output_channels = tuple(
+        name.strip() for name in args.motion_outputs.split(",") if name.strip()
+    )
+    if not output_channels:
+        raise ValueError("--motion_outputs must include at least one channel")
+    unknown_channels = [name for name in output_channels if name not in NPZ_KEYS]
+    if unknown_channels:
+        raise ValueError(f"Unknown --motion_outputs channel(s): {unknown_channels}")
+    labels_np = load_flame_params(
+        flame_dir,
+        n_expr=args.n_expr,
+        output_channels=output_channels,
+    )
+    n_frames = next(iter(labels_np.values())).shape[0]
+    dims_text = ", ".join(f"{name}={labels_np[name].shape[1]}" for name in output_channels)
+    print(f"  → {n_frames} frames; channels: {dims_text}")
 
     # 2. Load full audio
     print("Loading audio …")
@@ -308,19 +334,19 @@ def train(args):
         print(f"  → Saved HuBERT feature cache: {feature_cache}")
 
     n_feature_frames = features.shape[0]
-    exprs_pt = resample_sequence_to_length(torch.from_numpy(exprs_np).float(), n_feature_frames)
-    jaws_pt = resample_sequence_to_length(torch.from_numpy(jaws_np).float(), n_feature_frames)
+    labels_pt = {
+        name: resample_sequence_to_length(torch.from_numpy(values).float(), n_feature_frames)
+        for name, values in labels_np.items()
+    }
     print(f"  → FLAME labels upsampled to {n_feature_frames} HuBERT frames")
 
     # 4. Build datasets and loaders
     train_idx, val_idx = build_split_indices(transforms_dir, n_frames, n_feature_frames)
     train_features = features[train_idx]
-    train_exprs = exprs_pt[train_idx]
-    train_jaws = jaws_pt[train_idx]
+    train_labels = {name: values[train_idx] for name, values in labels_pt.items()}
     dataset = AudioFlameDataset(
         train_features,
-        train_exprs,
-        train_jaws,
+        train_labels,
         context_frames=args.context_frames,
     )
     loader = DataLoader(
@@ -335,8 +361,7 @@ def train(args):
     if val_idx and len(val_idx) > args.context_frames:
         val_dataset = AudioFlameDataset(
             features[val_idx],
-            exprs_pt[val_idx],
-            jaws_pt[val_idx],
+            {name: values[val_idx] for name, values in labels_pt.items()},
             context_frames=args.context_frames,
         )
         val_loader = DataLoader(
@@ -360,6 +385,7 @@ def train(args):
         audio_dim=features.shape[1],
         n_expr=args.n_expr,
         causal=True,
+        output_channels=output_channels,
     ).to(device)
     total_params = sum(p.numel() for p in model.parameters())
     print(f"  → MotionTranslator: {total_params / 1e6:.2f} M parameters")
@@ -367,7 +393,17 @@ def train(args):
     # 6. Optimizer + scheduler
     optimizer = optim.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-4)
     scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs)
-    criterion = MotionTranslatorLoss(lambda_expr=1.0, lambda_jaw=5.0, lambda_vel=0.1)
+    criterion = MotionTranslatorLoss(
+        lambda_expr=args.lambda_expr,
+        lambda_jaw=args.lambda_jaw,
+        lambda_vel=args.lambda_vel,
+        channel_weights={
+            "rotation": args.lambda_rotation,
+            "neck": args.lambda_neck,
+            "eyes": args.lambda_eyes,
+            "translation": args.lambda_translation,
+        },
+    )
 
     # 7. Resume if checkpoint exists
     best_ckpt = output_dir / "best_model.pt"
@@ -390,16 +426,18 @@ def train(args):
 
     for epoch in range(start_epoch, args.epochs):
         model.train()
-        epoch_losses = {"total": 0, "expr": 0, "jaw": 0, "vel": 0}
+        epoch_losses = {"total": 0, "vel": 0, **{name: 0.0 for name in output_channels}}
         t_epoch = time.time()
 
-        for batch_feat, batch_expr, batch_jaw in loader:
+        for batch_feat, batch_labels in loader:
             batch_feat = batch_feat.to(device, dtype=torch.float32)
-            batch_expr = batch_expr.to(device, dtype=torch.float32)
-            batch_jaw = batch_jaw.to(device, dtype=torch.float32)
+            batch_labels = {
+                name: tensor.to(device, dtype=torch.float32)
+                for name, tensor in batch_labels.items()
+            }
 
-            pred_expr, pred_jaw = model(batch_feat)
-            losses = criterion(pred_expr, pred_jaw, batch_expr, batch_jaw)
+            pred = model.forward_dict(batch_feat)
+            losses = criterion(pred, batch_labels)
 
             optimizer.zero_grad(set_to_none=True)
             losses["total"].backward()
@@ -407,7 +445,8 @@ def train(args):
             optimizer.step()
 
             for k in epoch_losses:
-                epoch_losses[k] += losses[k].item()
+                if k in losses:
+                    epoch_losses[k] += losses[k].item()
 
         scheduler.step()
         n_batches = len(loader)
@@ -418,12 +457,14 @@ def train(args):
             val_total = 0.0
             val_batches = 0
             with torch.no_grad():
-                for batch_feat, batch_expr, batch_jaw in val_loader:
+                for batch_feat, batch_labels in val_loader:
                     batch_feat = batch_feat.to(device, dtype=torch.float32)
-                    batch_expr = batch_expr.to(device, dtype=torch.float32)
-                    batch_jaw = batch_jaw.to(device, dtype=torch.float32)
-                    pred_expr, pred_jaw = model(batch_feat)
-                    losses = criterion(pred_expr, pred_jaw, batch_expr, batch_jaw)
+                    batch_labels = {
+                        name: tensor.to(device, dtype=torch.float32)
+                        for name, tensor in batch_labels.items()
+                    }
+                    pred = model.forward_dict(batch_feat)
+                    losses = criterion(pred, batch_labels)
                     val_total += losses["total"].item()
                     val_batches += 1
             if val_batches:
@@ -433,11 +474,11 @@ def train(args):
         line = (
             f"Epoch {epoch+1:04d}/{args.epochs:04d}  "
             f"loss={mean_losses['total']:.5f}  "
-            f"expr={mean_losses['expr']:.5f}  "
-            f"jaw={mean_losses['jaw']:.5f}  "
             f"vel={mean_losses['vel']:.5f}  "
             f"lr={scheduler.get_last_lr()[0]:.2e}  "
         )
+        for name in output_channels:
+            line += f"{name}={mean_losses[name]:.5f}  "
         if val_loss is not None:
             line += f"val={val_loss:.5f}  "
         line += f"t={elapsed:.1f}s"
@@ -449,7 +490,13 @@ def train(args):
             "model": model.state_dict(),
             "optimizer": optimizer.state_dict(),
             "best_loss": best_loss,
-            "config": {"audio_dim": 1024, "n_expr": args.n_expr, "causal": True},
+            "config": {
+                "model_version": 2,
+                "audio_dim": features.shape[1],
+                "n_expr": args.n_expr,
+                "causal": True,
+                "output_channels": list(output_channels),
+            },
         }, str(resume_ckpt))
 
         # Save best checkpoint
@@ -470,6 +517,7 @@ def train(args):
         "train_frames": len(train_idx),
         "val_frames": len(val_idx),
         "n_expr": args.n_expr,
+        "motion_outputs": list(output_channels),
         "epochs": args.epochs,
         "best_loss": best_loss,
         "audio_path": str(Path(args.audio_path)),
@@ -497,6 +545,21 @@ def main():
     parser.add_argument("--batch_size", type=int, default=32)
     parser.add_argument("--n_expr", type=int, default=100,
                         help="Number of FLAME expression coefficients")
+    parser.add_argument(
+        "--motion_outputs",
+        default="expr,jaw,rotation,neck,eyes,translation",
+        help=(
+            "Comma-separated FLAME channels to train. Options: "
+            "expr,jaw,rotation,neck,eyes,translation"
+        ),
+    )
+    parser.add_argument("--lambda_expr", type=float, default=1.0)
+    parser.add_argument("--lambda_jaw", type=float, default=5.0)
+    parser.add_argument("--lambda_rotation", type=float, default=0.8)
+    parser.add_argument("--lambda_neck", type=float, default=0.6)
+    parser.add_argument("--lambda_eyes", type=float, default=0.5)
+    parser.add_argument("--lambda_translation", type=float, default=0.35)
+    parser.add_argument("--lambda_vel", type=float, default=0.1)
     parser.add_argument("--context_frames", type=int, default=50,
                         help="Temporal context window in HuBERT frames (50 = ~1 s)")
     parser.add_argument("--hubert_batch_seconds", type=float, default=10.0,

@@ -1,7 +1,7 @@
 """
 Audio Driver Package
 ====================
-Converts live 16kHz audio into FLAME expression + jaw parameters.
+Converts live 16kHz audio into FLAME motion parameters.
 
 Components:
   - audio_encoder.py   — HuBERT feature extraction (frozen)
@@ -10,7 +10,8 @@ Components:
 """
 
 from .audio_encoder import AudioEncoder
+from .motion_frame import FlameMotionFrame
 from .motion_translator import MotionTranslator
 from .inference import StreamingAudioDriver
 
-__all__ = ["AudioEncoder", "MotionTranslator", "StreamingAudioDriver"]
+__all__ = ["AudioEncoder", "FlameMotionFrame", "MotionTranslator", "StreamingAudioDriver"]
