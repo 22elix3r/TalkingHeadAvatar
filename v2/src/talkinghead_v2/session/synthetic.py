@@ -18,6 +18,8 @@ class ScheduledPCM:
 class SyntheticSink:
     """Unbounded recorder for small test fixtures only; no audio hardware or sleeps."""
 
+    cancel_ack_scope = "synthetic_in_process"
+
     def __init__(self, sample_rate: int = 48000):
         integer(sample_rate, "sample_rate", 1)
         self.sample_rate = sample_rate

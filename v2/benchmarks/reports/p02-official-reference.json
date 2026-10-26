@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "evidence_category": "local_observation",
+  "adapter": "official_offline_reference",
+  "incremental_audio_output": false,
+  "incremental_text_input": false,
+  "identity": {
+    "tenant_id": "synthetic",
+    "voice_id": "espeak-reference",
+    "reference_sha256": "1df656279576982a2ac976c750054a6ca7598ece74e53958427e98a15da31c2d",
+    "model_id": "Qwen/Qwen3-TTS-12Hz-1.7B-Base",
+    "model_revision": "fd4b254389122332181a7c3db7f27e918eec64e3",
+    "official_source": "022e286b98fbec7e1e916cb940cdf532cd9f488e",
+    "torch": "2.10.0+cu128",
+    "conditioning": "x-vector",
+    "dtype": "bfloat16"
+  },
+  "speaker_cache_key": "3db453388355a22760eb0cf05763125d075fb8568c57c44961e73d6fc9a7322d",
+  "voice_kind": "synthetic_fixture",
+  "human_cloning_qualified": false,
+  "artifact_verification_ns": 2017574543,
+  "model_load_ns": 1022349101,
+  "prompt_ns": 680756279,
+  "baseline_device_used_bytes": 1084489728,
+  "embedding": {
+    "path": "speaker-embedding.json",
+    "dimension": 2048,
+    "sha256": "70c6e7218826851d99c7ff40e6b56963a2bf1232f1d062d501be5058122f3893"
+  },
+  "requests": [
+    {
+      "id": "short",
+      "text_sha256": "ae8d27fa48cd37dcbd07ddd40e9b1dc29b513aad3263751592fa2850f8509e70",
+      "sample_rate": 24000,
+      "samples": 72960,
+      "wall_ns": 2376858281,
+      "rtf": 0.7818612766447368,
+      "wave_sha256": "0495822200b98bfecc7e347d59da4cb95a5d4ee508cca776911fa1dfd3636582",
+      "peak_allocated_bytes": 4310411776,
+      "peak_reserved_bytes": 4385144832,
+      "device_used_bytes": 5526257664,
+      "output": "reference-000.wav",
+      "streaming": false
+    },
+    {
+      "id": "numbers",
+      "text_sha256": "72c1f794d62bc9d5f02f78b9d67652926df23712f2cc548cff548583c988b592",
+      "sample_rate": 24000,
+      "samples": 218880,
+      "wall_ns": 6641298963,
+      "rtf": 0.7282126055921053,
+      "wave_sha256": "c1f5e6b3ff2135515026a1301a89afdbf599aec8938093b864acc48d086f374c",
+      "peak_allocated_bytes": 4442116096,
+      "peak_reserved_bytes": 4611637248,
+      "device_used_bytes": 5752750080,
+      "output": "reference-001.wav",
+      "streaming": false
+    },
+    {
+      "id": "unicode",
+      "text_sha256": "d9eeb4815ebda8194cd9c9154a57d125dcad058a766ebb86f96a756a99053407",
+      "sample_rate": 24000,
+      "samples": 155520,
+      "wall_ns": 4708107759,
+      "rtf": 0.7265598393518518,
+      "wave_sha256": "fa7c3ef3b825a93244b6b95ccc17b6bc2a2da7a2f2a878c916f17ae95168639d",
+      "peak_allocated_bytes": 4384927744,
+      "peak_reserved_bytes": 4611637248,
+      "device_used_bytes": 5752750080,
+      "output": "reference-002.wav",
+      "streaming": false
+    },
+    {
+      "id": "very_short",
+      "text_sha256": "5f9a2b795615ba6a3d5455fd5624d773fbca5bcd16249c421fd37411dc9837da",
+      "sample_rate": 24000,
+      "samples": 23040,
+      "wall_ns": 738175290,
+      "rtf": 0.7689325937500001,
+      "wave_sha256": "42e50b85a5118236c79155bc23639b53c6f09f260357cc7bff133c61c9dc25fc",
+      "peak_allocated_bytes": 4284089856,
+      "peak_reserved_bytes": 4611637248,
+      "device_used_bytes": 5752750080,
+      "output": "reference-003.wav",
+      "streaming": false
+    },
+    {
+      "id": "long",
+      "text_sha256": "b11f727d1a223756ac8d33b69bd5c628dd5b63632b585b27e3e8ea5e80e6c012",
+      "sample_rate": 24000,
+      "samples": 821760,
+      "wall_ns": 24866116962,
+      "rtf": 0.7262300514602803,
+      "wave_sha256": "233155ed40ed798d1ed9ed819a1f45c6e5bc51ff83a933e051e12ac708bfd488",
+      "peak_allocated_bytes": 4765233152,
+      "peak_reserved_bytes": 5393874944,
+      "device_used_bytes": 6537084928,
+      "output": "reference-004.wav",
+      "streaming": false
+    }
+  ],
+  "conditions": "new process; filesystem cache warm; CUDA bf16 SDPA; no concurrent inference worker"
+}

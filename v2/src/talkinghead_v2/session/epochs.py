@@ -12,7 +12,7 @@ from talkinghead_v2.contracts import (
     AudioChunk, AudioEOF, CancelAck, ContractError, Discontinuity, Envelope,
     EpochStarted, GenerationKey, RigIdentity, integer, label,
 )
-from talkinghead_v2.session.synthetic import SyntheticSink
+from talkinghead_v2.session.sinks import AudioSink
 
 
 @dataclass
@@ -29,10 +29,11 @@ class GenerationSession:
     """CPU reference pipeline. Invoke methods on one event loop, not provider threads.
 
     Real callbacks must marshal into the owner loop. Only SyntheticSink is qualified
-    here; hardware/remote flushing and provider-compute cancellation belong to P02+.
+    by P01; P02 sinks declare a separate software-fence scope. Hardware/remote
+    flushing and provider-compute cancellation require their own acknowledgments.
     """
 
-    def __init__(self, session_id: str, sink: SyntheticSink, *,
+    def __init__(self, session_id: str, sink: AudioSink, *,
                  max_queue_duration: Fraction = Fraction(1, 2), max_queue_items: int = 8,
                  output_chunk_samples: int = 480):
         label(session_id, "session_id")
@@ -156,7 +157,8 @@ class GenerationSession:
         discarded_samples, discarded_items = self.queue.reset(None)
         last = self.sink.cancel()
         self._state = None
-        return CancelAck(state.key, self.epoch, reason, discarded_samples, discarded_items, last, self.sink.sample_rate)
+        return CancelAck(state.key, self.epoch, reason, discarded_samples, discarded_items, last,
+                         self.sink.sample_rate, self.sink.cancel_ack_scope)
 
     def discontinuity(self, event: Discontinuity) -> CancelAck | None:
         state = self._current(event.envelope)

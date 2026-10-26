@@ -167,8 +167,8 @@ class CancelAck:
     discarded_queue_items: int
     last_scheduled_sample: int
     sample_rate: int
-    # This acknowledgment covers only the in-process synthetic path, never device/compute buffers.
-    scope: Literal["synthetic_in_process"] = "synthetic_in_process"
+    # Software queue fence only. Device/compute stop require separate acknowledgments.
+    scope: Literal["synthetic_in_process", "local_device_queue_only"] = "synthetic_in_process"
 
     def __post_init__(self) -> None:
         if not isinstance(self.cancelled_key, GenerationKey):
@@ -180,7 +180,7 @@ class CancelAck:
         integer(self.sample_rate, "sample_rate", 1)
         for name in ("discarded_queue_samples", "discarded_queue_items", "last_scheduled_sample"):
             integer(getattr(self, name), name)
-        if self.scope != "synthetic_in_process":
+        if self.scope not in ("synthetic_in_process", "local_device_queue_only"):
             raise ContractError("device/provider cancellation is not qualified by this acknowledgment")
 
 

@@ -1,0 +1,18 @@
+{
+  "backend": "qwen_cpp_cuda_f16",
+  "worker_sha256": "82e7af68318dc15a840ecb702a91d5d85922381db1d73eb689b3d9b45d11d6fe",
+  "derived_models": {
+    "qwen3-tts-1.7b-base-f16.gguf": "5b377721385b86c87995c0458d1d7dc97b555d9bde93674e97f62b10c2acf5ff",
+    "qwen3-tts-tokenizer-f16.gguf": "d1ad9660bd99343f4851d5a4b17e31f65648feb3559f6ea062ae6575e5cd9d90"
+  },
+  "embedding_sha256": "70c6e7218826851d99c7ff40e6b56963a2bf1232f1d062d501be5058122f3893",
+  "embedding_dimension": 2048,
+  "runtime_revision": "74422bab4998ad69e0a67ba105654dadbeec9b3a+linux-player-metrics-v1",
+  "ggml_tree": "b1e00d0467ff3e8a7ade3bc6031b756b4cfe0c13",
+  "upstream_patch_sha256": "5df4b71188f094ddb4a3673e93b24bf2d4a05ba48ab8284a32ab0be4d12ecdf9",
+  "disable_cuda_graphs": true,
+  "async_decode": false,
+  "reference_voice_kind": "synthetic_fixture",
+  "runtime_lock_sha256": "160750c3d9be8f1c5e6746d2e5095fd0f88efa7f61beeaa3e0c556dd5e5e5fa9",
+  "bridge_source_sha256": "07b926d4956120fb72a5b47bc5ba7b88d74cdabc31464a9c1e490fdd313f53ff"
+}

@@ -25,7 +25,55 @@ def main(argv: Sequence[str] | None = None) -> int:
     artifacts.add_argument("action", choices=("provision", "verify"))
     artifacts.add_argument("--manifest", type=Path, required=True)
     artifacts.add_argument("--cache", type=Path, required=True)
+    tts = commands.add_parser("tts", help="explicit real-model Qwen qualification")
+    tts_actions = tts.add_subparsers(dest="tts_action", required=True)
+    benchmark = tts_actions.add_parser("benchmark", help="real native callback cohort/soak; no device presentation")
+    for name in ("runtime", "texts", "report", "log"):
+        benchmark.add_argument(f"--{name}", type=Path, required=True)
+    benchmark.add_argument("--seconds", type=float, default=0)
+    benchmark.add_argument("--save-waves", type=Path)
+    speak = tts_actions.add_parser("speak", help="real Qwen/P01 local playback and output-monitor evidence")
+    for name in ("runtime", "report", "log", "capture"):
+        speak.add_argument(f"--{name}", type=Path, required=True)
+    speak.add_argument("--text", required=True)
+    speak.add_argument("--device")
+    speak.add_argument("--interrupt-after", type=float)
+    speak.add_argument("--resume-text", default="This is the new generation after the interruption.")
+    audio = commands.add_parser("audio", help="explicit local output-device qualification")
+    audio_actions = audio.add_subparsers(dest="audio_action", required=True)
+    calibrate = audio_actions.add_parser("calibrate", help="play two calibration tones and capture output monitor")
+    calibrate.add_argument("--report", type=Path, required=True)
+    calibrate.add_argument("--capture", type=Path, required=True)
+    calibrate.add_argument("--device", help="PortAudio device name; default uses the system output")
     args = parser.parse_args(argv)
+    if args.command == "audio":
+        import asyncio
+        from talkinghead_v2.audio.qualify import run
+
+        result = asyncio.run(run(args))
+        args.report.write_text(json.dumps(result, indent=2)+"\n")
+        print(json.dumps({"passed": result["passed"], "analysis": result["analysis"]}))
+        return 0 if result["passed"] else 1
+    if args.command == "tts":
+        import asyncio
+        import math
+        if args.tts_action == "speak":
+            from talkinghead_v2.providers.tts.speech import run
+
+            if args.interrupt_after is not None and (not math.isfinite(args.interrupt_after) or args.interrupt_after <= 0):
+                parser.error("interrupt-after must be finite and positive")
+            result = asyncio.run(run(args))
+            print(json.dumps({"status": result["status"], "actual_device_playback": True, "turns": len(result["turns"])}))
+            return 0
+        from talkinghead_v2.providers.tts.benchmark import run
+
+        if not math.isfinite(args.seconds) or args.seconds < 0:
+            parser.error("seconds must be finite and nonnegative")
+        result = asyncio.run(run(args))
+        print(json.dumps({"completed_requests": result["completed_requests"],
+                          "failed_requests": len(result["failed_requests"]),
+                          "stability_30_minutes_passed": result["stability_30_minutes_passed"]}))
+        return 1 if result["failed_requests"] else 0
     if args.command == "artifacts":
         from talkinghead_v2.assets.artifacts import ArtifactError, provision, read_manifest, verify_snapshot
 
