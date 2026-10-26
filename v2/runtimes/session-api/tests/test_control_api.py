@@ -9,7 +9,7 @@ import pytest
 from sqlalchemy import text
 
 from talkinghead_v2.server.config import Settings
-from talkinghead_v2.server.db import Store,hashed
+from talkinghead_v2.server.db import Store,hashed,Base
 from talkinghead_v2.server.transport import CheckedReceiveQueue,AudioDiscontinuity
 from talkinghead_v2.server.actor import Events
 from talkinghead_v2.server import app as module
@@ -19,14 +19,14 @@ ROOT=Path(__file__).resolve().parents[3]
 
 
 @pytest.fixture
-def settings():
+def settings(tmp_path):
     cfg=Settings.load(ROOT/'var/p04/test-runtime.json')
     assert cfg.database_url.endswith('/tha_p04_test'), 'never reset the running reference database'
     store=Store(cfg.database_url)
     with store.engine.begin() as db:
-        db.execute(text('TRUNCATE principals,asset_revisions,sessions,idempotency_records,session_controls'))
+        db.execute(text('TRUNCATE '+','.join(Base.metadata.tables)))
     store.engine.dispose()
-    return cfg
+    return replace(cfg,private_dir=tmp_path)
 
 
 @pytest.fixture
@@ -34,13 +34,16 @@ async def client(settings,monkeypatch):
     class FakeActor:
         def __init__(self,config,store,row,*providers):
             self.store,self.row=store,row;self.epoch=0;self.closed=False;self.control_lock=asyncio.Lock();self.events=Events()
+            from types import SimpleNamespace
+            from unittest.mock import Mock
+            self.media=SimpleNamespace(fence=Mock())
         async def prepare(self): self.store.update(self.row.id,status='READY')
         async def interrupt(self):
             self.epoch+=1;self.store.update(self.row.id,epoch=self.epoch)
         async def answer(self,text): await self.interrupt()
-        async def close(self): self.closed=True;self.store.update(self.row.id,status='CLOSED')
+        async def close(self,**kwargs): self.closed=True;self.store.update(self.row.id,status='CLOSED')
     monkeypatch.setattr(module,'Actor',FakeActor)
-    app=module.create_app(settings,load_models=False)
+    app=module.create_app(settings,load_models=False,run_jobs=False)
     async with app.router.lifespan_context(app):
         app.state.resources.update(ready=True,asr=None,llm=None,config=None)
         async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app,client=('127.0.0.1',123)),base_url=settings.origin) as c:
@@ -73,6 +76,7 @@ async def test_real_postgres_idempotency_cross_tenant_and_grant_scopes(client,se
     assert high.json()['epoch']==2
     reordered=await c.post(f'/v1/sessions/{sid}/controls',json={'sequence':2,'expected_epoch':2,'kind':'interrupt'})
     assert reordered.status_code==409
+    c.cookies.clear()
     await c.post('/v1/dev-login',json={})  # A different cookie means a different tenant.
     assert (await c.get(f'/v1/sessions/{sid}')).status_code==404
 

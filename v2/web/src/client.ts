@@ -1,6 +1,7 @@
 import { Room, RoomEvent, Track, ConnectionError, createLocalAudioTrack, type LocalAudioTrack, type RemoteTrack,
   type RemoteTrackPublication, type RemoteParticipant } from 'livekit-client';
 import { PlaybackGate, type Binding } from './playback';
+import { identity, csrfToken } from './api';
 
 export type ServerEvent = { kind: string; epoch: number; text?: string; speaker?: string; final?: boolean;
   utterance?: number; revision?: number; segment?: number; code?: string; [key: string]: unknown };
@@ -68,7 +69,7 @@ export class ConversationClient {
 
   private async request<T>(path: string, body?: unknown, headers: Record<string, string> = {}): Promise<T> {
     const response = await fetch(path, { method: body === undefined ? 'GET' : 'POST', credentials: 'same-origin',
-      headers: { ...(body === undefined ? {} : { 'Content-Type': 'application/json', 'X-CSRF-Token': this.csrf }), ...headers },
+      headers: { ...(body === undefined ? {} : { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken() || this.csrf }), ...headers },
       body: body === undefined ? undefined : JSON.stringify(body) });
     if (!response.ok) {
       const data = await response.json().catch(() => ({ detail: '' }));
@@ -77,7 +78,7 @@ export class ConversationClient {
     return response.json();
   }
 
-  async start(deviceId: string) {
+  async start(deviceId: string, assetId = 'synthetic-audio-reference') {
     if (!window.isSecureContext || !navigator.mediaDevices) throw new Error('Microphone access needs a secure local page. Open http://127.0.0.1:18700.');
     this.hooks.status('Checking microphone');
     try {
@@ -88,17 +89,17 @@ export class ConversationClient {
       if (error instanceof DOMException && error.name === 'NotAllowedError') throw new Error('Microphone permission was denied. Allow it in your browser, or use typed messages.');
       throw new Error('No working microphone was found. Select another device or use typed messages.');
     }
-    await this.connect(deviceId, true);
+    await this.connect(deviceId, true, assetId);
   }
 
-  async startTyped() { await this.connect('', false); }
+  async startTyped(assetId = 'synthetic-audio-reference') { await this.connect('', false, assetId); }
 
-  private async connect(deviceId: string, microphone: boolean) {
+  private async connect(deviceId: string, microphone: boolean, assetId: string) {
     if (this.stopping) throw new DOMException('Connection cancelled', 'AbortError');
     this.hooks.status('Preparing voice');
-    const login = await this.request<{ csrf_token: string }>('/v1/dev-login', {});
+    const login = await identity();
     this.csrf = login.csrf_token;
-    this.session = await this.request<Session>('/v1/sessions', { profile: 'audio_reference', asset_id: 'synthetic-audio-reference' },
+    this.session = await this.request<Session>('/v1/sessions', { profile: 'audio_reference', asset_id: assetId },
       { 'Idempotency-Key': crypto.randomUUID() });
     if (this.stopping) { await this.stop(); throw new DOMException('Connection cancelled', 'AbortError'); }
     const deadline = performance.now() + 45000;
@@ -141,6 +142,9 @@ export class ConversationClient {
 
   private onEvent(event: ServerEvent) {
     if (this.recoveryRequired) return;
+    if (event.kind === 'closed' && event.code === 'asset_revoked') {
+      this.requireReconnect('Avatar permission was revoked. Select another reference to continue.'); return;
+    }
     if (!this.gate.advance(event.epoch)) return;
     if (event.kind === 'interrupted' || event.kind === 'closed' || event.kind === 'error') {
       this.gate.cancelTo(event.epoch); this.detach();

@@ -2,6 +2,8 @@
 
 P00 supplies an isolated Python package, strict local TOML config and read-only host diagnostics. P01 adds typed media contracts, exact sample accounting, stateful reference resampling, bounded queues, epoch cancellation and synthetic PCM replay. P02 is in progress: explicit Qwen provisioning, official offline reference, native CUDA/F16 callbacks and a local callback-driven output path. V1 remains separate. See the [phase guide](../docs/v2/IMPLEMENTATION_PHASES.md), [implementation status](../docs/v2/IMPLEMENTATION_STATUS.md) and [P02 setup/evidence](docs/p02.md).
 
+The [P04 local browser](docs/p04.md) runs actual cached ASR/LLM/Qwen speech with LiveKit and Firefox/Chromium recovery. The [P05 library](docs/p05.md) adds a bounded canonical mesh import, consent, review, selection and active revocation path. These use a separate session runtime and PostgreSQL; they preserve the zero-dependency core below. The visual path is explicitly static until the real Claire/authorized-avatar gates pass.
+
 From the repository root, with `uv` and Python 3.12 already installed:
 
 ```sh

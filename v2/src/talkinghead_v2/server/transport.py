@@ -60,7 +60,7 @@ class Media:
     def __init__(self,settings,room_name,sid):
         self.settings,self.room_name,self.sid=settings,room_name,sid
         self.room=rtc.Room();self.audio=self.video=None;self.publications=[]
-        self.key=None;self.cancelled=True;self.cursor=self.next_video=self.padding=0
+        self.key=None;self.cancelled=True;self.blocked=False;self.cursor=self.next_video=self.padding=0
         self.base_us=0
         self.asset=load_avatar(Path(str(files('talkinghead_v2')/'fixtures/p03-avatar/avatar.json')),tenant_id='procedural')
         self.renderer=MeshRenderer(self.asset,resolution=128)
@@ -69,6 +69,7 @@ class Media:
                                 options=rtc.RoomOptions(auto_subscribe=False))
     async def start(self,key):
         await self.cancel()
+        if self.blocked: raise PermissionError('media_authorization_revoked')
         self.key=key;self.cancelled=False;self.cursor=self.next_video=self.padding=0
         self.ledger=SampleLedger(key,24000);self.resampler=RationalResampler(24000,48000)
         self.base_us=time.monotonic_ns()//1000
@@ -77,14 +78,20 @@ class Media:
         at=rtc.LocalAudioTrack.create_audio_track('answer-'+str(key.epoch),self.audio)
         vt=rtc.LocalVideoTrack.create_video_track('static-reference-'+str(key.epoch),self.video)
         ap=await self.room.local_participant.publish_track(at,rtc.TrackPublishOptions(source=rtc.TrackSource.SOURCE_MICROPHONE))
+        self.publications.append(ap.sid)
+        if self.blocked:
+            await self.cancel();raise PermissionError('media_authorization_revoked')
         vp=await self.room.local_participant.publish_track(vt,rtc.TrackPublishOptions(source=rtc.TrackSource.SOURCE_CAMERA))
-        self.publications=[ap.sid,vp.sid]
-        neutral=MotionFrame(Envelope(key,0,'static-reference'),self.asset.rig,0,48000,48000,(0.,0.))
+        self.publications.append(vp.sid)
+        if self.blocked:
+            await self.cancel();raise PermissionError('media_authorization_revoked')
+        neutral=MotionFrame(Envelope(key,0,'static-reference'),self.asset.rig,0,48000,48000,tuple(0. for _ in self.asset.rig.coefficient_names))
         pixels=self.renderer.render(neutral,duration=Fraction(1,30)).rgb
         self.image=rtc.VideoFrame(128,128,rtc.VideoBufferType.RGB24,pixels)
         self.video.capture_frame(self.image,timestamp_us=self.base_us)
         return {'audio_sid':ap.sid,'video_sid':vp.sid,'publisher':'media-'+self.sid,'epoch':key.epoch,
-                'visual_mode':'static_procedural_reference','clock_mapping':'new_track_per_epoch','source_sample_rate':48000}
+                'visual_mode':'static_procedural_reference' if self.asset.kind=='procedural_fixture' else 'static_mesh_reference',
+                'clock_mapping':'new_track_per_epoch','source_sample_rate':48000}
     async def _pcm(self,values,key,*,tail=False):
         for start in range(0,len(values),960):
             if self.cancelled or self.key!=key: return False
@@ -119,7 +126,8 @@ class Media:
         if self.audio: await self.audio.aclose()
         if self.video: await self.video.aclose()
         self.audio=self.video=None
-    def fence(self):
+    def fence(self,*,permanent=False):
+        self.blocked=self.blocked or permanent
         self.cancelled=True
         if self.audio: self.audio.clear_queue()
     async def close(self):

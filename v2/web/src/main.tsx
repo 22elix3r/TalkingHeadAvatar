@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import type { ConversationClient, ServerEvent } from './client';
 import './style.css';
+import { AssetLibrary } from './AssetLibrary';
 
 type Caption = { id: string; speaker: string; text: string; final: boolean };
 
@@ -13,6 +14,7 @@ function App() {
   const [blocked, setBlocked] = useState(false), [muted, setMuted] = useState(false);
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]), [device, setDevice] = useState('');
   const [captions, setCaptions] = useState<Caption[]>([]), [text, setText] = useState('');
+  const [assetId, setAssetId] = useState('synthetic-audio-reference');
   function event(e: ServerEvent) {
     if (e.kind === 'caption' && e.text) {
       const id = e.speaker === 'user' ? `u-${e.utterance}` : `a-${e.epoch}-${e.segment}`;
@@ -28,7 +30,7 @@ function App() {
     const { ConversationClient } = await import('./client');
     const next = new ConversationClient({ event, status: setStatus, error: setError, audioBlocked: setBlocked, devices: setDevices }, audio.current!, video.current!);
     client.current = next;
-    try { if (typed) await next.startTyped(); else await next.start(device); setActive(true); }
+    try { if (typed) await next.startTyped(assetId); else await next.start(device, assetId); setActive(true); }
     catch (e) {
       if (!(e instanceof DOMException && e.name === 'AbortError')) setError(e instanceof Error ? e.message : 'Unable to start. Please retry.');
       await next.stop();
@@ -46,6 +48,7 @@ function App() {
   return <main>
     <header><a className="brand" href="/" aria-label="TalkingHead home"><span className="brand-mark">t.</span> talkinghead<span className="research">RESEARCH</span></a><span className="local-badge">● Local preview</span></header>
     <section className="intro"><p className="eyebrow">A LITTLE MORE HUMAN</p><h1>Make room for a conversation.</h1><p>Speak naturally, pause, and pick up where you left off.</p></section>
+    <AssetLibrary selected={assetId} onSelect={setAssetId} disabled={busy || active} />
     <div className="workspace">
       <section className="voice-card" aria-label="Voice conversation">
         <div className="card-top"><span className="pill">AUDIO REFERENCE</span><span className={active ? 'connection online' : 'connection'}>{active ? 'Connected' : 'Not connected'}</span></div>

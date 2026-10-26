@@ -71,6 +71,11 @@ class Store:
         self.engine=create_engine(url,pool_pre_ping=True,pool_size=3,max_overflow=2)
         self.sessions=sessionmaker(self.engine,expire_on_commit=False)
 
+    def require_schema(self):
+        with self.engine.connect() as db:
+            if db.scalar(text('SELECT version_num FROM alembic_version'))!='p05_0003':
+                raise RuntimeError('Apply the documented P05 migration before starting this runtime')
+
     def login(self,revision):
         cookie,csrf=secrets.token_urlsafe(32),secrets.token_urlsafe(32)
         with self.sessions.begin() as db:
@@ -83,6 +88,15 @@ class Store:
         with self.sessions() as db:
             return db.scalar(select(Principal).where(Principal.cookie_hash==hashed(cookie),Principal.expires>now()))
 
+    def resume_login(self,revision,cookie,csrf):
+        with self.sessions.begin() as db:
+            row=db.scalar(select(Principal).where(Principal.cookie_hash==hashed(cookie),Principal.expires>now()).with_for_update())
+            if row:
+                if not csrf or not secrets.compare_digest(row.csrf_hash,hashed(csrf)):
+                    csrf=secrets.token_urlsafe(32);row.csrf_hash=hashed(csrf)
+                return row.id,cookie,csrf
+        return self.login(revision)
+
     def get(self,sid,tenant):
         with self.sessions() as db: return db.scalar(select(Session).where(Session.id==sid,Session.tenant_id==tenant))
 
@@ -94,9 +108,9 @@ class Store:
                 if previous.body_hash!=body_hash: raise ValueError('idempotency_conflict')
                 return db.get(Session,previous.session_id),False
             if previous: db.delete(previous);db.flush()
-            asset=db.get(Asset,(tenant,asset_id))
+            asset=db.get(Asset,(tenant,asset_id),with_for_update=True)
             if not asset or asset.status!='approved': raise PermissionError('asset_unavailable')
-            active=db.scalar(select(Session.id).where(Session.status.in_(['PREPARING','READY','ACTIVE'])).limit(1))
+            active=db.scalar(select(Session.id).where(Session.status.in_(['PREPARING','READY','ACTIVE','DRAINING'])).limit(1))
             if active: raise RuntimeError('capacity_exhausted')
             row=Session(id=opaque(),tenant_id=tenant,room='tha-p04-'+opaque(),asset_id=asset.id,
                 asset_revision=asset.revision,status='PREPARING',epoch=0,fence=1,lease_expires=now()+timedelta(seconds=30))
@@ -108,6 +122,8 @@ class Store:
         with self.sessions.begin() as db:
             row=db.get(Session,sid,with_for_update=True)
             if row is None or row.fence!=fence: raise RuntimeError('stale_session_fence')
+            if row.status in {'DRAINING','CLOSED','FAILED'} and status and status not in {'CLOSED','FAILED'}:
+                raise RuntimeError('session_stopped')
             if epoch is not None:
                 if epoch<row.epoch: raise RuntimeError('stale_epoch')
                 row.epoch=epoch
@@ -117,7 +133,7 @@ class Store:
 
     def recover(self):
         with self.sessions.begin() as db:
-            rows=list(db.scalars(select(Session).where(Session.status.in_(['PREPARING','READY','ACTIVE']))))
+            rows=list(db.scalars(select(Session).where(Session.status.in_(['PREPARING','READY','ACTIVE','DRAINING']))))
             for row in rows:
                 row.status='FAILED';row.error_code='controller_restarted';row.fence+=1
             return [(row.room,row.id) for row in rows]
