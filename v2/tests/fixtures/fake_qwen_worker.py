@@ -9,16 +9,19 @@ HEADER = struct.Struct("<cIIQQ")
 lock = threading.Lock()
 cancelled = threading.Event()
 mode = sys.argv[1]
+starts = {}
 
 
 def frame(kind, serial, count=0, payload=b""):
     with lock:
-        sys.stdout.buffer.write(HEADER.pack(kind, 24000 if kind != b"E" else 0, count, 1000000, serial)+payload)
+        elapsed = time.perf_counter_ns()-starts[serial] if serial in starts else 0
+        sys.stdout.buffer.write(HEADER.pack(kind, 24000 if kind != b"E" else 0, count, elapsed, serial)+payload)
         sys.stdout.buffer.flush()
 
 
 def generate(payload):
     serial = struct.unpack("<Q", payload[:8])[0]
+    starts[serial] = time.perf_counter_ns()
     text = payload[8:].decode()
     frame(b"A", serial-1, 1, struct.pack("<f", 0.9))  # Stale request must be discarded.
     if mode == "bad-rate":
@@ -34,7 +37,7 @@ def generate(payload):
     if mode == "hang":
         while True:
             time.sleep(0.1)
-    time.sleep(0.04)
+    time.sleep(0.15)
     if cancelled.is_set():
         frame(b"C", serial)
         return

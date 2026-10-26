@@ -1,6 +1,6 @@
 # TalkingHeadAvatar V2 — Research and Build Plan
 
-**Status:** ready for phase-by-phase implementation; **Qwen3-TTS selected by the user**. Runtime, quality and latency qualification remain pending. V2 has not been implemented.  
+**Status:** P00/P01 are implemented; P02 runtime qualification is in progress. **Qwen3-TTS is selected by the user**. Follow the [implementation status](docs/v2/IMPLEMENTATION_STATUS.md) for actual code and evidence; quality, latency and later product gates remain open.
 **Model survey cutoff:** October 25, 2026. **Deployment scope revision / additional research:** October 26, 2026.  
 **Audited V1 commit:** `54b4f171a9bb193a6b648b8015fba6ba295368f0`.  
 **Target development hardware:** RTX 4070 Ti SUPER, 16 GB, Ryzen 5 7600X, 32 GB RAM, Fedora Linux.  

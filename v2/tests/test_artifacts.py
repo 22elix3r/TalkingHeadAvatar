@@ -121,3 +121,21 @@ def test_offline_or_missing_snapshot_does_not_download(bundle, tmp_path, monkeyp
         artifacts.verify_snapshot(tmp_path / "cache", manifest)
     with pytest.raises(artifacts.ArtifactError, match="offline"):
         artifacts.provision(tmp_path / "cache", manifest)
+
+
+@pytest.mark.parametrize("value", [None, [], "manifest", {"schema_version": True},
+    {"schema_version": 1, "model_id": artifacts.MODEL_ID, "revision": "a"*40, "files": [None]}])
+def test_malformed_manifest_types_fail_with_typed_error(tmp_path, value):
+    source = tmp_path / "bad.json"
+    source.write_text(json.dumps(value))
+    with pytest.raises(artifacts.ArtifactError):
+        artifacts.read_manifest(source)
+
+
+def test_extra_empty_or_symlinked_directory_is_not_a_valid_snapshot(bundle, tmp_path):
+    _, manifest, _ = bundle
+    cache = tmp_path / "cache"
+    root = artifacts.provision(cache, manifest, fetch=fetcher(bundle))
+    (root / "unexpected").mkdir()
+    with pytest.raises(artifacts.ArtifactError, match="unexpected directory"):
+        artifacts.verify_snapshot(cache, manifest)

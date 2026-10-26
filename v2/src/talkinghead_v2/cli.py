@@ -39,6 +39,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     speak.add_argument("--device")
     speak.add_argument("--interrupt-after", type=float)
     speak.add_argument("--resume-text", default="This is the new generation after the interruption.")
+    segments = tts_actions.add_parser("segments", help="real ordered multi-segment/one-EOF qualification")
+    for name in ("runtime", "texts", "report", "log", "wave"):
+        segments.add_argument(f"--{name}", type=Path, required=True)
     audio = commands.add_parser("audio", help="explicit local output-device qualification")
     audio_actions = audio.add_subparsers(dest="audio_action", required=True)
     calibrate = audio_actions.add_parser("calibrate", help="play two calibration tones and capture output monitor")
@@ -57,6 +60,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.command == "tts":
         import asyncio
         import math
+        if args.tts_action == "segments":
+            from talkinghead_v2.providers.tts.segments import run
+
+            result = asyncio.run(run(args))
+            print(json.dumps({"status": result["status"], "samples": result["samples"], "eof_count": result["eof_count"]}))
+            return 0
         if args.tts_action == "speak":
             from talkinghead_v2.providers.tts.speech import run
 

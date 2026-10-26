@@ -14,5 +14,26 @@
   "async_decode": false,
   "reference_voice_kind": "synthetic_fixture",
   "runtime_lock_sha256": "160750c3d9be8f1c5e6746d2e5095fd0f88efa7f61beeaa3e0c556dd5e5e5fa9",
-  "bridge_source_sha256": "07b926d4956120fb72a5b47bc5ba7b88d74cdabc31464a9c1e490fdd313f53ff"
+  "bridge_source_sha256": "07b926d4956120fb72a5b47bc5ba7b88d74cdabc31464a9c1e490fdd313f53ff",
+  "sampling_controls": {
+    "temperature": 0.75,
+    "top_k": 16,
+    "codebook_0_top_p": 1.0,
+    "residual_top_p": 0.9,
+    "repetition_penalty": 1.02,
+    "seed_per_request": 17,
+    "max_audio_tokens": 1024,
+    "provenance": "pinned engine/src/qwen3_tts.h defaults plus checked-in bridge overrides"
+  },
+  "build_reproduction": {
+    "source_revision": "74422bab4998ad69e0a67ba105654dadbeec9b3a",
+    "ggml_tree": "b1e00d0467ff3e8a7ade3bc6031b756b4cfe0c13",
+    "worker_sha256": "82e7af68318dc15a840ecb702a91d5d85922381db1d73eb689b3d9b45d11d6fe",
+    "bridge_source_sha256": "07b926d4956120fb72a5b47bc5ba7b88d74cdabc31464a9c1e490fdd313f53ff",
+    "upstream_patch_sha256": "5df4b71188f094ddb4a3673e93b24bf2d4a05ba48ab8284a32ab0be4d12ecdf9",
+    "cuda_header_original_sha256": "2f2189d1752d862e96122f985484c89e16bd03a485a01e1f114514f738a2ed4f",
+    "cuda_header_overlay_sha256": "16b0d2fa4401b477cd11c5761ffa0e0abb13575718687832227f6ac393d90d36",
+    "cuda_version": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2025 NVIDIA Corporation\nBuilt on Fri_Feb_21_20:23:50_PST_2025\nCuda compilation tools, release 12.8, V12.8.93\nBuild cuda_12.8.r12.8/compiler.35583870_0\n",
+    "host_compiler": "g++-14 (GCC) 14.3.1 20250808 (Red Hat 14.3.1-1)"
+  }
 }

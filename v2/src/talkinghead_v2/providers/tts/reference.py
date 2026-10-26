@@ -13,6 +13,11 @@ from talkinghead_v2.assets.artifacts import read_manifest, sha256_file, verify_s
 from talkinghead_v2.assets.voices import read_voice
 
 OFFICIAL_SOURCE = "022e286b98fbec7e1e916cb940cdf532cd9f488e"
+# Match the pinned native tts_params controls, including its separate codebook-0
+# and residual samplers. RNGs/dtypes/implementations still differ across runtimes.
+NATIVE_MATCHED_SAMPLING = dict(do_sample=True, temperature=0.75, top_k=16, top_p=1.0,
+    repetition_penalty=1.02, subtalker_dosample=True, subtalker_temperature=0.75,
+    subtalker_top_k=16, subtalker_top_p=0.9)
 
 
 def run(args) -> dict:
@@ -68,8 +73,7 @@ def run(args) -> dict:
             torch.cuda.synchronize()
             start = time.perf_counter_ns()
             waves, native_rate = model.generate_voice_clone(text=text, language="English", voice_clone_prompt=prompt,
-                non_streaming_mode=False, do_sample=True, temperature=0.75, top_k=16, top_p=0.9,
-                repetition_penalty=1.02, max_new_tokens=args.max_tokens)
+                non_streaming_mode=False, **NATIVE_MATCHED_SAMPLING, max_new_tokens=args.max_tokens)
             torch.cuda.synchronize()
             elapsed_ns = time.perf_counter_ns()-start
             samples = np.asarray(waves[0], dtype=np.float32)
@@ -88,6 +92,9 @@ def run(args) -> dict:
     report = {"schema_version": 1, "evidence_category": "local_observation", "adapter": "official_offline_reference",
               "incremental_audio_output": False, "incremental_text_input": False,
               "identity": identity, "speaker_cache_key": key, "voice_kind": voice["kind"],
+              "sampling": {**NATIVE_MATCHED_SAMPLING, "max_new_tokens": args.max_tokens, "seed": 17},
+              "sampling_profile": "native_matched_controls_not_numerical_equivalence",
+              "adapter_source_sha256": sha256_file(Path(__file__)),
               "human_cloning_qualified": False, "artifact_verification_ns": verification_ns,
               "model_load_ns": load_ns, "prompt_ns": prompt_ns, "baseline_device_used_bytes": total-baseline_free,
               "embedding": {"path": embedding_path.name, "dimension": len(embedding),

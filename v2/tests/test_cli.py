@@ -66,6 +66,11 @@ import talkinghead_v2.replay
 import talkinghead_v2.providers.tts.native
 import talkinghead_v2.providers.tts.reference
 import talkinghead_v2.audio.playback
+import talkinghead_v2.audio.capture
+import talkinghead_v2.audio.qualify
+import talkinghead_v2.providers.tts.benchmark
+import talkinghead_v2.providers.tts.quality
+import talkinghead_v2.providers.tts.speech
 assert talkinghead_v2.__version__ == "0.1.0"
 '''
     result = subprocess.run([sys.executable, "-I", "-c", script], cwd=tmp_path,

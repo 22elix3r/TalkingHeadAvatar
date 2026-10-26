@@ -2,6 +2,7 @@
 
 import asyncio
 from dataclasses import asdict
+import hashlib
 import json
 import time
 
@@ -37,11 +38,14 @@ async def run(args):
             producer_finished = time.perf_counter_ns()
             return result
         async def bridge():
+            saw_eof = False
             async for event in provider.outputs():
                 accepted = await session.push(event) if isinstance(event, AudioChunk) else await session.finish(event)
                 if not accepted:
                     return False
-            return True
+                if not isinstance(event, AudioChunk):
+                    saw_eof = True
+            return saw_eof
         tasks = [asyncio.create_task(produce()), asyncio.create_task(bridge()),
                  asyncio.create_task(consume_device(session, key))]
         try:
@@ -58,6 +62,7 @@ async def run(args):
                 device_ack, compute_ack = await asyncio.gather(sink.abort_and_close(), provider.cancel())
                 result = await asyncio.wait_for(asyncio.gather(*tasks, return_exceptions=True), 5)
                 return {"epoch": key.epoch, "interrupted": True, "interrupt_monotonic_ns": interrupt_ns,
+                        "text_sha256": hashlib.sha256(text.encode()).hexdigest(),
                         "software_ack": asdict(software), "device_ack": device_ack, "compute_ack": compute_ack,
                         "task_outcomes": [str(value) for value in result], "device": sink.report(),
                         "capture_first_audio_observed_ns": capture.first_audio_observed_ns}
@@ -67,6 +72,7 @@ async def run(args):
             observed = capture.first_audio_observed_ns
             metrics = summarize(provider.last_metrics)
             report = {"epoch": key.epoch, "interrupted": False, "capture_armed_ns": captured_start,
+                      "text_sha256": hashlib.sha256(text.encode()).hexdigest(),
                       "capture_first_audio_observed_ns": observed, "producer_finished_monotonic_ns": producer_finished,
                       "output_monitor_audio_observed_before_generation_returned": observed is not None and observed < producer_finished,
                       "native_source_emitted_early_pcm": metrics["early_pcm"], "native": metrics, "device": sink.report(),
@@ -93,7 +99,8 @@ async def run(args):
         capture_report = await capture.close(args.capture)
     report = {"schema_version": 1, "phase": "P02", "evidence_category": "local_observation",
               "boundary": "Qwen native callbacks through P01 to PortAudio and output-monitor observation",
-              "actual_device_playback": True, "voice_kind": config.voice_kind, "human_cloning_qualified": False,
+              "actual_device_playback": all(item["device"]["actual_device_stream"] for item in turns),
+              "voice_kind": config.voice_kind, "human_cloning_qualified": False,
               "human_listening": "pending", "turns": turns, "capture": capture_report,
               "receiver_safe_browser_cancel": "not_qualified", "status": "passed",
               "limitations": ["Output-monitor observation is not acoustic capture or human quality",

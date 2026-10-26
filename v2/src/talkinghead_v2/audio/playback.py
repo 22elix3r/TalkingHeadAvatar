@@ -14,8 +14,8 @@ from talkinghead_v2.contracts import AudioChunk, AudioEOF, ContractError, Genera
 class PortAudioSink:
     cancel_ack_scope = "local_device_queue_only"
 
-    def __init__(self, *, sample_rate=48000, blocksize=480, max_buffer_samples=14400,
-                 device=None, stream_factory=None):
+    def __init__(self, *, sample_rate=48000, blocksize=960, max_buffer_samples=14400,
+                 device=None, stream_factory=None, latency=0.05):
         for name, value in (("sample_rate", sample_rate), ("blocksize", blocksize),
                             ("max_buffer_samples", max_buffer_samples)):
             integer(value, name, 1)
@@ -23,6 +23,9 @@ class PortAudioSink:
         self.blocksize = blocksize
         self.max_buffer_samples = max_buffer_samples
         self.device = device
+        if type(latency) not in (int, float) or not 0 < latency <= 1:
+            raise ContractError("device latency must be a positive number no greater than one second")
+        self.latency = latency
         self._factory = stream_factory
         self._stream = None
         self._lock = threading.Lock()
@@ -41,6 +44,7 @@ class PortAudioSink:
         self.first_dac_ns = None
         self.underrun_callbacks = 0
         self.portaudio_status_callbacks = 0
+        self.portaudio_status_trace = deque(maxlen=64)
         self.peak_queued_samples = 0
         self.device_description = None
         self.closed_ns = None
@@ -56,10 +60,14 @@ class PortAudioSink:
             import sounddevice as sd
             factory = sd.RawOutputStream
             self.device_description = dict(sd.query_devices(self.device, "output"))
-        self._stream = await asyncio.to_thread(factory, samplerate=self.sample_rate,
-            blocksize=self.blocksize, channels=1, dtype="float32", device=self.device,
-            callback=self._callback, latency="low")
-        await asyncio.to_thread(self._stream.start)
+        try:
+            self._stream = await asyncio.to_thread(factory, samplerate=self.sample_rate,
+                blocksize=self.blocksize, channels=1, dtype="float32", device=self.device,
+                callback=self._callback, latency=self.latency)
+            await asyncio.to_thread(self._stream.start)
+        except Exception:
+            await self.abort_and_close()
+            raise
 
     def start(self, key: GenerationKey, rig=None):
         if self._stream is None:
@@ -75,6 +83,7 @@ class PortAudioSink:
             self._last_dac_end_ns = self.first_dac_ns = None
             self.trace.clear()
             self.underrun_callbacks = self.portaudio_status_callbacks = 0
+            self.portaudio_status_trace.clear()
             self.peak_queued_samples = 0
             self._failure = None
 
@@ -107,6 +116,10 @@ class PortAudioSink:
                 return
             if status:
                 self.portaudio_status_callbacks += 1
+                self.portaudio_status_trace.append({"status": str(status),
+                    "output_underflow": bool(getattr(status, "output_underflow", False)),
+                    "priming_output": bool(getattr(status, "priming_output", False)),
+                    "before_first_audio": not self._ever_audio, "delivered_samples": self._delivered})
             copied = 0
             while self._buffers and copied < frames:
                 payload = self._buffers.popleft()
@@ -201,11 +214,18 @@ class PortAudioSink:
                 "closed_monotonic_ns": self.closed_ns, "physical_flush_qualified": False}
 
     def report(self):
+        with self._lock:
+            return self._report()
+
+    def _report(self):
         return {"sample_rate": self.sample_rate, "first_estimated_dac_ns": self.first_dac_ns,
             "last_estimated_dac_end_ns": self._last_dac_end_ns, "delivered_valid_samples": self._delivered,
             "underrun_callbacks": self.underrun_callbacks, "portaudio_status_callbacks": self.portaudio_status_callbacks,
+            "portaudio_status_trace": list(self.portaudio_status_trace),
+            "requested_device_latency_seconds": self.latency, "callback_blocksize": self.blocksize,
             "peak_queued_samples": self.peak_queued_samples, "max_buffer_samples": self.max_buffer_samples,
             "device": self.device_description, "callback_trace": list(self.trace),
             "callback_failure": self._failure,
+            "actual_device_stream": self._factory is None,
             "presentation_boundary": "PortAudio DAC timestamps; acoustic validation separate",
             "timestamp_uncertainty": "pair sampling interval recorded; driver/device timestamp error uncalibrated"}

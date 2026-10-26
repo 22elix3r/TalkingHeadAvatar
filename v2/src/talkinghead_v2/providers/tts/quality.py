@@ -42,8 +42,20 @@ def main():
     parser.add_argument("--texts", type=Path, required=True)
     parser.add_argument("--reference", type=Path, required=True)
     parser.add_argument("--native", type=Path, required=True)
+    parser.add_argument("--native-report", type=Path, required=True)
+    parser.add_argument("--segment-wave", type=Path)
+    parser.add_argument("--segment-texts", type=Path)
+    parser.add_argument("--segment-report", type=Path)
     parser.add_argument("--report", type=Path, required=True)
     args = parser.parse_args()
+    reference_metadata = json.loads((args.reference / "reference-report.json").read_text())
+    native_metadata = json.loads(args.native_report.read_text())
+    if (reference_metadata["voice_kind"] != native_metadata["voice_kind"] or
+        reference_metadata["identity"]["model_revision"] != native_metadata["model_revision"] or
+        native_metadata["text_fixture_sha256"] != sha256_file(args.texts)):
+        raise ValueError("evaluation provenance/model/text fixture mismatch")
+    if any((args.segment_wave, args.segment_texts, args.segment_report)) and not all((args.segment_wave, args.segment_texts, args.segment_report)):
+        parser.error("segment evaluation needs wave, texts and report together")
     manifest = json.loads(args.manifest.read_text())
     for entry in manifest["files"]:
         path = args.evaluator / entry["path"]
@@ -60,18 +72,20 @@ def main():
     model = WhisperForConditionalGeneration.from_pretrained(str(args.evaluator), local_files_only=True,
         use_safetensors=True, trust_remote_code=False, dtype=torch.float32).to("cpu").eval()
     texts = json.loads(args.texts.read_text())
+    def transcribe(path):
+        audio, rate = sf.read(path, dtype="float32")
+        audio = librosa.resample(audio, orig_sr=rate, target_sr=16000)
+        features = processor(audio, sampling_rate=16000, return_tensors="pt",
+                             return_attention_mask=True, truncation=False, padding="longest")
+        with torch.inference_mode():
+            tokens = model.generate(input_features=features.input_features, attention_mask=features.attention_mask,
+                                    return_timestamps=True, do_sample=False)
+        return processor.batch_decode(tokens, skip_special_tokens=True)[0]
     rows = []
     for provider, root, prefix in (("official_bf16", args.reference, "reference"), ("native_f16_streaming", args.native, "native")):
         for index, request in enumerate(texts):
             path = root / f"{prefix}-{index:03}.wav"
-            audio, rate = sf.read(path, dtype="float32")
-            audio = librosa.resample(audio, orig_sr=rate, target_sr=16000)
-            features = processor(audio, sampling_rate=16000, return_tensors="pt",
-                                 return_attention_mask=True, truncation=False, padding="longest")
-            with torch.inference_mode():
-                tokens = model.generate(input_features=features.input_features, attention_mask=features.attention_mask,
-                                        return_timestamps=True, do_sample=False)
-            transcript = processor.batch_decode(tokens, skip_special_tokens=True)[0]
+            transcript = transcribe(path)
             rows.append({"provider": provider, "id": request["id"], "wave_sha256": sha256_file(path),
                          "transcript": transcript, **word_errors(request["text"], transcript)})
     aggregates = {}
@@ -80,11 +94,22 @@ def main():
         total, errors = sum(r["reference_words"] for r in selected), sum(r["errors"] for r in selected)
         aggregates[provider] = {"reference_words": total, "errors": errors, "wer": errors/total}
     report = {"schema_version": 1, "evidence_category": "local_observation", "evaluator": manifest,
+              "voice_kind": reference_metadata["voice_kind"], "native_worker_environment": native_metadata["worker_environment"],
+              "reference_sampling": reference_metadata.get("sampling", "historical_mixed_defaults"),
+              "reference_report_sha256": sha256_file(args.reference / "reference-report.json"),
+              "native_report_sha256": sha256_file(args.native_report),
               "device": "cpu", "dtype": "float32", "torch_threads": 2, "requests": rows, "aggregates": aggregates,
               "human_listening": "pending", "human_cloning_qualified": False,
               "normalization": "NFKC, casefold, non-alphanumeric to spaces; no number/abbreviation or accent equivalence",
               "limitations": ["ASR errors and legitimate verbalizations count in strict WER; inspect rows",
                               "Five synthetic-voice text cases; no independent human or population-quality conclusion"]}
+    if args.segment_wave:
+        metadata = json.loads(args.segment_report.read_text())
+        expected = " ".join(item["text"] for item in json.loads(args.segment_texts.read_text()))
+        transcript = transcribe(args.segment_wave)
+        report["segment_check"] = {"transcript": transcript, "wave_sha256": sha256_file(args.segment_wave),
+                                   "text_fixture_sha256": sha256_file(args.segment_texts),
+                                   "native_eof_count": metadata["eof_count"], **word_errors(expected, transcript)}
     args.report.write_text(json.dumps(report, indent=2)+"\n")
     print(json.dumps(aggregates))
 

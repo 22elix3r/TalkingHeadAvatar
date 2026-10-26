@@ -1,0 +1,412 @@
+{
+  "schema_version": 1,
+  "evidence_category": "local_observation",
+  "voice_kind": "synthetic_fixture",
+  "model_revision": "fd4b254389122332181a7c3db7f27e918eec64e3",
+  "worker_environment": {
+    "GGML_CUDA_DISABLE_GRAPHS": "1",
+    "THA_QWEN_ASYNC_DECODE": "0"
+  },
+  "text_fixture_sha256": "07aa967fd8a81950780aa4d3d29a4a359b731eec91e4aa67ec4755fb93ccf3f3",
+  "sample_rate": 24000,
+  "samples": 171135,
+  "native_segments": [
+    {
+      "id": "first",
+      "samples": 53205,
+      "pcm_sha256": "e074ad3b7f84321ac32e9843a85091b7b20bdd99d412a98507f32734d17adebb"
+    },
+    {
+      "id": "next",
+      "samples": 58965,
+      "pcm_sha256": "50a9df181fa03864171907057c1bb49af9271fa0e806f7edd1986e57bca1910a"
+    },
+    {
+      "id": "last",
+      "samples": 58965,
+      "pcm_sha256": "6a5fd88670cfb4ac7c1100349b306eb26e08ca10b4fe51f1c77b3acf5fea7f0a"
+    }
+  ],
+  "sample_spans": [
+    {
+      "segment_id": "first",
+      "start_sample": 0,
+      "end_sample_exclusive": 2400
+    },
+    {
+      "segment_id": "first",
+      "start_sample": 2400,
+      "end_sample_exclusive": 4800
+    },
+    {
+      "segment_id": "first",
+      "start_sample": 4800,
+      "end_sample_exclusive": 7200
+    },
+    {
+      "segment_id": "first",
+      "start_sample": 7200,
+      "end_sample_exclusive": 9600
+    },
+    {
+      "segment_id": "first",
+      "start_sample": 9600,
+      "end_sample_exclusive": 10965
+    },
+    {
+      "segment_id": "first",
+      "start_sample": 10965,
+      "end_sample_exclusive": 13365
+    },
+    {
+      "segment_id": "first",
+      "start_sample": 13365,
+      "end_sample_exclusive": 15765
+    },
+    {
+      "segment_id": "first",
+      "start_sample": 15765,
+      "end_sample_exclusive": 18165
+    },
+    {
+      "segment_id": "first",
+      "start_sample": 18165,
+      "end_sample_exclusive": 20565
+    },
+    {
+      "segment_id": "first",
+      "start_sample": 20565,
+      "end_sample_exclusive": 22485
+    },
+    {
+      "segment_id": "first",
+      "start_sample": 22485,
+      "end_sample_exclusive": 24885
+    },
+    {
+      "segment_id": "first",
+      "start_sample": 24885,
+      "end_sample_exclusive": 27285
+    },
+    {
+      "segment_id": "first",
+      "start_sample": 27285,
+      "end_sample_exclusive": 29685
+    },
+    {
+      "segment_id": "first",
+      "start_sample": 29685,
+      "end_sample_exclusive": 32085
+    },
+    {
+      "segment_id": "first",
+      "start_sample": 32085,
+      "end_sample_exclusive": 34005
+    },
+    {
+      "segment_id": "first",
+      "start_sample": 34005,
+      "end_sample_exclusive": 36405
+    },
+    {
+      "segment_id": "first",
+      "start_sample": 36405,
+      "end_sample_exclusive": 38805
+    },
+    {
+      "segment_id": "first",
+      "start_sample": 38805,
+      "end_sample_exclusive": 41205
+    },
+    {
+      "segment_id": "first",
+      "start_sample": 41205,
+      "end_sample_exclusive": 43605
+    },
+    {
+      "segment_id": "first",
+      "start_sample": 43605,
+      "end_sample_exclusive": 46005
+    },
+    {
+      "segment_id": "first",
+      "start_sample": 46005,
+      "end_sample_exclusive": 48405
+    },
+    {
+      "segment_id": "first",
+      "start_sample": 48405,
+      "end_sample_exclusive": 50805
+    },
+    {
+      "segment_id": "first",
+      "start_sample": 50805,
+      "end_sample_exclusive": 53205
+    },
+    {
+      "segment_id": "next",
+      "start_sample": 53205,
+      "end_sample_exclusive": 55605
+    },
+    {
+      "segment_id": "next",
+      "start_sample": 55605,
+      "end_sample_exclusive": 58005
+    },
+    {
+      "segment_id": "next",
+      "start_sample": 58005,
+      "end_sample_exclusive": 60405
+    },
+    {
+      "segment_id": "next",
+      "start_sample": 60405,
+      "end_sample_exclusive": 62805
+    },
+    {
+      "segment_id": "next",
+      "start_sample": 62805,
+      "end_sample_exclusive": 64170
+    },
+    {
+      "segment_id": "next",
+      "start_sample": 64170,
+      "end_sample_exclusive": 66570
+    },
+    {
+      "segment_id": "next",
+      "start_sample": 66570,
+      "end_sample_exclusive": 68970
+    },
+    {
+      "segment_id": "next",
+      "start_sample": 68970,
+      "end_sample_exclusive": 71370
+    },
+    {
+      "segment_id": "next",
+      "start_sample": 71370,
+      "end_sample_exclusive": 73770
+    },
+    {
+      "segment_id": "next",
+      "start_sample": 73770,
+      "end_sample_exclusive": 75690
+    },
+    {
+      "segment_id": "next",
+      "start_sample": 75690,
+      "end_sample_exclusive": 78090
+    },
+    {
+      "segment_id": "next",
+      "start_sample": 78090,
+      "end_sample_exclusive": 80490
+    },
+    {
+      "segment_id": "next",
+      "start_sample": 80490,
+      "end_sample_exclusive": 82890
+    },
+    {
+      "segment_id": "next",
+      "start_sample": 82890,
+      "end_sample_exclusive": 85290
+    },
+    {
+      "segment_id": "next",
+      "start_sample": 85290,
+      "end_sample_exclusive": 87210
+    },
+    {
+      "segment_id": "next",
+      "start_sample": 87210,
+      "end_sample_exclusive": 89610
+    },
+    {
+      "segment_id": "next",
+      "start_sample": 89610,
+      "end_sample_exclusive": 92010
+    },
+    {
+      "segment_id": "next",
+      "start_sample": 92010,
+      "end_sample_exclusive": 94410
+    },
+    {
+      "segment_id": "next",
+      "start_sample": 94410,
+      "end_sample_exclusive": 96810
+    },
+    {
+      "segment_id": "next",
+      "start_sample": 96810,
+      "end_sample_exclusive": 99210
+    },
+    {
+      "segment_id": "next",
+      "start_sample": 99210,
+      "end_sample_exclusive": 101610
+    },
+    {
+      "segment_id": "next",
+      "start_sample": 101610,
+      "end_sample_exclusive": 104010
+    },
+    {
+      "segment_id": "next",
+      "start_sample": 104010,
+      "end_sample_exclusive": 106410
+    },
+    {
+      "segment_id": "next",
+      "start_sample": 106410,
+      "end_sample_exclusive": 108810
+    },
+    {
+      "segment_id": "next",
+      "start_sample": 108810,
+      "end_sample_exclusive": 111210
+    },
+    {
+      "segment_id": "next",
+      "start_sample": 111210,
+      "end_sample_exclusive": 112170
+    },
+    {
+      "segment_id": "last",
+      "start_sample": 112170,
+      "end_sample_exclusive": 114570
+    },
+    {
+      "segment_id": "last",
+      "start_sample": 114570,
+      "end_sample_exclusive": 116970
+    },
+    {
+      "segment_id": "last",
+      "start_sample": 116970,
+      "end_sample_exclusive": 119370
+    },
+    {
+      "segment_id": "last",
+      "start_sample": 119370,
+      "end_sample_exclusive": 121770
+    },
+    {
+      "segment_id": "last",
+      "start_sample": 121770,
+      "end_sample_exclusive": 123135
+    },
+    {
+      "segment_id": "last",
+      "start_sample": 123135,
+      "end_sample_exclusive": 125535
+    },
+    {
+      "segment_id": "last",
+      "start_sample": 125535,
+      "end_sample_exclusive": 127935
+    },
+    {
+      "segment_id": "last",
+      "start_sample": 127935,
+      "end_sample_exclusive": 130335
+    },
+    {
+      "segment_id": "last",
+      "start_sample": 130335,
+      "end_sample_exclusive": 132735
+    },
+    {
+      "segment_id": "last",
+      "start_sample": 132735,
+      "end_sample_exclusive": 134655
+    },
+    {
+      "segment_id": "last",
+      "start_sample": 134655,
+      "end_sample_exclusive": 137055
+    },
+    {
+      "segment_id": "last",
+      "start_sample": 137055,
+      "end_sample_exclusive": 139455
+    },
+    {
+      "segment_id": "last",
+      "start_sample": 139455,
+      "end_sample_exclusive": 141855
+    },
+    {
+      "segment_id": "last",
+      "start_sample": 141855,
+      "end_sample_exclusive": 144255
+    },
+    {
+      "segment_id": "last",
+      "start_sample": 144255,
+      "end_sample_exclusive": 146175
+    },
+    {
+      "segment_id": "last",
+      "start_sample": 146175,
+      "end_sample_exclusive": 148575
+    },
+    {
+      "segment_id": "last",
+      "start_sample": 148575,
+      "end_sample_exclusive": 150975
+    },
+    {
+      "segment_id": "last",
+      "start_sample": 150975,
+      "end_sample_exclusive": 153375
+    },
+    {
+      "segment_id": "last",
+      "start_sample": 153375,
+      "end_sample_exclusive": 155775
+    },
+    {
+      "segment_id": "last",
+      "start_sample": 155775,
+      "end_sample_exclusive": 158175
+    },
+    {
+      "segment_id": "last",
+      "start_sample": 158175,
+      "end_sample_exclusive": 160575
+    },
+    {
+      "segment_id": "last",
+      "start_sample": 160575,
+      "end_sample_exclusive": 162975
+    },
+    {
+      "segment_id": "last",
+      "start_sample": 162975,
+      "end_sample_exclusive": 165375
+    },
+    {
+      "segment_id": "last",
+      "start_sample": 165375,
+      "end_sample_exclusive": 167775
+    },
+    {
+      "segment_id": "last",
+      "start_sample": 167775,
+      "end_sample_exclusive": 170175
+    },
+    {
+      "segment_id": "last",
+      "start_sample": 170175,
+      "end_sample_exclusive": 171135
+    }
+  ],
+  "eof_count": 1,
+  "pcm_sha256": "c7add445aac9277ce9b364ee70a37926bdc0fa7ce57abda385166f6964c3152e",
+  "status": "passed",
+  "human_listening": "pending",
+  "human_cloning_qualified": false
+}

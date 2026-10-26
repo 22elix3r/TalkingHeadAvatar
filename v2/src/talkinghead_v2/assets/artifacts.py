@@ -27,8 +27,10 @@ def sha256_file(path: Path) -> str:
 
 
 def read_manifest(path: Path) -> dict:
+    if path.stat().st_size > 1024*1024:
+        raise ArtifactError("artifact manifest exceeds one MiB metadata limit")
     data = json.loads(path.read_text())
-    if data.get("schema_version") != 1 or data.get("model_id") != MODEL_ID:
+    if not isinstance(data, dict) or type(data.get("schema_version")) is not int or data.get("schema_version") != 1 or data.get("model_id") != MODEL_ID:
         raise ArtifactError("only the selected Qwen Base 1.7B manifest schema is supported")
     revision = data.get("revision", "")
     if not isinstance(revision, str) or not re.fullmatch(r"[0-9a-f]{40}", revision):
@@ -38,9 +40,11 @@ def read_manifest(path: Path) -> dict:
         raise ArtifactError("manifest needs a nonempty file inventory")
     seen = set()
     for entry in entries:
+        if not isinstance(entry, dict) or not isinstance(entry.get("path"), str):
+            raise ArtifactError("artifact entries need typed paths and metadata")
         name = entry.get("path", "")
         relative = PurePosixPath(name)
-        if (not name or relative.is_absolute() or ".." in relative.parts or "\\" in name or
+        if (not name or relative.is_absolute() or ".." in relative.parts or any(c in name for c in "\\%?#") or
                 relative.as_posix() != name or name in seen or
                 relative.suffix not in {".json", ".txt", ".safetensors", ".md"}):
             raise ArtifactError("unsafe, duplicate or unsupported artifact path")
@@ -80,7 +84,14 @@ def verify_snapshot(cache: Path, manifest: dict) -> Path:
         if any(parent.is_symlink() for parent in target.parents if parent != root.parent):
             raise ArtifactError("symlink in artifact path")
         _check_file(target, entry)
-    actual = {p.relative_to(root).as_posix() for p in root.rglob("*") if p.is_file()}
+    items = list(root.rglob("*"))
+    allowed_dirs = {parent.as_posix() for entry in manifest["files"] for parent in PurePosixPath(entry["path"]).parents if parent.as_posix() != "."}
+    for item in items:
+        if item.is_symlink() or not (item.is_file() or item.is_dir()):
+            raise ArtifactError("nonregular or symlinked entry in serving snapshot")
+        if item.is_dir() and item.relative_to(root).as_posix() not in allowed_dirs:
+            raise ArtifactError("unexpected directory in serving snapshot")
+    actual = {p.relative_to(root).as_posix() for p in items if p.is_file()}
     if actual != {entry["path"] for entry in manifest["files"]}:
         raise ArtifactError("snapshot has unexpected files; no remote code or extra weights permitted")
     return root
