@@ -123,6 +123,15 @@ def test_public_bind_configuration_is_rejected(settings,tmp_path):
     with pytest.raises(ValueError,match='loopback'): Settings.load(path)
 
 
+async def test_localhost_navigation_uses_canonical_origin_but_cannot_bypass_csrf(client,settings):
+    c,_=client
+    c.headers.pop('Origin')
+    response=await c.get('http://localhost:18700/',follow_redirects=False)
+    assert response.status_code==307 and response.headers['location']==settings.origin+'/'
+    denied=await c.post('/v1/dev-login',json={},headers={'Origin':'http://localhost:18700'})
+    assert denied.status_code==403 and denied.json()['detail']=='origin_denied'
+
+
 async def test_concurrent_close_stops_sources_once_even_when_database_fails():
     from types import SimpleNamespace
     from unittest.mock import AsyncMock,Mock

@@ -1,4 +1,4 @@
-import { Room, RoomEvent, Track, createLocalAudioTrack, type LocalAudioTrack, type RemoteTrack,
+import { Room, RoomEvent, Track, ConnectionError, createLocalAudioTrack, type LocalAudioTrack, type RemoteTrack,
   type RemoteTrackPublication, type RemoteParticipant } from 'livekit-client';
 import { PlaybackGate, type Binding } from './playback';
 
@@ -116,7 +116,14 @@ export class ConversationClient {
     this.sse.onerror = () => {
       this.requireReconnect('Control connection interrupted. Restart to reconnect safely.');
     };
-    await this.room.connect(join.url, join.token, { autoSubscribe: false });
+    try {
+      await this.room.connect(join.url, join.token, { autoSubscribe: false });
+    } catch (error) {
+      if (this.stopping) throw new DOMException('Connection cancelled', 'AbortError');
+      if (error instanceof ConnectionError) throw new Error(
+        'The audio connection could not be established. Restart the local services and try again.');
+      throw error;
+    }
     this.active = true;
     this.heartbeatTimer = setInterval(() => {
       if (this.session && this.active) void this.request(`/v1/sessions/${this.session.id}/heartbeat`, {}).catch(() => {});

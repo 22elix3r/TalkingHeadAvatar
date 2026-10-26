@@ -16,6 +16,25 @@ PG='postgres@sha256:4e6e670bb069649261c9c18031f0aded7bb249a5b6664ddec29c013a8931
 SFU='livekit/livekit-server@sha256:25cd902de7cacbd5f1f779f6a6ac1eae20ba8f56b0935934ce6b0ab80d1e3d20'
 
 
+def upgrade_local_ice() -> bool:
+    """Migrate the exact old local profile, preserving credentials and other config.
+
+    On native Linux, the host can reach the container's private bridge address.
+    Let LiveKit advertise that address: Firefox rejects 127/8 ICE candidates.
+    Signaling/API/database published sockets remain bound to host loopback.
+    Docker Desktop/remote browsers need a separately qualified transport profile.
+    """
+    path=PRIVATE/'livekit.yaml'
+    original=path.read_text()
+    legacy='  node_ip: 127.0.0.1\n'
+    if original.count(legacy)==1:
+        path.write_text(original.replace(legacy,''))
+        os.chmod(path,0o600)
+        print('Migrated local media to automatic private Docker bridge ICE; credentials preserved')
+        return True
+    return False
+
+
 def initialize():
     path=PRIVATE/'runtime.json'
     if path.exists(): raise SystemExit('configuration already exists; preserving existing secrets and evidence')
@@ -41,7 +60,7 @@ def initialize():
         'web_dist':'../../web/dist','private_dir':'.','origin':'http://127.0.0.1:18700'}
     path.write_text(json.dumps(settings,indent=2)+'\n');os.chmod(path,0o600)
     sfu=PRIVATE/'livekit.yaml'
-    sfu.write_text(f'port: 7880\nbind_addresses: ["0.0.0.0"]\nrtc:\n  node_ip: 127.0.0.1\n  tcp_port: 17881\n  udp_port: 17882\n  use_external_ip: false\nkeys:\n  {key}: {secret}\nlogging:\n  level: warn\n')
+    sfu.write_text(f'port: 7880\nbind_addresses: ["0.0.0.0"]\nrtc:\n  tcp_port: 17881\n  udp_port: 17882\n  use_external_ip: false\nkeys:\n  {key}: {secret}\nlogging:\n  level: warn\n')
     os.chmod(sfu,0o600)
     compose={'services':{
         'postgres':{'image':PG,'ports':['127.0.0.1:15432:5432'],'environment':{'POSTGRES_USER':'tha','POSTGRES_PASSWORD':password,'POSTGRES_DB':'tha_v2'},
@@ -72,6 +91,19 @@ def main():
     if action=='init': initialize();return
     if not (PRIVATE/'compose.json').is_file(): raise SystemExit('run init first')
     command=['docker','compose','-p','tha-v2-p04','-f',str(PRIVATE/'compose.json')]
+    if action=='up':
+        upgrade_local_ice()
+        # A bind-mounted config edit alone is invisible to Compose. Bind its hash
+        # to service metadata so up recreates only a changed SFU, even after an
+        # interrupted migration. Never rewrite credentials or recreate Postgres.
+        path=PRIVATE/'compose.json'
+        profile=json.loads(path.read_text())
+        labels=profile['services']['livekit'].setdefault('labels',{})
+        label='org.talkingheadavatar.p04.livekit-config-sha256'
+        digest=hashlib.sha256((PRIVATE/'livekit.yaml').read_bytes()).hexdigest()
+        if labels.get(label)!=digest:
+            labels[label]=digest
+            path.write_text(json.dumps(profile,indent=2)+'\n');os.chmod(path,0o600)
     subprocess.run(command+(['up','-d','--wait'] if action=='up' else ['down']),check=True)
 
 

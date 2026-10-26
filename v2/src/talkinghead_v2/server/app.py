@@ -10,7 +10,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from fastapi import FastAPI,Request,HTTPException
-from fastapi.responses import JSONResponse,StreamingResponse
+from fastapi.responses import JSONResponse,StreamingResponse,RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel,ConfigDict,Field
 from livekit import api
@@ -80,6 +80,10 @@ def create_app(settings: Settings,*,load_models=True):
         origin=request.headers.get('origin')
         if origin and origin!=settings.origin:
             return JSONResponse({'detail':'origin_denied'},status_code=403)
+        # A navigation to localhost should enter the configured cookie/CSRF origin,
+        # rather than loading a UI whose first mutation will then be rejected.
+        if request.method=='GET' and request.url.path=='/' and str(request.url).rstrip('/')!=settings.origin.rstrip('/'):
+            return RedirectResponse(settings.origin+'/',status_code=307)
         length=request.headers.get('content-length','0')
         if not length.isdigit() or int(length)>8192:
             return JSONResponse({'detail':'payload_too_large'},status_code=413)
