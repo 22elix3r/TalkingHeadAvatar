@@ -6,7 +6,7 @@ Updated 2026-10-26. **P00 foundation and P01 CPU clock/replay/cancellation are i
 
 - **Next action:** P02 — explicitly provision/verify selected Qwen artifacts and an authorized reference, qualify the official offline reference, then one actual incremental PCM runtime and local playback. Use P01's generation/sample boundaries; preserve the CPU-only contract test environment.
 - **Selected TTS:** Qwen3-TTS, initially `Qwen/Qwen3-TTS-12Hz-1.7B-Base`; X-Vector first, ICL an explicit option. Runtime and model revision/hash must be qualified in P02.
-- **Phase in progress:** none.
+- **Phase in progress:** P02. Verified provisioning and the official-reference/native build spike are implemented; streaming adapter, actual playback and stability/quality qualification are in progress.
 - **Implementation dependencies:** P02 real synthesis needs provisioned artifacts and an authorized reference voice; neither was obtained in P00/P01. Runtime/artifact inspection and provisioning implementation can proceed independently. P03 needs a compatible authorized avatar; later subjective gates need independent raters. These do not invalidate the completed CPU contracts.
 - **Preserve:** V1 source/checkpoints, pre-existing `data/README.md` and `output/README.md` deletions, and `.git-empty-master-backup/`. Reinspect working-tree state at implementation start; do not assume this inventory remains exhaustive.
 
@@ -16,7 +16,7 @@ Updated 2026-10-26. **P00 foundation and P01 CPU clock/replay/cancellation are i
 |---|---|---|
 | P00 | complete | Python 3.12 editable install + actual lock; help/doctor; 37 offline CPU checks; fresh offline runtime-only install; [baseline evidence](../../v2/docs/baseline.md) |
 | P01 | complete | Typed contracts, sample ledger, reference FIR, bounded queues, epoch cancellation and executable synthetic replay; 121 offline tests; [P01 evidence](../../v2/docs/p01.md) |
-| P02 | not_started | Official Qwen reference, real PCM streaming, local playback |
+| P02 | in_progress | Explicit pinned artifact provisioning, tenant-scoped reference registry and isolated CUDA build; real streaming/playback/stability qualification pending |
 | P03 | not_started | Real avatar, Qwen/motion/render co-load and Q0 clips |
 | P04 | not_started | Browser conversation and interruption |
 | P05 | not_started | Enrollment, review, consent and revocation |
@@ -79,3 +79,19 @@ Stored [synthetic replay evidence](../../v2/benchmarks/reports/p01-replay-2026-1
 **Acceptance boundary:** P01 functional CPU contracts passed; no unmet P01 criterion. The sink is explicitly a synthetic scheduling recorder. It does not acknowledge device/receiver playout, provider compute cancellation, RTP/drift recovery, real-time resampler throughput, sub-second conversation or human quality. Full M1A and later E2E/release gates remain open; no real-device/media claim is inferred from these tests.
 
 V1 source/checkpoints/root environment and unrelated working-tree changes were preserved. No model download, global install, training, license/consent/data change, service or cloud deployment occurred. Source/document whitespace, JSON/report identity and local-link checks passed; `git diff --check` passed. **Next: P02**, with actual Qwen/cache/runtime/reference inputs still requiring explicit qualification.
+
+## 2026-10-26 — P02 provisioning/build checkpoint (in progress)
+
+The user requested P02 and GitHub checkpoints. The completed P00/P01 implementation and its planning context were committed as `480928a` and pushed to `origin/v2/p02-qwen-streaming`; main was preserved. Existing data/output README deletions and the untracked Git backup remain outside commits.
+
+Added explicit `tha artifacts provision|verify`, a selected-Base-only manifest, size/SHA-256 checks and an immutable content-addressed cache with read-only snapshot verification. Startup verification never fetches missing files. Voice registry validation requires current approval, allowed uses, tenant identity and audio hash. No human reference was supplied; the local reference is explicitly an eSpeak-generated `synthetic_fixture`, approved only for plumbing. It is private under ignored `v2/var/`, not a claim of consented human cloning quality.
+
+Actual model pin: `Qwen/Qwen3-TTS-12Hz-1.7B-Base` at `fd4b254389122332181a7c3db7f27e918eec64e3`; eleven files, **4,544,170,364 bytes**, provisioned and verified under `v2/var/artifacts`. Bundled tokenizer weights match `Qwen/Qwen3-TTS-Tokenizer-12Hz` revision `7dd38ad4e9bad454aae9cd937d0cd577604fe229` (hashes in the manifest). No model files are committed. Model/tokenizer card terms are recorded as Apache-2.0 separately from voice/tool terms.
+
+Pinned official source `022e286b98fbec7e1e916cb940cdf532cd9f488e`; isolated `v2/runtimes/qwen-reference/.venv` resolves torch/torchaudio 2.10.0+cu128 and the official requirements. Its lock is separate from the CPU foundation. An official offline adapter uses local safetensors, bf16/SDPA and X-Vector first, with ICL an explicit transcript-requiring option. Initial real reference generation is running; no streaming claim follows from that batch API.
+
+Native source `maxhorizons/qwen3-tts-cpp-streaming` is pinned to `74422bab4998ad69e0a67ba105654dadbeec9b3a`; bundled GGML tree is `b1e00d0467ff3e8a7ade3bc6031b756b4cfe0c13`. CUDA 12.8.93 was present outside PATH. Initial configuration failed at CUDA/glibc math exception declarations; a private six-declaration header overlay fixed that boundary without modifying system files. Compilation then exposed three Windows-only player metrics referenced on Linux; the narrow checked-in patch returns unavailable metrics on Linux. With GCC 14.3.1, architecture 89 and CUDA graphs enabled, the native CLI and wrapper contract test built; `qwen3_wrapper_contract_test` reported PASS. Base 1.7B and tokenizer safetensors converted to F16 GGUF locally with zero TTS tensors skipped. Derived model hashes and measured streaming evidence will be recorded after runtime qualification.
+
+Commands already passed: `HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 .venv/bin/python -m pytest -q` from `v2/` — **145 passed in 0.80 s**, including corruption/truncation, unsafe paths, missing tokenizer, floating revision, wrong provider family, symlink/extra-file rejection, offline startup and cross-tenant/revoked/unconsented voice denial. Explicit model provisioning and offline verification passed. Native build logs, conversion outputs, reference audio and embeddings remain in ignored private `v2/var/`.
+
+**Unmet acceptance:** real incremental callback adapter and ordered segment lifecycle; audible output before synthesis completes; compute-cancel acknowledgment and safe local resume; first 100/300/500 ms horizons, production gaps, RTF and memory; 30-minute sequential stability; official/runtime listening/WER and authorized human cloning parity. P02 remains **in_progress**. Next: complete the native pipe adapter and local audio sink, then run these real-model checks. No alternative TTS family, training, global install or cloud deployment was introduced.

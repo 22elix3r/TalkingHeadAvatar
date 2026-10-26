@@ -21,7 +21,22 @@ def main(argv: Sequence[str] | None = None) -> int:
     replay = commands.add_parser("replay", help="run P01 synthetic PCM/cancel fixture; no device playback")
     replay.add_argument("--json", action="store_true", dest="as_json")
     replay.add_argument("--report", type=Path, help="explicitly write the synthetic JSON report here")
+    artifacts = commands.add_parser("artifacts", help="explicit Qwen provisioning or offline cache verification")
+    artifacts.add_argument("action", choices=("provision", "verify"))
+    artifacts.add_argument("--manifest", type=Path, required=True)
+    artifacts.add_argument("--cache", type=Path, required=True)
     args = parser.parse_args(argv)
+    if args.command == "artifacts":
+        from talkinghead_v2.assets.artifacts import ArtifactError, provision, read_manifest, verify_snapshot
+
+        try:
+            manifest = read_manifest(args.manifest)
+            target = provision(args.cache, manifest) if args.action == "provision" else verify_snapshot(args.cache, manifest)
+        except (ArtifactError, OSError, ValueError) as exc:
+            parser.error(str(exc))
+        print(json.dumps({"model_id": manifest["model_id"], "revision": manifest["revision"],
+                          "snapshot": str(target), "status": "verified"}, indent=2))
+        return 0
     if args.command == "replay":
         from talkinghead_v2.replay import run_replay
 

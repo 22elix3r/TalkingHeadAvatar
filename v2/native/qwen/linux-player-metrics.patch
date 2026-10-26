@@ -1,0 +1,32 @@
+diff --git a/engine/src/pipeline/pipeline_synthesize.cpp b/engine/src/pipeline/pipeline_synthesize.cpp
+--- a/engine/src/pipeline/pipeline_synthesize.cpp
++++ b/engine/src/pipeline/pipeline_synthesize.cpp
+@@ -217,7 +217,25 @@ public:
+     const std::string & last_error() const { return last_error_; }
+-    int64_t first_submit_ms() const { return first_submit_ms_.load(); }
+-    int64_t first_starvation_ms() const { return first_starvation_ms_.load(); }
+-    int32_t starvation_events() const { return starvation_events_.load(); }
++    int64_t first_submit_ms() const {
++#ifdef _WIN32
++        return first_submit_ms_.load();
++#else
++        return -1;
++#endif
++    }
++    int64_t first_starvation_ms() const {
++#ifdef _WIN32
++        return first_starvation_ms_.load();
++#else
++        return -1;
++#endif
++    }
++    int32_t starvation_events() const {
++#ifdef _WIN32
++        return starvation_events_.load();
++#else
++        return 0;
++#endif
++    }
+     double queued_audio_ms() const {
+ #ifdef _WIN32
+         std::lock_guard<std::mutex> lock(mutex_);
