@@ -1,0 +1,368 @@
+{
+  "actual_device_playback": false,
+  "architecture": "x86_64",
+  "boundary": "synthetic_in_process_scheduling_only",
+  "cancelled": {
+    "ack": {
+      "cancelled_key": {
+        "epoch": 0,
+        "session_id": "synthetic-session",
+        "turn_id": "cancelled-turn"
+      },
+      "discarded_queue_items": 1,
+      "discarded_queue_samples": 14,
+      "fence_epoch": 1,
+      "last_scheduled_sample": 480,
+      "reason": "fixture interruption while producer is backpressured",
+      "sample_rate": 48000,
+      "scope": "synthetic_in_process"
+    },
+    "epoch": 0,
+    "input_pcm_sha256": "158f5126945e7238906b3d9d84e4cbb6bb278ddf1c5debfc050abff359e21694",
+    "input_samples": 1800
+  },
+  "completed": {
+    "eof_count": 1,
+    "eof_tail_samples": 35,
+    "epoch": 2,
+    "input_pcm_sha256": "756a375571ee6b263982d464d3964927edb79ad6befc0b16e86087fb2f690da0",
+    "input_samples": 2222,
+    "last_callback_samples": 17,
+    "output_pcm_sha256": "81038acc4264c91c4079ef04417f7487e6207e0ffd5fe25b3ccff5a38e0c7833",
+    "output_samples": 2419,
+    "reference_parity": true,
+    "valid_end_sample": [
+      355520,
+      147
+    ]
+  },
+  "continuous_session_pts": true,
+  "dependency_lock_sha256": "e392747f1cc84b27da55319c712e6077b7e9f9f53a5af0e8e8e40aa48a27f9d6",
+  "evidence_category": "local_observation",
+  "fixture": {
+    "cancelled": {
+      "chunks": [
+        1,
+        0,
+        7,
+        511,
+        1281
+      ],
+      "native_rate": 24000
+    },
+    "completed": {
+      "chunks": [
+        1,
+        0,
+        7,
+        53,
+        511,
+        2,
+        333,
+        1298,
+        17
+      ],
+      "native_rate": 44100,
+      "silence_end": 1100,
+      "silence_start": 800
+    },
+    "fixture_version": 1,
+    "kind": "procedural_pcm_no_human_media",
+    "output_chunk_samples": 480,
+    "output_rate": 48000,
+    "queue_max_items": 3,
+    "queue_max_ms": 30
+  },
+  "fixture_sha256": "c2f4011018597185e1ddcd801d018942dea73b5635393e6d3f1c7610ce921d19",
+  "kernel": "7.2.5-100.fc43.x86_64",
+  "limitations": [
+    "No device buffers, receiver, neural provider, render or compute-cancel qualification",
+    "Reference FIR is CPU correctness code; real-time suitability is unmeasured",
+    "Uncommitted implementation identified by package source digest, not a Git release"
+  ],
+  "os": "Linux",
+  "package_version": "0.1.0",
+  "performance_or_quality_claim": false,
+  "phase": "P01",
+  "python": "3.12.13",
+  "queue": {
+    "backpressure_waits": 4,
+    "max_items": 3,
+    "max_samples": 1440,
+    "peak_items": 3,
+    "peak_samples": 974
+  },
+  "scheduled_audio_spans": [
+    {
+      "clock_id": "synthetic_audio_schedule",
+      "end_ns": [
+        10000000,
+        1
+      ],
+      "end_sample_exclusive": 480,
+      "key": {
+        "epoch": 0,
+        "session_id": "synthetic-session",
+        "turn_id": "cancelled-turn"
+      },
+      "sample_rate": 48000,
+      "segment_id": "fixture-segment",
+      "sequence_no": 0,
+      "session_start_sample": 0,
+      "start_ns": [
+        0,
+        1
+      ],
+      "start_sample": 0,
+      "trace_id": "synthetic-trace"
+    },
+    {
+      "clock_id": "synthetic_audio_schedule",
+      "end_ns": [
+        32000000,
+        3
+      ],
+      "end_sample_exclusive": 32,
+      "key": {
+        "epoch": 2,
+        "session_id": "synthetic-session",
+        "turn_id": "completed-turn"
+      },
+      "sample_rate": 48000,
+      "segment_id": "fixture-segment",
+      "sequence_no": 0,
+      "session_start_sample": 480,
+      "start_ns": [
+        10000000,
+        1
+      ],
+      "start_sample": 0,
+      "trace_id": "synthetic-trace"
+    },
+    {
+      "clock_id": "synthetic_audio_schedule",
+      "end_ns": [
+        62000000,
+        3
+      ],
+      "end_sample_exclusive": 512,
+      "key": {
+        "epoch": 2,
+        "session_id": "synthetic-session",
+        "turn_id": "completed-turn"
+      },
+      "sample_rate": 48000,
+      "segment_id": "fixture-segment",
+      "sequence_no": 1,
+      "session_start_sample": 512,
+      "start_ns": [
+        32000000,
+        3
+      ],
+      "start_sample": 32,
+      "trace_id": "synthetic-trace"
+    },
+    {
+      "clock_id": "synthetic_audio_schedule",
+      "end_ns": [
+        22250000,
+        1
+      ],
+      "end_sample_exclusive": 588,
+      "key": {
+        "epoch": 2,
+        "session_id": "synthetic-session",
+        "turn_id": "completed-turn"
+      },
+      "sample_rate": 48000,
+      "segment_id": "fixture-segment",
+      "sequence_no": 2,
+      "session_start_sample": 992,
+      "start_ns": [
+        62000000,
+        3
+      ],
+      "start_sample": 512,
+      "trace_id": "synthetic-trace"
+    },
+    {
+      "clock_id": "synthetic_audio_schedule",
+      "end_ns": [
+        66875000,
+        3
+      ],
+      "end_sample_exclusive": 590,
+      "key": {
+        "epoch": 2,
+        "session_id": "synthetic-session",
+        "turn_id": "completed-turn"
+      },
+      "sample_rate": 48000,
+      "segment_id": "fixture-segment",
+      "sequence_no": 3,
+      "session_start_sample": 1068,
+      "start_ns": [
+        22250000,
+        1
+      ],
+      "start_sample": 588,
+      "trace_id": "synthetic-trace"
+    },
+    {
+      "clock_id": "synthetic_audio_schedule",
+      "end_ns": [
+        89562500,
+        3
+      ],
+      "end_sample_exclusive": 953,
+      "key": {
+        "epoch": 2,
+        "session_id": "synthetic-session",
+        "turn_id": "completed-turn"
+      },
+      "sample_rate": 48000,
+      "segment_id": "fixture-segment",
+      "sequence_no": 4,
+      "session_start_sample": 1070,
+      "start_ns": [
+        66875000,
+        3
+      ],
+      "start_sample": 590,
+      "trace_id": "synthetic-trace"
+    },
+    {
+      "clock_id": "synthetic_audio_schedule",
+      "end_ns": [
+        119562500,
+        3
+      ],
+      "end_sample_exclusive": 1433,
+      "key": {
+        "epoch": 2,
+        "session_id": "synthetic-session",
+        "turn_id": "completed-turn"
+      },
+      "sample_rate": 48000,
+      "segment_id": "fixture-segment",
+      "sequence_no": 5,
+      "session_start_sample": 1433,
+      "start_ns": [
+        89562500,
+        3
+      ],
+      "start_sample": 953,
+      "trace_id": "synthetic-trace"
+    },
+    {
+      "clock_id": "synthetic_audio_schedule",
+      "end_ns": [
+        149562500,
+        3
+      ],
+      "end_sample_exclusive": 1913,
+      "key": {
+        "epoch": 2,
+        "session_id": "synthetic-session",
+        "turn_id": "completed-turn"
+      },
+      "sample_rate": 48000,
+      "segment_id": "fixture-segment",
+      "sequence_no": 6,
+      "session_start_sample": 1913,
+      "start_ns": [
+        119562500,
+        3
+      ],
+      "start_sample": 1433,
+      "trace_id": "synthetic-trace"
+    },
+    {
+      "clock_id": "synthetic_audio_schedule",
+      "end_ns": [
+        177875000,
+        3
+      ],
+      "end_sample_exclusive": 2366,
+      "key": {
+        "epoch": 2,
+        "session_id": "synthetic-session",
+        "turn_id": "completed-turn"
+      },
+      "sample_rate": 48000,
+      "segment_id": "fixture-segment",
+      "sequence_no": 7,
+      "session_start_sample": 2393,
+      "start_ns": [
+        149562500,
+        3
+      ],
+      "start_sample": 1913,
+      "trace_id": "synthetic-trace"
+    },
+    {
+      "clock_id": "synthetic_audio_schedule",
+      "end_ns": [
+        179000000,
+        3
+      ],
+      "end_sample_exclusive": 2384,
+      "key": {
+        "epoch": 2,
+        "session_id": "synthetic-session",
+        "turn_id": "completed-turn"
+      },
+      "sample_rate": 48000,
+      "segment_id": "fixture-segment",
+      "sequence_no": 8,
+      "session_start_sample": 2846,
+      "start_ns": [
+        177875000,
+        3
+      ],
+      "start_sample": 2366,
+      "trace_id": "synthetic-trace"
+    },
+    {
+      "clock_id": "synthetic_audio_schedule",
+      "end_ns": [
+        181187500,
+        3
+      ],
+      "end_sample_exclusive": 2419,
+      "key": {
+        "epoch": 2,
+        "session_id": "synthetic-session",
+        "turn_id": "completed-turn"
+      },
+      "sample_rate": 48000,
+      "segment_id": "fixture-segment",
+      "sequence_no": 9,
+      "session_start_sample": 2864,
+      "start_ns": [
+        179000000,
+        3
+      ],
+      "start_sample": 2384,
+      "trace_id": "synthetic-trace"
+    }
+  ],
+  "scheduled_eof": {
+    "end_sample": 2419,
+    "key": {
+      "epoch": 2,
+      "session_id": "synthetic-session",
+      "turn_id": "completed-turn"
+    },
+    "sequence_no": 10,
+    "valid_end_sample": [
+      355520,
+      147
+    ]
+  },
+  "schema_version": 1,
+  "source_revision": null,
+  "source_sha256": "9eac722181f4b525a67bde645d7e57d38810158ac3edec22698bd8d528aa322c",
+  "stale_callbacks_rejected": 6,
+  "status": "passed"
+}

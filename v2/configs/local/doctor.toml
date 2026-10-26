@@ -1,0 +1,5 @@
+# Paths are relative to this file. Doctor never creates these directories.
+profile = "local"
+artifact_cache_dir = "../../var/artifacts"
+output_dir = "../../var/output"
+min_free_bytes = 1073741824

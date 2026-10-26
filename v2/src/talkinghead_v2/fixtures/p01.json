@@ -1,0 +1,15 @@
+{
+  "fixture_version": 1,
+  "kind": "procedural_pcm_no_human_media",
+  "output_rate": 48000,
+  "queue_max_ms": 30,
+  "queue_max_items": 3,
+  "output_chunk_samples": 480,
+  "cancelled": {"native_rate": 24000, "chunks": [1, 0, 7, 511, 1281]},
+  "completed": {
+    "native_rate": 44100,
+    "chunks": [1, 0, 7, 53, 511, 2, 333, 1298, 17],
+    "silence_start": 800,
+    "silence_end": 1100
+  }
+}

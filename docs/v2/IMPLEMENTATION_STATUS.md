@@ -1,0 +1,81 @@
+# V2 implementation status
+
+Updated 2026-10-26. **P00 foundation and P01 CPU clock/replay/cancellation are implemented and validated.** This file records actual progress, not planned completion. Follow [implementation phases](IMPLEMENTATION_PHASES.md) and the [main plan](../../V2_RESEARCH_AND_BUILD_PLAN.md).
+
+## Current checkpoint
+
+- **Next action:** P02 — explicitly provision/verify selected Qwen artifacts and an authorized reference, qualify the official offline reference, then one actual incremental PCM runtime and local playback. Use P01's generation/sample boundaries; preserve the CPU-only contract test environment.
+- **Selected TTS:** Qwen3-TTS, initially `Qwen/Qwen3-TTS-12Hz-1.7B-Base`; X-Vector first, ICL an explicit option. Runtime and model revision/hash must be qualified in P02.
+- **Phase in progress:** none.
+- **Implementation dependencies:** P02 real synthesis needs provisioned artifacts and an authorized reference voice; neither was obtained in P00/P01. Runtime/artifact inspection and provisioning implementation can proceed independently. P03 needs a compatible authorized avatar; later subjective gates need independent raters. These do not invalidate the completed CPU contracts.
+- **Preserve:** V1 source/checkpoints, pre-existing `data/README.md` and `output/README.md` deletions, and `.git-empty-master-backup/`. Reinspect working-tree state at implementation start; do not assume this inventory remains exhaustive.
+
+## Phase ledger
+
+| Phase | Status | Evidence / next action |
+|---|---|---|
+| P00 | complete | Python 3.12 editable install + actual lock; help/doctor; 37 offline CPU checks; fresh offline runtime-only install; [baseline evidence](../../v2/docs/baseline.md) |
+| P01 | complete | Typed contracts, sample ledger, reference FIR, bounded queues, epoch cancellation and executable synthetic replay; 121 offline tests; [P01 evidence](../../v2/docs/p01.md) |
+| P02 | not_started | Official Qwen reference, real PCM streaming, local playback |
+| P03 | not_started | Real avatar, Qwen/motion/render co-load and Q0 clips |
+| P04 | not_started | Browser conversation and interruption |
+| P05 | not_started | Enrollment, review, consent and revocation |
+| P06 | not_started | Native GPU media, packaging and virtual devices |
+| P07 | not_started | Admission, capacity, telemetry and soak |
+| P08 | not_started | Security, deployment and release recovery evidence |
+| P09 | deferred_optional | Client-rendered tier |
+
+## Update contract for every implementation session
+
+Use `not_started`, `in_progress`, `blocked`, `complete`, or `deferred_optional`. A blocker is specific missing input/failing dependency; list independent work still possible. Partial implementation stays `in_progress`; do not mark complete from code existence alone.
+
+Append a dated session entry containing: phase/tasks completed; source/config paths; exact check/demo commands and outcomes; artifact paths with model/runtime/fixture hashes where applicable; unmet acceptance criteria; and the next executable task. Separate functional completion, performance acceptance and human-quality acceptance. Record scope changes/ADR decisions and unresolved inputs. Do not put secrets, raw voices, likeness media or personal identifiers here.
+
+## 2026-10-26 — P00 complete
+
+Implemented only the foundation: [package/config/build metadata](../../v2/pyproject.toml), [resolved application/dev lock](../../v2/uv.lock), `v2/src/talkinghead_v2/` (strict typed TOML config, `tha` CLI, bounded read-only diagnostics), `v2/tests/`, [local doctor config](../../v2/configs/local/doctor.toml), [setup instructions](../../v2/README.md) and [baseline/legacy inventory](../../v2/docs/baseline.md). No browser/native/provider/database scaffolding was added. P00 covers minimal E00/E01; the remaining E00/E01 deliverables and P01–P08 are not complete.
+
+Actual environment: CPython 3.12.13, uv 0.10.9, isolated **`v2/.venv`**, editable `talkinghead-v2` 0.1.0; system-site packages disabled. Core runtime requirements are empty. Pytest 8.4.2 and resolved dev dependencies are pinned in `uv.lock`; hatchling 1.27.0 is the tested build backend. Lock SHA-256: `e392747f1cc84b27da55319c712e6077b7e9f9f53a5af0e8e8e40aa48a27f9d6`. No model/runtime/voice/avatar/biometric fixture was provisioned; inference pins await P02's actual compatibility qualification.
+
+Commands executed from `v2/`:
+
+```sh
+uv sync --python /usr/bin/python3.12 --default-index https://pypi.org/simple
+uv sync --locked --offline --python /usr/bin/python3.12
+.venv/bin/tha --help
+.venv/bin/tha doctor --profile local --config configs/local/doctor.toml
+.venv/bin/tha doctor --profile local --config configs/local/doctor.toml --json
+HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 .venv/bin/python -m pytest -q
+```
+
+All returned 0; **37 passed in 0.21 s**. A fresh temporary runtime-only environment was reconstructed with `uv sync --locked --offline --no-dev --python /usr/bin/python3.12` and `UV_PROJECT_ENVIRONMENT` pointing outside the repository; installed help/imports and editable metadata passed with no runtime requirements. The exact temporary-environment command is retained in the baseline. Import smoke blocks inference imports, network connects, subprocess launches and dynamic-library loads. Config/failure tests run without GPU tools or model access. This is functional foundation evidence, not performance/human-quality acceptance.
+
+Doctor reported Python/environment OK, RTX 4070 Ti SUPER driver access and FFmpeg compiled NVENC entries; optional `nvcc` and the configured V2 artifact cache were absent (warnings). Output permission/free-space preflight passed without creating directories or writing a probe. CUDA execution, usable encoding and model/cache validity remain unqualified. Final source/document whitespace and local-link checks passed; `git diff --check` passed.
+
+V1 source/checkpoints, the root V1 environment and unrelated changes were preserved. Known strict checkpoint-load failures and full V1 test collection blockers are recorded from the existing audit in the baseline; no V1 test/model rerun or global dependency install was used to conceal them. No model/data/license/consent change or external deployment occurred.
+
+**Unmet P00 acceptance:** none. **Next:** P01 only; preserve the no-model CPU boundary while implementing clock/replay/cancellation contracts. Real Qwen streaming/playback, retargeted avatar quality, browser conversation, independent ratings and release evidence remain later phase gates.
+
+## 2026-10-26 — P01 complete
+
+Added `v2/src/talkinghead_v2/contracts/`, `audio/{clock,resample,queue,motion}.py`, `session/{epochs,synthetic}.py`, the packaged procedural `fixtures/p01.json`, and `tha replay`. [P01 notes](../../v2/docs/p01.md) document contracts, reproduction, limitations and the offline wheel-install check. [README](../../v2/README.md) includes the runnable command. New CPU tests cover faults and boundary behavior; the P00 dependency lock/environment remain unchanged.
+
+Native and canonical sample ledgers reject gaps/overlaps, reorder/duplicates and foreign generations/rates. The rational FIR preserves chunk-independent samples and EOF tails with an exact fractional valid duration. Queues bound duration and items without eviction. Cancellation fences ingestion, blocked producers/consumers and already-dequeued sink callbacks; task cancellation or a processing failure cancels the whole generation explicitly. EOF and discontinuity/cancellation follow separate paths. Motion interpolation rejects incompatible basis/topology/ordering/timebase or generation identity. Source segment labels survive filter lookahead.
+
+Commands executed from `v2/` (all returned 0):
+
+```sh
+uv sync --locked --offline --python /usr/bin/python3.12
+HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 .venv/bin/python -m pytest -q
+HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 .venv/bin/tha replay --report benchmarks/reports/p01-replay-2026-10-26.json
+.venv/bin/python -O -m talkinghead_v2 replay
+.venv/bin/tha --help
+```
+
+**121 passed in 0.76 s**. This includes all 16 pairings of 16/24/44.1/48 kHz, irregular/empty chunks, one-sample/partial tails, independent direct FIR oracle and filter checks, exact timebase conversion, both queue limits, blocked EOF/producer cancellation, delayed/dequeued stale callbacks, discontinuity/restart, injected processing failure and motion incompatibility. Imports remain free of inference/network/CUDA initialization. A wheel built with `uv build --offline --wheel` installed into a temporary Python 3.12 environment and ran the packaged replay outside the repository; the exact command is in the P01 notes. No runtime dependency was introduced.
+
+Stored [synthetic replay evidence](../../v2/benchmarks/reports/p01-replay-2026-10-26.json): 1,800 frames at 24 kHz in the cancelled epoch; 2,222 frames at 44.1 kHz → **2,419 frames at 48 kHz** after restart, including **35 EOF-tail frames** and one EOF. Exact valid end is 355520/147 output units. Six stale callbacks were rejected. Four backpressure waits; peak 974 frames / three items within 1,440-frame / three-item bounds. Scheduled session PTS remained continuous. Fixture SHA-256: `c2f4011018597185e1ddcd801d018942dea73b5635393e6d3f1c7610ce921d19`; completed PCM SHA-256: `81038acc4264c91c4079ef04417f7487e6207e0ffd5fe25b3ccff5a38e0c7833`. The report includes the current package source digest, unchanged lock digest and sample/PTS trace; no raw human media or invented model/runtime hash is present.
+
+**Acceptance boundary:** P01 functional CPU contracts passed; no unmet P01 criterion. The sink is explicitly a synthetic scheduling recorder. It does not acknowledge device/receiver playout, provider compute cancellation, RTP/drift recovery, real-time resampler throughput, sub-second conversation or human quality. Full M1A and later E2E/release gates remain open; no real-device/media claim is inferred from these tests.
+
+V1 source/checkpoints/root environment and unrelated working-tree changes were preserved. No model download, global install, training, license/consent/data change, service or cloud deployment occurred. Source/document whitespace, JSON/report identity and local-link checks passed; `git diff --check` passed. **Next: P02**, with actual Qwen/cache/runtime/reference inputs still requiring explicit qualification.

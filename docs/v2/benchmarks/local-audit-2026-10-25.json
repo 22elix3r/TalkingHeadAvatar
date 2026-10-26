@@ -1,0 +1,99 @@
+{
+  "kind": "isolated synthetic microbenchmark, not end-to-end",
+  "date": "2026-10-25",
+  "python": "3.14.4 (main, Apr  8 2026, 00:00:00) [GCC 15.2.1 20260123 (Red Hat 15.2.1-7)]",
+  "platform": "Linux-7.2.5-100.fc43.x86_64-x86_64-with-glibc2.42",
+  "torch": "2.10.0+cu128",
+  "cuda": "12.8",
+  "cpu_threads": 2,
+  "warmup": 10,
+  "samples": 100,
+  "gpu": "name, memory.total [MiB], memory.used [MiB], driver_version\nNVIDIA GeForce RTX 4070 Ti SUPER, 16376 MiB, 659 MiB, 580.178.04\n",
+  "dependencies": {
+    "transformers": "5.2.0",
+    "torchaudio": "2.10.0",
+    "chatterbox-tts": "0.1.7",
+    "numpy": "2.4.1",
+    "pytest": "8.4.2",
+    "llama-cpp-python": "0.3.21",
+    "pyvirtualcam": "0.15.0",
+    "diff-gaussian-rasterization": "not installed as distribution",
+    "simple-knn": "not installed as distribution"
+  },
+  "checkpoints": {
+    "audio_driver/checkpoints/new_speaker/best_model.pt": {
+      "config": {
+        "audio_dim": 1024,
+        "n_expr": 100,
+        "n_jaw": 3,
+        "causal": true
+      },
+      "bytes": 134858485,
+      "current_loader": "RuntimeError: Error(s) in loading state_dict for MotionTranslator:\n\tMissing key(s) in state_dict: \"heads.expr.0.weight\", \"heads.expr.0.bias\", \"heads.expr.1.weight\", \"heads.expr.1.bias\", \"heads.jaw.0.weight\", \"heads.jaw.0.bias\", \"heads.jaw.1.weight\", \"heads.jaw.1.bias\". "
+    },
+    "audio_driver/checkpoints/sam_altman_phase5/best_model.pt": {
+      "config": {
+        "audio_dim": 1024,
+        "n_expr": 100,
+        "n_jaw": 3,
+        "causal": true
+      },
+      "bytes": 134858485,
+      "current_loader": "RuntimeError: Error(s) in loading state_dict for MotionTranslator:\n\tMissing key(s) in state_dict: \"heads.expr.0.weight\", \"heads.expr.0.bias\", \"heads.expr.1.weight\", \"heads.expr.1.bias\", \"heads.jaw.0.weight\", \"heads.jaw.0.bias\", \"heads.jaw.1.weight\", \"heads.jaw.1.bias\". "
+    }
+  },
+  "measurements": {
+    "untrained_current_translator_fp32_49_features": {
+      "wall_ms_p50_p95_p99": [
+        0.690015500026675,
+        1.0323045000575348,
+        1.0957447799648898
+      ],
+      "peak_allocated_MiB": 139.4501953125,
+      "peak_reserved_MiB": 160.0
+    },
+    "v1_frame_export_float32_cpu_then_u8": {
+      "wall_ms_p50_p95_p99": [
+        0.3456719999803681,
+        0.4463844499866807,
+        0.6876807300534483
+      ],
+      "peak_allocated_MiB": 15.125,
+      "peak_reserved_MiB": 22.0
+    },
+    "comparison_gpu_u8_then_cpu": {
+      "wall_ms_p50_p95_p99": [
+        0.09369899999001063,
+        0.11657394993562759,
+        0.2864624999676836
+      ],
+      "peak_allocated_MiB": 18.125,
+      "peak_reserved_MiB": 24.0
+    },
+    "cached_hubert_fp16_0.8s_cpu_input": {
+      "wall_ms_p50_p95_p99": [
+        4.054128499944909,
+        4.299170000064123,
+        4.354952299989918
+      ],
+      "peak_allocated_MiB": 635.1474609375,
+      "peak_reserved_MiB": 664.0
+    },
+    "cached_hubert_fp16_1.0s_cpu_input": {
+      "wall_ms_p50_p95_p99": [
+        4.026113999998415,
+        4.325304499963067,
+        4.93597465997141
+      ],
+      "peak_allocated_MiB": 635.24169921875,
+      "peak_reserved_MiB": 664.0
+    }
+  },
+  "oversize_warmup_buffer_shape": [
+    1,
+    16000
+  ],
+  "installed_chatterbox_original_generate_stream_definition": false,
+  "translator_parameters": 33709159,
+  "hubert_cached_load_seconds": 4.004518501999996
+}
