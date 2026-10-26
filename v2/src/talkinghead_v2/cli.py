@@ -48,7 +48,35 @@ def main(argv: Sequence[str] | None = None) -> int:
     calibrate.add_argument("--report", type=Path, required=True)
     calibrate.add_argument("--capture", type=Path, required=True)
     calibrate.add_argument("--device", help="PortAudio device name; default uses the system output")
+    avatar = commands.add_parser("avatar", help="offline avatar compatibility and P03 mesh timing; no neural motion")
+    avatar_actions = avatar.add_subparsers(dest="avatar_action", required=True)
+    verify = avatar_actions.add_parser("verify", help="verify a local canonical mesh and authorization metadata")
+    verify.add_argument("--manifest", type=Path, required=True)
+    verify.add_argument("--tenant", required=True)
+    visual = avatar_actions.add_parser("replay", help="write an offline procedural mesh timing fixture, not real-avatar acceptance")
+    visual.add_argument("--output", type=Path, required=True)
+    visual.add_argument("--resolution", type=int, default=128)
+    visual.add_argument("--wave", type=Path)
+    visual.add_argument("--tts-report", type=Path)
+    visual.add_argument("--case", default="short")
     args = parser.parse_args(argv)
+    if args.command == "avatar":
+        from talkinghead_v2.contracts import ContractError
+        try:
+            if args.avatar_action == "verify":
+                from talkinghead_v2.assets.avatar import load_avatar
+                asset = load_avatar(args.manifest, tenant_id=args.tenant)
+                result = {"status": "verified", "kind": asset.kind, "manifest_sha256": asset.manifest_sha256,
+                          "representation": "mesh_json", "runtime_quality_qualified": False}
+            else:
+                from talkinghead_v2.avatar_replay import run
+                report = run(args)
+                result = {"status": report["status"], "neural_motion_inference": False,
+                          "actual_device_presentation": False, "frames": report["render"]["frames"]}
+        except (ContractError, OSError, ValueError, KeyError, TypeError) as exc:
+            parser.error(str(exc))
+        print(json.dumps(result,indent=2))
+        return 0
     if args.command == "audio":
         import asyncio
         from talkinghead_v2.audio.qualify import run

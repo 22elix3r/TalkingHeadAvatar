@@ -1,6 +1,6 @@
 # TalkingHeadAvatar V2 — Research and Build Plan
 
-**Status:** P00/P01 are implemented; P02 runtime qualification is in progress. **Qwen3-TTS is selected by the user**. Follow the [implementation status](docs/v2/IMPLEMENTATION_STATUS.md) for actual code and evidence; quality, latency and later product gates remain open.
+**Status:** P00/P01 are implemented; P02 functional streaming/playback is qualified with open quality/latency findings; P03 timing/compatibility work is in progress pending real avatar/Claire inputs. **Qwen3-TTS is selected by the user**. Follow the [implementation status](docs/v2/IMPLEMENTATION_STATUS.md) for actual code and evidence; quality, latency and later product gates remain open.
 **Model survey cutoff:** October 25, 2026. **Deployment scope revision / additional research:** October 26, 2026.  
 **Audited V1 commit:** `54b4f171a9bb193a6b648b8015fba6ba295368f0`.  
 **Target development hardware:** RTX 4070 Ti SUPER, 16 GB, Ryzen 5 7600X, 32 GB RAM, Fedora Linux.  
@@ -10,7 +10,7 @@
 
 | Artifact | Purpose |
 | [Start implementing: P00–P09](docs/v2/IMPLEMENTATION_PHASES.md) | Ordered Codex task prompts, concrete outputs, prerequisites and acceptance checks |
-| [Implementation status](docs/v2/IMPLEMENTATION_STATUS.md) | Persistent checkpoint; start P00 now |
+| [Implementation status](docs/v2/IMPLEMENTATION_STATUS.md) | Current phase, persistent checkpoint and actual evidence |
 |---|---|
 | [Complete E2E specification](docs/v2/E2E_IMPLEMENTATION_SPEC.md) | Product journeys, selected stack, APIs, persistence, worker ownership and browser behavior |
 | [Deployment and release](docs/v2/DEPLOYMENT_AND_RELEASE.md) | Packaging, network, readiness, operations, rollout, restore and release gates |
