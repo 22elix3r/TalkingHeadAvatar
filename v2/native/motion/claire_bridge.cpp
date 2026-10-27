@@ -81,6 +81,9 @@ extern "C" int tha_claire_open(const char* ptx,const char* scene,const char* mod
     require(bool(state->bundle),"verified Claire executor unavailable");checked(cuCtxGetCurrent(&state->context));
     state->encoder=std::make_unique<tha::GpuEncoder>(ptx,512,512,30,1200000,tha::ContextPolicy::BorrowCurrent);
     state->encoder->large_mesh(vertices,geometry.faces,geometry.materials,geometry.camera);
+    // One immutable neutral asset upload for decoder preroll. Dynamic SDK poses
+    // still use owned device copies; this is not a neural geometry readback.
+    state->encoder->update_mesh_host(geometry.vertices);
     checked(cuStreamCreate(&state->copies,CU_STREAM_NON_BLOCKING));checked(cuEventCreate(&state->producer,CU_EVENT_DISABLE_TIMING));
     for(auto& slot:state->slots)checked(cuMemAlloc(&slot.data,vertices*3*sizeof(float)));
     auto& executor=state->bundle->GetExecutor();require(executor.GetSamplingRate()==16000 && executor.GetNbTracks()==1,"Claire mono/16k source required");
@@ -119,7 +122,7 @@ extern "C" int tha_claire_render(tha_claire* state,uint64_t target,int64_t pts,i
   if(packet)*packet={};
   try {
     require(state && packet,"Claire render handle/result required");state->usable();
-    require(target%1600==0 && target<48000*120ULL && (!state->rendered || target>state->last_target) && pts>=0 && (keyframe==0 || keyframe==1),"Claire render source grid/order/PTS mismatch");
+    require(target%1600==0 && target<48000*120ULL && (!state->rendered || target>state->last_target) && pts>state->last_pts && (keyframe==0 || keyframe==1),"Claire render source grid/order/PTS mismatch");
     const auto relative_pts=static_cast<int64_t>(target*1000000/48000);
     require(pts>=relative_pts && (!state->rendered || pts-relative_pts==state->pts_origin),"Claire presentation timebase changed within epoch");
     // A missing future frame is backpressure, never permission to show it early
@@ -162,5 +165,14 @@ extern "C" int tha_claire_hold(tha_claire* state,int64_t pts,int keyframe,tha_cl
     require(state->metrics.eof && state->count==0 && state->rendered && pts>state->last_pts && (keyframe==0 || keyframe==1),"Claire idle requires drained EOF and increasing presentation PTS");
     state->packet=state->encoder->encode(0,pts,keyframe!=0);state->last_pts=pts;
     *packet={state->packet.data.data(),state->packet.data.size(),pts,state->last_target,state->last_neural,state->packet.keyframe?1:0};return 1;
+  }catch(const std::exception& exception){message(error,size,exception.what());return -1;}
+}
+extern "C" int tha_claire_preroll(tha_claire* state,int64_t pts,int keyframe,tha_claire_packet* packet,char* error,size_t size) {
+  if(packet)*packet={};
+  try {
+    require(state && packet,"Claire preroll handle/result required");state->usable();
+    require(!state->rendered && pts>state->last_pts && (keyframe==0 || keyframe==1),"Claire preroll requires increasing PTS before speech");
+    state->packet=state->encoder->encode(0,pts,keyframe!=0);state->last_pts=pts;
+    *packet={state->packet.data.data(),state->packet.data.size(),pts,UINT64_MAX,UINT64_MAX,state->packet.keyframe?1:0};return 1;
   }catch(const std::exception& exception){message(error,size,exception.what());return -1;}
 }

@@ -37,6 +37,9 @@ int tha_claire_rate(tha_claire*, int bitrate_bps, double framerate_fps, char* er
 // Explicit post-EOF idle: repeat the final owned pose at a later presentation
 // PTS, without inventing source audio or consuming a new neural frame.
 int tha_claire_hold(tha_claire*, int64_t pts_us, int keyframe, tha_claire_packet*, char* error, size_t error_size);
+// Static source-matched neutral before the first speech pose. No source PCM
+// timestamp exists: both returned source sample fields are UINT64_MAX.
+int tha_claire_preroll(tha_claire*, int64_t pts_us, int keyframe, tha_claire_packet*, char* error, size_t error_size);
 int tha_claire_close(tha_claire*, char* error, size_t error_size);
 #if defined(__cplusplus)
 }

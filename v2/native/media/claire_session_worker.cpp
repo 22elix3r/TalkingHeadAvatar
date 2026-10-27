@@ -52,7 +52,7 @@ struct State {
   std::array<int16_t,48000> audio{};size_t head=0,tail=0,count=0,peak=0,motion_peak=0;
   std::deque<Motion> motions;uint64_t received=0;bool eof=false;std::string failure;
   std::atomic<uint64_t> base_us{0},first{unset},source_samples{0},stream_samples{0},pose_end{0};
-  std::atomic<uint64_t> video_frames{0},source_frames{0},idle_frames{0},video_skipped{0},pose_peak{0},key_requests{0},rate_updates{0};std::atomic<bool> video_eof{false};
+  std::atomic<uint64_t> video_frames{0},source_frames{0},idle_frames{0},preroll_frames{0},video_skipped{0},pose_peak{0},key_requests{0},rate_updates{0};std::atomic<bool> video_eof{false};
   void fail(const char* reason){std::lock_guard<std::mutex> lock(mutex);if(failure.empty())failure=reason;stopped.store(true);space.notify_all();}
 };
 void receive(State& state,uint64_t epoch){
@@ -87,7 +87,7 @@ void render(State& state,const char* ptx,const char* scene,const char* model,con
   bool announced=false;
   try {
     ClaireOwner owner(ptx,scene,model);ready.set_value();announced=true;
-    uint64_t offered=0,next=0,last_key=0;int frame_id=0;bool motion_eof=false,pending_key=false;double encoder_fps=30;
+    uint64_t offered=0,next=0,preroll_next=0,last_key=0;int frame_id=0;bool motion_eof=false,pending_key=false;double encoder_fps=30;
     while(!stopped.load()){
       Motion chunk;bool feed=false,input_eof=false;uint64_t total=0;
       {
@@ -101,10 +101,14 @@ void render(State& state,const char* ptx,const char* scene,const char* model,con
         offered+=chunk.count;motion_eof=chunk.eof;tha_claire_metrics metrics{};owner.check(tha_claire_get_metrics(owner.handle,&metrics,owner.error,sizeof(owner.error)));
         state.pose_end.store((metrics.neural_frames+1)/2*1600);state.pose_peak.store(metrics.queue_peak_frames);
       }
-      const auto first=state.first.load(),cursor=state.source_samples.load();
-      if(first==unset){std::this_thread::sleep_for(std::chrono::milliseconds(1));continue;}
-      auto target=(input_eof&&total?std::min(cursor,total-1):cursor)/1600*1600;bool idle=false;
-      if(target<next){
+      uint64_t first=0,cursor=0,stream_sample=0;
+      {std::lock_guard<std::mutex> lock(state.mutex);first=state.first.load();cursor=state.source_samples.load();stream_sample=state.stream_samples.load();}
+      const bool preroll=first==unset;bool idle=false;
+      if(!state.base_us.load()){std::this_thread::sleep_for(std::chrono::milliseconds(1));continue;}
+      auto target=preroll?(stream_sample?stream_sample-1:0)/1600*1600:
+        (input_eof&&total?std::min(cursor,total-1):cursor)/1600*1600;
+      if(preroll&&target<preroll_next){std::this_thread::sleep_for(std::chrono::milliseconds(1));continue;}
+      if(!preroll&&target<next){
         if(motion_eof&&input_eof&&next>=((total+1599)/1600)*1600){
           state.video_eof.store(true);const auto stream=state.stream_samples.load();
           target=(stream>first?stream-first:0)/1600*1600;idle=target>=next;
@@ -121,19 +125,24 @@ void render(State& state,const char* ptx,const char* scene,const char* model,con
         owner.check(tha_claire_rate(owner.handle,bitrate,fps,owner.error,sizeof(owner.error)));rate_changed=std::abs(fps-encoder_fps)>.01;encoder_fps=fps;
       }
       pending_key=pending_key||rate_changed;
-      tha_claire_packet packet{};const auto pts=state.base_us.load()+(first+target)*1000000/48000;
-      const auto force=frame_id==0||pending_key||target-last_key>=48000;
-      const auto result=idle?tha_claire_hold(owner.handle,pts,force,&packet,owner.error,sizeof(owner.error)):
-        tha_claire_render(owner.handle,target,pts,force,&packet,owner.error,sizeof(owner.error));
+      tha_claire_packet packet{};const auto pts=state.base_us.load()+((preroll?0:first)+target)*1000000/48000;
+      const auto force=frame_id==0||(!preroll&&!idle&&state.source_frames.load()==0)||pending_key||(target>=last_key&&target-last_key>=48000);
+      const auto result=preroll?tha_claire_preroll(owner.handle,pts,force,&packet,owner.error,sizeof(owner.error)):
+        idle?tha_claire_hold(owner.handle,pts,force,&packet,owner.error,sizeof(owner.error)):
+          tha_claire_render(owner.handle,target,pts,force,&packet,owner.error,sizeof(owner.error));
       owner.check(result);if(!result){std::this_thread::sleep_for(std::chrono::milliseconds(1));continue;}if(stopped.load())break;
-      if(!idle&&target>next)state.video_skipped.fetch_add((target-next)/1600);
+      if(!preroll&&!idle&&target>next)state.video_skipped.fetch_add((target-next)/1600);
       if(idle)state.idle_frames.fetch_add(1);
       if(packet.keyframe){last_key=target;pending_key=false;}
       livekit::EncodedVideoSource::Frame frame;frame.data.assign(packet.data,packet.data+packet.size);frame.is_keyframe=packet.keyframe;frame.width=512;frame.height=512;frame.timestamp_us=packet.pts_us;
       livekit::VideoFrameMetadata metadata;metadata.user_timestamp_us=packet.pts_us;metadata.frame_id=frame_id++;
-      const auto identity="{\"session_id\":\""+session+"\",\"turn_id\":\""+turn+"\",\"epoch\":"+std::to_string(epoch)+",\"source_sample\":"+std::to_string(packet.source_sample_48k)+",\"presentation_sample\":"+std::to_string(target)+",\"idle_after_eof\":"+(idle?"true":"false")+",\"neural_sample_16k\":"+std::to_string(packet.neural_sample_16k)+"}";
+      const auto source_identity=preroll?",\"idle_before_audio\":true":",\"source_sample\":"+std::to_string(packet.source_sample_48k)+",\"neural_sample_16k\":"+std::to_string(packet.neural_sample_16k);
+      const auto identity="{\"session_id\":\""+session+"\",\"turn_id\":\""+turn+"\",\"epoch\":"+std::to_string(epoch)+source_identity+",\"presentation_sample\":"+std::to_string(target)+",\"idle_after_eof\":"+(idle?"true":"false")+"}";
       metadata.user_data=std::vector<uint8_t>(identity.begin(),identity.end());frame.metadata=metadata;
-      require(source->captureFrame(frame),"Claire encoded frame rejected");state.video_frames.fetch_add(1);if(!idle)state.source_frames.fetch_add(1);next=target+1600;
+      require(source->captureFrame(frame),"Claire encoded frame rejected");state.video_frames.fetch_add(1);
+      if(preroll)state.preroll_frames.fetch_add(1);
+      if(!idle&&!preroll)state.source_frames.fetch_add(1);
+      if(preroll)preroll_next=target+1600;else next=target+1600;
     }
   }catch(const std::exception& error){std::cerr<<"Claire GPU owner: "<<error.what()<<'\n';if(!announced){try{ready.set_exception(std::current_exception());}catch(...){}}state.fail("claire_gpu_media_failure");}
 }
@@ -171,7 +180,7 @@ int main(int argc,char** argv){
           std::vector<int16_t> pcm(480,0);
           {
             std::lock_guard<std::mutex> lock(state.mutex);
-            if(!playing&&!done&&(state.count>=prebuffer*48||state.eof)&&state.pose_end.load()>0){playing=true;first=tick*480;state.first.store(first);}
+            if(!playing&&!done&&tick>=10&&state.preroll_frames.load()>=3&&(state.count>=prebuffer*48||state.eof)&&state.pose_end.load()>0){playing=true;first=tick*480;state.first.store(first);}
             if(playing&&!done){
               if(flush){++flush;padding+=480;if(flush==3)done=true;}
               else {
@@ -187,7 +196,7 @@ int main(int argc,char** argv){
           audio->captureFrame(livekit::AudioFrame(std::move(pcm),48000,1,480),0);
           state.stream_samples.store((tick+1)*480);
           if(done&&!acknowledged&&state.video_eof.load()){
-            acknowledged=true;event("{\"kind\":\"eof\",\"session_id\":\""+session+"\",\"turn_id\":\""+turn+"\",\"epoch\":"+std::to_string(epoch)+",\"valid_samples\":"+std::to_string(valid)+",\"padding_samples\":"+std::to_string(padding)+",\"first_pcm_stream_sample\":"+std::to_string(first)+",\"source_clock_late_max_ms\":"+std::to_string(maximum_late)+",\"queue_peak_samples\":"+std::to_string(state.peak)+",\"motion_queue_peak_packets\":"+std::to_string(state.motion_peak)+",\"pose_queue_peak_frames\":"+std::to_string(state.pose_peak.load())+",\"keyframe_requests\":"+std::to_string(state.key_requests.load())+",\"rate_updates\":"+std::to_string(state.rate_updates.load())+",\"video_frames\":"+std::to_string(state.video_frames.load())+",\"source_video_frames\":"+std::to_string(state.source_frames.load())+",\"idle_video_frames\":"+std::to_string(state.idle_frames.load())+",\"video_skipped\":"+std::to_string(state.video_skipped.load())+",\"presentation_ack\":false}");
+            acknowledged=true;event("{\"kind\":\"eof\",\"session_id\":\""+session+"\",\"turn_id\":\""+turn+"\",\"epoch\":"+std::to_string(epoch)+",\"valid_samples\":"+std::to_string(valid)+",\"padding_samples\":"+std::to_string(padding)+",\"first_pcm_stream_sample\":"+std::to_string(first)+",\"source_clock_late_max_ms\":"+std::to_string(maximum_late)+",\"queue_peak_samples\":"+std::to_string(state.peak)+",\"motion_queue_peak_packets\":"+std::to_string(state.motion_peak)+",\"pose_queue_peak_frames\":"+std::to_string(state.pose_peak.load())+",\"keyframe_requests\":"+std::to_string(state.key_requests.load())+",\"rate_updates\":"+std::to_string(state.rate_updates.load())+",\"video_frames\":"+std::to_string(state.video_frames.load())+",\"source_video_frames\":"+std::to_string(state.source_frames.load())+",\"idle_video_frames\":"+std::to_string(state.idle_frames.load())+",\"preroll_video_frames\":"+std::to_string(state.preroll_frames.load())+",\"video_skipped\":"+std::to_string(state.video_skipped.load())+",\"presentation_ack\":false}");
           }
           require(tick<360000,"bounded Claire epoch duration exceeded");
         }

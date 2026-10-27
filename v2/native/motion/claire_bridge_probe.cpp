@@ -29,8 +29,8 @@ void write_all(int fd,const uint8_t* data,size_t count) {
 int main(int argc,char** argv) {
   int output=-1;
   try {
-    require(argc==7,"usage: tha_claire_bridge_probe ptx scene model input.f32 new-output.h264 normal|late|cancel|overflow|invalid|ordering|paced|irregular|short|idle");
-    const std::string mode=argv[6];require(mode=="normal" || mode=="late" || mode=="cancel" || mode=="overflow" || mode=="invalid" || mode=="ordering" || mode=="paced" || mode=="irregular" || mode=="short" || mode=="idle","unknown bridge case");
+    require(argc==7,"usage: tha_claire_bridge_probe ptx scene model input.f32 new-output.h264 normal|late|cancel|overflow|invalid|ordering|paced|irregular|short|idle|preroll");
+    const std::string mode=argv[6];require(mode=="normal" || mode=="late" || mode=="cancel" || mode=="overflow" || mode=="invalid" || mode=="ordering" || mode=="paced" || mode=="irregular" || mode=="short" || mode=="idle" || mode=="preroll","unknown bridge case");
     struct stat info{};require(lstat(argv[4],&info)==0 && S_ISREG(info.st_mode) && info.st_size>16000*4 && info.st_size<30*16000*4 && info.st_size%4==0,"bounded fixture PCM required");
     std::vector<float> pcm(info.st_size/4);std::ifstream input(argv[4],std::ios::binary);input.read(reinterpret_cast<char*>(pcm.data()),info.st_size);require(bool(input),"truncated fixture");
     if(mode=="short")pcm.resize(177); // Shorter than one pose and the lookahead.
@@ -85,6 +85,16 @@ int main(int argc,char** argv) {
     // No geometry is available before the declared lookahead. Future requests
     // must not consume data or mutate presentation order.
     tha_claire_packet packet{};require(tha_claire_render(state.handle,0,1000000,1,&packet,error,sizeof(error))==0,"uninitialized pose rendered");
+    size_t preroll_frames=0;
+    if(mode=="preroll") {
+      for(int index=0;index<3;++index) {
+        require(tha_claire_preroll(state.handle,800000+index*33333,index==0,&packet,error,sizeof(error))==1,"missing neutral preroll");
+        require(packet.source_sample_48k==UINT64_MAX && packet.neural_sample_16k==UINT64_MAX,"neutral invented source time");
+        write_all(output,packet.data,packet.size);++preroll_frames;
+      }
+      tha_claire_metrics neutral{};ok(tha_claire_get_metrics(state.handle,&neutral,error,sizeof(error)));
+      require(!neutral.offered_samples && !neutral.neural_frames && !neutral.rendered_frames && !neutral.queued_frames,"neutral consumed speech state");
+    }
     auto began=std::chrono::steady_clock::now(),presentation=began;bool playing=false;double maximum_late_ms=0;
     size_t step=0;
     for(size_t offset=0;offset<pcm.size();) {
@@ -117,6 +127,7 @@ int main(int argc,char** argv) {
       (mode=="irregular"?metrics.first_result_after_samples>=4160 && metrics.first_result_after_samples<4480:metrics.first_result_after_samples==4160)) &&
       metrics.queue_peak_frames<=32 && metrics.retained_audio_peak_samples<=24640,"lookahead/queue bound changed");
     require((mode=="late" && metrics.discarded_video_frames==10) || (mode!="late" && metrics.discarded_video_frames==0),"unexpected video discard");
+    if(mode=="preroll")require(tha_claire_preroll(state.handle,2000000,0,&packet,error,sizeof(error))==-1,"neutral replaced active/final speech pose");
     size_t idle_frames=0;
     if(mode=="idle") {
       for(int index=0;index<3;++index) {
@@ -131,7 +142,7 @@ int main(int argc,char** argv) {
     require(tha_claire_push(state.handle,pcm.data(),1,pcm.size(),0,error,sizeof(error))==-1,"post-EOF PCM accepted");
     require(fsync(output)==0,"coded persistence failed");close(output);output=-1;
     std::cout<<"{\"case\":\""<<mode<<"\",\"source_samples\":"<<metrics.offered_samples<<",\"neural_frames\":"<<metrics.neural_frames
-      <<",\"encoded_frames\":"<<packets<<",\"idle_frames\":"<<idle_frames<<",\"discarded_video_frames\":"<<metrics.discarded_video_frames<<",\"queue_peak_frames\":"<<metrics.queue_peak_frames
+      <<",\"encoded_frames\":"<<packets<<",\"idle_frames\":"<<idle_frames<<",\"preroll_frames\":"<<preroll_frames<<",\"discarded_video_frames\":"<<metrics.discarded_video_frames<<",\"queue_peak_frames\":"<<metrics.queue_peak_frames
       <<",\"first_result_after_samples\":"<<metrics.first_result_after_samples<<",\"retained_audio_peak_samples\":"<<metrics.retained_audio_peak_samples
       <<",\"maximum_schedule_lateness_ms\":"<<maximum_late_ms<<",\"caller_cxx_abi\":1,\"sdk_cxx_abi\":0,\"geometry_host_stage\":false,\"physical_playback\":false}\n";
     return 0;

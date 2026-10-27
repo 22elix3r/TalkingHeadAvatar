@@ -45,13 +45,13 @@ def main():
     build=ROOT/'var/build/native-media';binary=build/'tha_claire_bridge_probe';library=build/'libtha_claire_bridge.so';ptx=build/'media_kernels.ptx'
     exported=subprocess.check_output(['nm','-D','--defined-only',str(library)],text=True)
     symbols=[line.split()[-1] for line in exported.splitlines() if line.strip()]
-    if sorted(symbols)!=sorted(['tha_claire_'+name for name in ('open','push','render','get_metrics','rate','hold','close')]):raise ValueError('only the seven C ABI exports are permitted')
+    if sorted(symbols)!=sorted(['tha_claire_'+name for name in ('open','push','render','get_metrics','rate','hold','preroll','close')]):raise ValueError('only the eight C ABI exports are permitted')
     cases={}
     lease=DeviceLease(ROOT/'var/gpu-device-0.lock');lease.acquire('claire-c-abi-clock-qualification')
     try:
         env=dict(os.environ,THA_DEVICE_LEASE_FD=str(lease.fileno),HF_HUB_OFFLINE='1',TRANSFORMERS_OFFLINE='1',CUDA_VISIBLE_DEVICES='0',
             LD_LIBRARY_PATH=str(runtime/'lib')+':/usr/local/cuda-12.8/lib64',CUDA_CACHE_PATH=str(ROOT/'var/cache/claire-cuda'))
-        for name in ('normal','paced','irregular','short','late','cancel','overflow','invalid','ordering','idle'):
+        for name in ('normal','paced','irregular','short','late','cancel','overflow','invalid','ordering','idle','preroll'):
             directory=args.directory/name;directory.mkdir(mode=0o700);coded=directory/'video.h264'
             command=[str(binary),str(ptx),str(mesh.resolve()),str((args.engine/'model.json').resolve()),str(pcm.resolve()),str(coded.resolve()),name]
             with open(directory/'stderr.log','xb',opener=lambda path,flags:os.open(path,flags,0o600)) as log:
@@ -61,8 +61,8 @@ def main():
             case=json.loads(run.stdout);cases[name]={'metrics':case}
             if coded.exists():
                 hashes=decoded_hashes(coded);cases[name].update(coded_sha256=digest(coded),decoded_frames=len(hashes))
-                if len(hashes)!=(74 if name=='late' else 1 if name=='short' else 87 if name=='idle' else 84):raise ValueError('bridge decoded-frame conservation failed')
-                if name not in ('late','short'):
+                if len(hashes)!=(74 if name=='late' else 1 if name=='short' else 87 if name in ('idle','preroll') else 84):raise ValueError('bridge decoded-frame conservation failed')
+                if name not in ('late','short','preroll'):
                     if hashes[:84]!=expected:raise ValueError('bridge differs from actual direct GPU reference in '+name)
                     cases[name]['all_source_decoded_frames_equal_direct_reference']=True
     finally:lease.release()
@@ -74,7 +74,8 @@ def main():
         'source_sha256':{path:digest(ROOT/path) for path in sources},'binary_sha256':digest(binary),'library_sha256':digest(library),'ptx_sha256':digest(ptx),
         'engine_sha256':engine['engine_sha256'],'sdk_library_sha256':digest(sdk),'scene_sha256':digest(mesh),'source_pcm_sha256':digest(pcm),
         'caller_cxx_abi':1,'sdk_cxx_abi':0,'exported_symbols':symbols,'queue_bound_frames':32,'queue_bound_duration_ms':32*1000/30,
-        'owned_pose_storage_bytes':32*67122*3*4,'render_grid_samples_48k':1600,'model_cadence_hz':60,'render_cadence_hz':30,
+        'owned_pose_storage_bytes':32*67122*3*4,'immutable_neutral_init_host_upload_bytes':67122*3*4,
+        'render_grid_samples_48k':1600,'model_cadence_hz':60,'render_cadence_hz':30,
         'neural_to_render_max_rounding_samples_48k':2,'cases':cases,'admission_reacquired_after_exit':True,
         'additional_downloads':False,'livekit_session_integration':False,'physical_av_qualified':False,'qwen_coload_qualified':False}
     args.report.write_text(json.dumps(report,indent=2)+'\n')

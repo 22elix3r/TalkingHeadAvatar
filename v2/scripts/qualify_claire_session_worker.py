@@ -71,7 +71,7 @@ async def main(args):
         for name,count,fault in selected_cases:
             directory=args.directory/name;directory.mkdir(mode=0o700);sid='claire-worker-'+name;room_name='claire-worker-'+name
             tts=None;live_metrics=None
-            receive_room=None;tasks=[];streams=[];receiver={'audio_frames':0,'audio_samples':0,'maximum_rms':0.,'video':[],'idle_frames':0};subscribed=asyncio.Event();kinds=set()
+            receive_room=None;tasks=[];streams=[];receiver={'audio_frames':0,'audio_samples':0,'maximum_rms':0.,'video':[],'idle_frames':0,'preroll_frames':0};subscribed=asyncio.Event();kinds=set()
             if name.startswith('qwen_'):
                 receive_room=rtc.Room();owned_rooms.append(receive_room)
                 @receive_room.on('track_subscribed')
@@ -88,6 +88,10 @@ async def main(args):
                                 if item.metadata is None:raise ValueError('missing received generation metadata')
                                 identity=json.loads(item.metadata.user_data)
                                 if identity['session_id']!=sid or identity['turn_id']!='test' or identity['epoch']!=7:raise ValueError('stale received epoch')
+                                if identity.get('idle_before_audio'):
+                                    if 'source_sample' in identity or 'neural_sample_16k' in identity:raise ValueError('neutral preroll invented a source timestamp')
+                                    receiver['preroll_frames']+=1
+                                    continue
                                 if identity['source_sample']%1600 or not 0<=identity['source_sample']-identity['neural_sample_16k']*3<=2:raise ValueError('received rational source mapping changed')
                                 if identity.get('idle_after_eof'):
                                     receiver['idle_frames']+=1
@@ -177,7 +181,7 @@ async def main(args):
                         cases.append({'name':name,'rejected':True,'process_exit':1})
                     else:
                         if (result.get('kind')!='eof' or result.get('valid_samples')!=count or result.get('padding_samples')!=(-count)%480+960 or
-                            result.get('presentation_ack') is not False or result.get('pose_queue_peak_frames',33)>32 or result.get('motion_queue_peak_packets',51)>50 or
+                            result.get('presentation_ack') is not False or result.get('preroll_video_frames',0)<3 or result.get('pose_queue_peak_frames',33)>32 or result.get('motion_queue_peak_packets',51)>50 or
                             result.get('source_video_frames',0)+result.get('video_skipped',0)!=(count+1599)//1600):raise ValueError('Claire sender EOF/queue accounting failed in '+name)
                         record={'name':name,'sender':{key:value for key,value in result.items() if key not in {'session_id','turn_id'}},'process_exit':0}
                         if live_metrics:record['live_qwen']=live_metrics
@@ -187,7 +191,7 @@ async def main(args):
                                 if task.done():task.result()
                             rows=receiver['video'];positions=[row['source_sample'] for row in rows]
                             if (len(rows)<50 or len(set(row['decoded_sha256'] for row in rows))<10 or receiver['maximum_rms']<100 or
-                                positions!=sorted(set(positions)) or positions[-1]!=(count-1)//1600*1600 or receiver['idle_frames']<1 or any(row['width']!=512 or row['height']!=512 for row in rows)):
+                                positions!=sorted(set(positions)) or positions[0]!=0 or positions[-1]!=(count-1)//1600*1600 or receiver['preroll_frames']<1 or receiver['idle_frames']<1 or any(row['width']!=512 or row['height']!=512 for row in rows)):
                                 raise ValueError('actual receiver did not decode moving Claire/audio')
                             receiver['missing_source_frame_indices']=[index for index in range((count+1599)//1600) if index*1600 not in positions]
                             record['receiver']=receiver

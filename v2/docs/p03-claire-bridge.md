@@ -2,7 +2,7 @@
 
 Local observation, 2026-10-27. This extends the [full-size renderer](p03-claire-render.md) toward live transport. It does not change the running browser backend or close P03/P06. [Structured evidence](../benchmarks/reports/p03-claire-bridge.json) binds source, binary, shared library, PTX, engine, SDK, scene and synthetic Qwen input hashes.
 
-The pinned Claire SDK requires libstdc++ ABI 0; the existing LiveKit runtime uses ABI 1. `native/motion/claire_bridge.h` exposes only seven C functions and fixed C structures. A version script hides all C++ symbols. The actual ABI-1 probe links and calls the ABI-0 SDK/encoder library; no LiveKit rebuild, global dependency change or additional model download occurred.
+The pinned Claire SDK requires libstdc++ ABI 0; the existing LiveKit runtime uses ABI 1. `native/motion/claire_bridge.h` exposes only eight C functions and fixed C structures. A version script hides all C++ symbols. The actual ABI-1 probe links and calls the ABI-0 SDK/encoder library; no LiveKit rebuild, global dependency change or additional model download occurred.
 
 One owner thread/epoch holds the SDK primary context, borrowed-context encoder and 32 preallocated GPU pose slots. Complete skin/tongue poses use **25,774,848 bytes** of slot storage. Each SDK output stream records a dependency before the owned D2D copy; that copy completes before callback return/source reuse. No host geometry stage is introduced. The model remains 60 Hz and the render grid 30 Hz. Render requests use integer 48 kHz source positions in steps of 1,600; the SDK's integer 16 kHz timestamps differ from that nominal grid by at most two 48 kHz samples. The presentation origin cannot change within an epoch.
 
@@ -18,19 +18,19 @@ HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 v2/.venv/bin/python \
   --scene v2/var/p03/claire-render-scene \
   --input-directory v2/var/p03/claire-qwen-input \
   --reference-directory v2/var/p03/claire-direct-render-final \
-  --directory v2/var/p03/claire-bridge-idle-final \
+  --directory v2/var/p03/claire-bridge-preroll-final \
   --report v2/benchmarks/reports/p03-claire-bridge.json
 cd v2
 HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 .venv/bin/python -m pytest -q \
   --junitxml=var/p03/claire-bridge-core-tests.xml
 ```
 
-Warnings-as-errors native build passed; offline CPU **287 passed in 5.32 s**. Ten actual GPU cases passed:
+Warnings-as-errors native build passed; offline CPU **287 passed in 5.32 s**. Eleven actual GPU cases passed:
 
 | Case | Local evidence |
 |---|---|
 | Normal | 44,430 source samples → 167 neural / 84 encoded frames; all decoded frames equal the previous direct GPU reference |
-| Paced | Real-time 20 ms input, independent 30 Hz deadlines; 84/84 decoded frames equal; queue peak 11; maximum observed schedule lateness 37.73 ms |
+| Paced | Real-time 20 ms input, independent 30 Hz deadlines; 84/84 decoded frames equal; queue peak 11; maximum observed schedule lateness 33.55 ms |
 | Irregular | 1–320-sample pushes; 84/84 decoded frames equal |
 | Short EOF | 177 samples, shorter than lookahead; exactly one neural/encoded frame, with no invented playable tail |
 | Late video | Ten stale poses discarded; 74 retained frames, exact neural/render/discard accounting |
@@ -43,3 +43,5 @@ Warnings-as-errors native build passed; offline CPU **287 passed in 5.32 s**. Te
 Normal/paced input first produces a pose after 4,160 samples (**260 ms**). Peak retained SDK audio is 24,320 samples; the serving queue and SDK history are different bounds. The paced statistic is a local scheduler observation, not an acoustic/browser skew, latency percentile or SLO pass. Only decoded image parity is claimed; no new bridge Nsight transfer trace or memory peak is inferred from the prior renderer trace. The original first cohort and a probe timestamp-fixture failure remain in private directories rather than being deleted. Device admission was reacquired after all child exits.
 
 The [native session worker](p03-claire-session.md) now exercises the separate audio clock and fresh publications with recorded Qwen input. Next: qualify actual Qwen streaming, joint resources and browser startup/receiver cancellation. Physical A/V, co-loaded memory, independent quality, calibrated Gaussian retarget and human enrollment/release gates remain open. V1 is preserved on `v1/legacy`.
+
+The [neutral preroll checkpoint](p03-claire-preroll.md) adds one immutable neutral asset upload at initialization and source-free pre-speech frames. Its complete recorded/live receiver cohorts include source frame 0 and the final source frame; this does not establish physical A/V or stable delivery.
