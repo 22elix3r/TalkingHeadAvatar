@@ -45,13 +45,13 @@ def main():
     build=ROOT/'var/build/native-media';binary=build/'tha_claire_bridge_probe';library=build/'libtha_claire_bridge.so';ptx=build/'media_kernels.ptx'
     exported=subprocess.check_output(['nm','-D','--defined-only',str(library)],text=True)
     symbols=[line.split()[-1] for line in exported.splitlines() if line.strip()]
-    if sorted(symbols)!=sorted(['tha_claire_'+name for name in ('open','push','render','get_metrics','close')]):raise ValueError('only the five C ABI exports are permitted')
+    if sorted(symbols)!=sorted(['tha_claire_'+name for name in ('open','push','render','get_metrics','rate','hold','close')]):raise ValueError('only the seven C ABI exports are permitted')
     cases={}
     lease=DeviceLease(ROOT/'var/gpu-device-0.lock');lease.acquire('claire-c-abi-clock-qualification')
     try:
         env=dict(os.environ,THA_DEVICE_LEASE_FD=str(lease.fileno),HF_HUB_OFFLINE='1',TRANSFORMERS_OFFLINE='1',CUDA_VISIBLE_DEVICES='0',
             LD_LIBRARY_PATH=str(runtime/'lib')+':/usr/local/cuda-12.8/lib64',CUDA_CACHE_PATH=str(ROOT/'var/cache/claire-cuda'))
-        for name in ('normal','paced','irregular','short','late','cancel','overflow','invalid','ordering'):
+        for name in ('normal','paced','irregular','short','late','cancel','overflow','invalid','ordering','idle'):
             directory=args.directory/name;directory.mkdir(mode=0o700);coded=directory/'video.h264'
             command=[str(binary),str(ptx),str(mesh.resolve()),str((args.engine/'model.json').resolve()),str(pcm.resolve()),str(coded.resolve()),name]
             with open(directory/'stderr.log','xb',opener=lambda path,flags:os.open(path,flags,0o600)) as log:
@@ -61,10 +61,10 @@ def main():
             case=json.loads(run.stdout);cases[name]={'metrics':case}
             if coded.exists():
                 hashes=decoded_hashes(coded);cases[name].update(coded_sha256=digest(coded),decoded_frames=len(hashes))
-                if len(hashes)!=(74 if name=='late' else 1 if name=='short' else 84):raise ValueError('bridge decoded-frame conservation failed')
+                if len(hashes)!=(74 if name=='late' else 1 if name=='short' else 87 if name=='idle' else 84):raise ValueError('bridge decoded-frame conservation failed')
                 if name not in ('late','short'):
-                    if hashes!=expected:raise ValueError('bridge differs from actual direct GPU reference in '+name)
-                    cases[name]['all_decoded_frames_equal_direct_reference']=True
+                    if hashes[:84]!=expected:raise ValueError('bridge differs from actual direct GPU reference in '+name)
+                    cases[name]['all_source_decoded_frames_equal_direct_reference']=True
     finally:lease.release()
     # A retired GPU process may not leave an admission lock behind.
     lease.acquire('claire-bridge-post-exit-check');lease.release()

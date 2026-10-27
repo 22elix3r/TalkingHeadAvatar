@@ -2,18 +2,18 @@
   "schema_version": 1,
   "observation": "local cached-model C ABI / bounded GPU ownership qualification",
   "source_sha256": {
-    "native/motion/claire_bridge.cpp": "bcb728579f26e25020ff509df67a7b33f60c6e15f83791544667a828715eaf64",
-    "native/motion/claire_bridge.h": "d5169d243a65522d9f5de0bfac9ca0f4a7bc47970532d3c920dfafb9b262de14",
+    "native/motion/claire_bridge.cpp": "7f13369be8f8f9336bfd72d8c87c16e191b267b019e415d7c5c029b16221912a",
+    "native/motion/claire_bridge.h": "84da07e49fff6624b7996e8b8b0207fb364b323d7eaa9b9023ecb0f9d1d8b06e",
     "native/motion/claire_bridge.map": "57947164ab4aac877b8fc0a95a169930609cadfb71f1e115610a5c7e063daca0",
-    "native/motion/claire_bridge_probe.cpp": "428e923a37ed44c6c63da76a30d4c8fba8d2e7a3deadca6b7a28108d8cc96758",
+    "native/motion/claire_bridge_probe.cpp": "5c7b0afe5b2c39d644877c40e283bd074512f2b169e36c12d6eb8fe19963e201",
     "native/media/gpu_encoder.cpp": "bf26cf62068b5331f398812345991f2ecee86d42aabba0aa6af2cf98d069de68",
     "native/media/gpu_encoder.h": "2870756197f53c08e22930b7a38b64c05e839304faaefa95b911a1e9644e7882",
     "native/media/kernels.cu": "39bff8ec69949f2ab8e3d787e8b493171c228d26e0ce7f97ddd80891e937d587",
-    "native/media/CMakeLists.txt": "68d4172a9c4676ba94160ffa05a11615aa026cc2e6c6547c3d7091213ad3f931",
-    "scripts/qualify_claire_bridge.py": "8051c6812e289ae48f083623fb039d2108b9945c6eae9621c0ec3e1f897a32ed"
+    "native/media/CMakeLists.txt": "996889da78c33abdf24f26a9f0dd0689706a3424f881fe8462c90755188f0c2a",
+    "scripts/qualify_claire_bridge.py": "51da07bc208dd2f1cea2b657302947193394350f00485c68e3939c9c4b754424"
   },
-  "binary_sha256": "db93950a09f2d9e6cf2221d23b639b52969c1e2350d2d0daf9db876e57e70b11",
-  "library_sha256": "8fdc3572e1ffd0d20d1374f6fc523bce2cfa5157bbd561e5a884a6dec8d2aeb3",
+  "binary_sha256": "9f50d2ce629fb747431bf57690bcf920693d5626cbf1696c892533ceb880552d",
+  "library_sha256": "9e68aec3bb4e7042ec4f93b146149a23f5cb8de451ea1486fef01f3c0cdd4459",
   "ptx_sha256": "5cf29df273ed9e18d5d617b59317564b9276b709315d80a4d26325c0d0c4199b",
   "engine_sha256": "69b7d0951ded6bae1a5b12e02c582cafc37fa221b098e0c2364849881167ab9b",
   "sdk_library_sha256": "fee3b86393785fe6c828d982965a54f75fe4dfae6ed63be4d7c30fac99c4bbd7",
@@ -24,8 +24,10 @@
   "exported_symbols": [
     "tha_claire_close",
     "tha_claire_get_metrics",
+    "tha_claire_hold",
     "tha_claire_open",
     "tha_claire_push",
+    "tha_claire_rate",
     "tha_claire_render"
   ],
   "queue_bound_frames": 32,
@@ -42,6 +44,7 @@
         "source_samples": 44430,
         "neural_frames": 167,
         "encoded_frames": 84,
+        "idle_frames": 0,
         "discarded_video_frames": 0,
         "queue_peak_frames": 8,
         "first_result_after_samples": 4160,
@@ -54,7 +57,7 @@
       },
       "coded_sha256": "d6be544a08a008d6d0f96c1c88453894c5516051932741296f7efcbe5acebd9c",
       "decoded_frames": 84,
-      "all_decoded_frames_equal_direct_reference": true
+      "all_source_decoded_frames_equal_direct_reference": true
     },
     "paced": {
       "metrics": {
@@ -62,11 +65,12 @@
         "source_samples": 44430,
         "neural_frames": 167,
         "encoded_frames": 84,
+        "idle_frames": 0,
         "discarded_video_frames": 0,
         "queue_peak_frames": 11,
         "first_result_after_samples": 4160,
         "retained_audio_peak_samples": 24320,
-        "maximum_schedule_lateness_ms": 37.2474,
+        "maximum_schedule_lateness_ms": 37.7265,
         "caller_cxx_abi": 1,
         "sdk_cxx_abi": 0,
         "geometry_host_stage": false,
@@ -74,7 +78,7 @@
       },
       "coded_sha256": "d6be544a08a008d6d0f96c1c88453894c5516051932741296f7efcbe5acebd9c",
       "decoded_frames": 84,
-      "all_decoded_frames_equal_direct_reference": true
+      "all_source_decoded_frames_equal_direct_reference": true
     },
     "irregular": {
       "metrics": {
@@ -82,6 +86,7 @@
         "source_samples": 44430,
         "neural_frames": 167,
         "encoded_frames": 84,
+        "idle_frames": 0,
         "discarded_video_frames": 0,
         "queue_peak_frames": 8,
         "first_result_after_samples": 4429,
@@ -94,7 +99,7 @@
       },
       "coded_sha256": "d6be544a08a008d6d0f96c1c88453894c5516051932741296f7efcbe5acebd9c",
       "decoded_frames": 84,
-      "all_decoded_frames_equal_direct_reference": true
+      "all_source_decoded_frames_equal_direct_reference": true
     },
     "short": {
       "metrics": {
@@ -102,6 +107,7 @@
         "source_samples": 177,
         "neural_frames": 1,
         "encoded_frames": 1,
+        "idle_frames": 0,
         "discarded_video_frames": 0,
         "queue_peak_frames": 1,
         "first_result_after_samples": 177,
@@ -121,6 +127,7 @@
         "source_samples": 44430,
         "neural_frames": 167,
         "encoded_frames": 74,
+        "idle_frames": 0,
         "discarded_video_frames": 10,
         "queue_peak_frames": 11,
         "first_result_after_samples": 4160,
@@ -140,6 +147,7 @@
         "source_samples": 44430,
         "neural_frames": 167,
         "encoded_frames": 84,
+        "idle_frames": 0,
         "discarded_video_frames": 0,
         "queue_peak_frames": 8,
         "first_result_after_samples": 4160,
@@ -152,7 +160,7 @@
       },
       "coded_sha256": "d6be544a08a008d6d0f96c1c88453894c5516051932741296f7efcbe5acebd9c",
       "decoded_frames": 84,
-      "all_decoded_frames_equal_direct_reference": true
+      "all_source_decoded_frames_equal_direct_reference": true
     },
     "overflow": {
       "metrics": {
@@ -175,6 +183,27 @@
         "retired_failed_epochs": 6,
         "gap_quantum_empty_eof_grid_timebase_duplicate_rejected": true
       }
+    },
+    "idle": {
+      "metrics": {
+        "case": "idle",
+        "source_samples": 44430,
+        "neural_frames": 167,
+        "encoded_frames": 84,
+        "idle_frames": 3,
+        "discarded_video_frames": 0,
+        "queue_peak_frames": 8,
+        "first_result_after_samples": 4160,
+        "retained_audio_peak_samples": 24320,
+        "maximum_schedule_lateness_ms": 0,
+        "caller_cxx_abi": 1,
+        "sdk_cxx_abi": 0,
+        "geometry_host_stage": false,
+        "physical_playback": false
+      },
+      "coded_sha256": "746c7dd393d8336e383ec844fa54ef991c895a40e55d40128ebfbbae68dfe5ac",
+      "decoded_frames": 87,
+      "all_source_decoded_frames_equal_direct_reference": true
     }
   },
   "admission_reacquired_after_exit": true,

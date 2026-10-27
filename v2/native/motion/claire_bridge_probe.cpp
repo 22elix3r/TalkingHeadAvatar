@@ -29,8 +29,8 @@ void write_all(int fd,const uint8_t* data,size_t count) {
 int main(int argc,char** argv) {
   int output=-1;
   try {
-    require(argc==7,"usage: tha_claire_bridge_probe ptx scene model input.f32 new-output.h264 normal|late|cancel|overflow|invalid|ordering|paced|irregular|short");
-    const std::string mode=argv[6];require(mode=="normal" || mode=="late" || mode=="cancel" || mode=="overflow" || mode=="invalid" || mode=="ordering" || mode=="paced" || mode=="irregular" || mode=="short","unknown bridge case");
+    require(argc==7,"usage: tha_claire_bridge_probe ptx scene model input.f32 new-output.h264 normal|late|cancel|overflow|invalid|ordering|paced|irregular|short|idle");
+    const std::string mode=argv[6];require(mode=="normal" || mode=="late" || mode=="cancel" || mode=="overflow" || mode=="invalid" || mode=="ordering" || mode=="paced" || mode=="irregular" || mode=="short" || mode=="idle","unknown bridge case");
     struct stat info{};require(lstat(argv[4],&info)==0 && S_ISREG(info.st_mode) && info.st_size>16000*4 && info.st_size<30*16000*4 && info.st_size%4==0,"bounded fixture PCM required");
     std::vector<float> pcm(info.st_size/4);std::ifstream input(argv[4],std::ios::binary);input.read(reinterpret_cast<char*>(pcm.data()),info.st_size);require(bool(input),"truncated fixture");
     if(mode=="short")pcm.resize(177); // Shorter than one pose and the lookahead.
@@ -62,6 +62,9 @@ int main(int argc,char** argv) {
     if(mode=="invalid") {
       std::string foreign_error;std::thread other([&]{tha_claire_metrics m{};char reason[512]{};require(tha_claire_get_metrics(state.handle,&m,reason,sizeof(reason))==-1,"foreign thread accepted");foreign_error=reason;});other.join();
       require(foreign_error.find("owner thread")!=std::string::npos,"wrong-thread reason changed");
+      require(tha_claire_rate(state.handle,99999,30,error,sizeof(error))==-1,"unbounded bitrate accepted");
+      require(tha_claire_rate(state.handle,1200000,std::nan(""),error,sizeof(error))==-1,"nonfinite encoder cadence accepted");
+      ok(tha_claire_rate(state.handle,600000,24,error,sizeof(error)));ok(tha_claire_rate(state.handle,1200000,30,error,sizeof(error)));
       float invalid=std::nanf("");require(tha_claire_push(state.handle,&invalid,1,0,0,error,sizeof(error))==-1,"nonfinite PCM accepted");
       require(tha_claire_push(state.handle,pcm.data(),320,0,0,error,sizeof(error))==-1,"failed epoch resumed");
       std::cout<<"{\"case\":\"invalid\",\"wrong_thread_rejected\":true,\"nonfinite_rejected\":true,\"failed_epoch_rejected\":true}\n";return 0;
@@ -114,10 +117,21 @@ int main(int argc,char** argv) {
       (mode=="irregular"?metrics.first_result_after_samples>=4160 && metrics.first_result_after_samples<4480:metrics.first_result_after_samples==4160)) &&
       metrics.queue_peak_frames<=32 && metrics.retained_audio_peak_samples<=24640,"lookahead/queue bound changed");
     require((mode=="late" && metrics.discarded_video_frames==10) || (mode!="late" && metrics.discarded_video_frames==0),"unexpected video discard");
+    size_t idle_frames=0;
+    if(mode=="idle") {
+      for(int index=0;index<3;++index) {
+        const auto result=tha_claire_hold(state.handle,1000000+(target+index*1600)*1000000/48000,index==0,&packet,error,sizeof(error));
+        require(result==1 && packet.source_sample_48k==target-1600,"EOF idle invented a new source pose");
+        write_all(output,packet.data,packet.size);++idle_frames;
+      }
+      tha_claire_metrics held{};ok(tha_claire_get_metrics(state.handle,&held,error,sizeof(error)));
+      require(held.rendered_frames==metrics.rendered_frames && held.offered_samples==metrics.offered_samples,"idle invented source frames/audio");
+      require(tha_claire_hold(state.handle,1000000,0,&packet,error,sizeof(error))==-1,"idle presentation PTS reversal accepted");
+    }
     require(tha_claire_push(state.handle,pcm.data(),1,pcm.size(),0,error,sizeof(error))==-1,"post-EOF PCM accepted");
     require(fsync(output)==0,"coded persistence failed");close(output);output=-1;
     std::cout<<"{\"case\":\""<<mode<<"\",\"source_samples\":"<<metrics.offered_samples<<",\"neural_frames\":"<<metrics.neural_frames
-      <<",\"encoded_frames\":"<<packets<<",\"discarded_video_frames\":"<<metrics.discarded_video_frames<<",\"queue_peak_frames\":"<<metrics.queue_peak_frames
+      <<",\"encoded_frames\":"<<packets<<",\"idle_frames\":"<<idle_frames<<",\"discarded_video_frames\":"<<metrics.discarded_video_frames<<",\"queue_peak_frames\":"<<metrics.queue_peak_frames
       <<",\"first_result_after_samples\":"<<metrics.first_result_after_samples<<",\"retained_audio_peak_samples\":"<<metrics.retained_audio_peak_samples
       <<",\"maximum_schedule_lateness_ms\":"<<maximum_late_ms<<",\"caller_cxx_abi\":1,\"sdk_cxx_abi\":0,\"geometry_host_stage\":false,\"physical_playback\":false}\n";
     return 0;

@@ -30,7 +30,7 @@ struct tha_claire {
   CUstream copies=nullptr;CUevent producer=nullptr;
   std::array<Slot,slot_count> slots{};size_t head=0,count=0;
   tha_claire_metrics metrics{};std::string failure;
-  uint64_t last_target=0;int64_t pts_origin=0;bool rendered=false,poisoned=false;
+  uint64_t last_target=0,last_neural=0;int64_t pts_origin=0,last_pts=-1;bool rendered=false,poisoned=false;
   tha::EncodedFrame packet;
 
   void ownership()const {
@@ -134,7 +134,7 @@ extern "C" int tha_claire_render(tha_claire* state,uint64_t target,int64_t pts,i
     state->packet=state->encoder->encode(0,pts,keyframe!=0);
     *packet={state->packet.data.data(),state->packet.data.size(),state->packet.pts_us,slot.target,slot.neural,state->packet.keyframe?1:0};
     state->head=(state->head+1)%slot_count;--state->count;++state->metrics.rendered_frames;
-    state->rendered=true;state->last_target=target;state->pts_origin=pts-relative_pts;return 1;
+    state->rendered=true;state->last_target=target;state->last_neural=slot.neural;state->pts_origin=pts-relative_pts;state->last_pts=pts;return 1;
   }catch(const std::exception& exception){
     if(state && state->owner==std::this_thread::get_id())state->poisoned=true;
     message(error,size,exception.what());return -1;
@@ -147,4 +147,20 @@ extern "C" int tha_claire_get_metrics(tha_claire* state,tha_claire_metrics* outp
 extern "C" int tha_claire_close(tha_claire* state,char* error,size_t size) {
   try {require(state,"Claire handle required");state->ownership();delete state;return 0;}
   catch(const std::exception& exception){message(error,size,exception.what());return -1;}
+}
+extern "C" int tha_claire_rate(tha_claire* state,int bitrate,double fps,char* error,size_t size) {
+  try {
+    require(state,"Claire rate handle required");state->usable();
+    require(bitrate>=100000 && bitrate<=8000000 && std::isfinite(fps) && fps>=1 && fps<=60,"Claire encoder rate bounds");
+    state->encoder->bitrate(bitrate);state->encoder->framerate(fps);return 0;
+  }catch(const std::exception& exception){message(error,size,exception.what());return -1;}
+}
+extern "C" int tha_claire_hold(tha_claire* state,int64_t pts,int keyframe,tha_claire_packet* packet,char* error,size_t size) {
+  if(packet)*packet={};
+  try {
+    require(state && packet,"Claire idle handle/result required");state->usable();
+    require(state->metrics.eof && state->count==0 && state->rendered && pts>state->last_pts && (keyframe==0 || keyframe==1),"Claire idle requires drained EOF and increasing presentation PTS");
+    state->packet=state->encoder->encode(0,pts,keyframe!=0);state->last_pts=pts;
+    *packet={state->packet.data.data(),state->packet.data.size(),pts,state->last_target,state->last_neural,state->packet.keyframe?1:0};return 1;
+  }catch(const std::exception& exception){message(error,size,exception.what());return -1;}
 }

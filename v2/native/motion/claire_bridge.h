@@ -32,6 +32,11 @@ int tha_claire_push(tha_claire*, const float*, size_t count, uint64_t start_samp
 int tha_claire_render(tha_claire*, uint64_t source_sample_48k, int64_t pts_us,
                       int keyframe, tha_claire_packet*, char* error, size_t error_size);
 int tha_claire_get_metrics(tha_claire*, tha_claire_metrics*, char* error, size_t error_size);
+// Transport feedback changes encoder rate hints, never the audio/motion grid.
+int tha_claire_rate(tha_claire*, int bitrate_bps, double framerate_fps, char* error, size_t error_size);
+// Explicit post-EOF idle: repeat the final owned pose at a later presentation
+// PTS, without inventing source audio or consuming a new neural frame.
+int tha_claire_hold(tha_claire*, int64_t pts_us, int keyframe, tha_claire_packet*, char* error, size_t error_size);
 int tha_claire_close(tha_claire*, char* error, size_t error_size);
 #if defined(__cplusplus)
 }
