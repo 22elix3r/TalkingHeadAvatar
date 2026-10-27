@@ -6,7 +6,9 @@ The [P04 local browser](docs/p04.md) runs actual cached ASR/LLM/Qwen speech with
 
 The [P06 native checkpoint](docs/p06.md) qualifies a separate synthetic CUDA/NVENC/C++ encoded publisher with browser frame metadata and recovery. Product integration, local packaging, virtual devices and the GPU memory gate remain unfinished; the preview retains the raw reference.
 
-[P06 local profiles](docs/p06-local.md) provide `tha local init/doctor/provision/up/down` for isolated loopback services and an offline software environment using existing caches. Fresh-profile real-Qwen browser playback, restart persistence and launcher-failure recovery are exercised; full image packaging and virtual-device delivery remain open.
+[P06 local profiles](docs/p06-local.md) provide `tha local init/doctor/provision/up/down` for isolated loopback services and an offline software environment using existing caches. Fresh-profile real-Qwen browser playback, restart persistence and launcher-failure recovery are exercised; full image packaging and live virtual output remain open.
+
+The [P06 virtual-device reference](docs/p06-virtual.md) exercises the existing project camera and a temporary virtual microphone through real Firefox capture and LiveKit, including received speech and camera-clear acknowledgment. Live Qwen/native integration, third-party conferencing and fail-stop privacy remain open.
 
 From the repository root, with `uv` and Python 3.12 already installed:
 

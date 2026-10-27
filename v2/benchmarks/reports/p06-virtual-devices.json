@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "phase": "P06",
+  "phase_status": "in_progress",
+  "scope": "CPU-copy virtual camera/microphone reference, disposable Firefox \u2192 local LiveKit \u2192 receiver; not live Qwen/native GPU product integration",
+  "browser_report_sha256": "79318c9be78f4569729bca5e11e7cc3d51317f37ea28941f09fcc7c5d43070d7",
+  "browser_counts": {
+    "expected": 2,
+    "unexpected": 0,
+    "skipped": 0,
+    "flaky": 0,
+    "duration": 20141.608
+  },
+  "source_sha256": {
+    "native/virtual/CMakeLists.txt": "b12c3a111d059002a310d547ecfb081f3d160836364af34a44dc46a0eda4824b",
+    "native/virtual/reference.cpp": "d94ab5e93de84a951f7254f87bc466817d0c38cb17a377529373ba1e387f44b5",
+    "scripts/qualify_virtual_devices.py": "e63dba23831c4e1cafa2e6b1beb4edac57bbad48760667c98f03c07b7ad594c3",
+    "scripts/create_p04_microphone_fixture.py": "aa284dca790be16613cc3f531b0d98ba6cde4d2af02dad1e399ad2530405a85d",
+    "web/playwright.virtual.config.ts": "8d28374e47c6d06ab37ded17bde6b8179a2377368754f4e18e0009f2bde187be",
+    "web/playwright.virtual.firefox.config.ts": "4719992ea77957a57cd42ec7a7e18fe9a8ac6f09c3830d565ac86ab41502bd04",
+    "web/tests/virtual-device.spec.ts": "f10e49a8b80ad774250c7af1fca769d0a65357efe948342662a6efa688e4958b",
+    "web/tests/virtual-fixtures.ts": "f3f2a1e7679a810d11f8621c7ee9647ec77452cbb38143bcda4ce068d02c6c09"
+  },
+  "binary_sha256": "f17390ad1670dd322bef3bfcae0e2f2833da6b9d2945666804869bc76790f681",
+  "environment": {
+    "v4l2loopback_module": "0.15.3",
+    "libpulse_simple": "17.0"
+  },
+  "fixture": {
+    "schema_version": 1,
+    "kind": "synthetic_microphone_fixture",
+    "text": "What is two plus two?",
+    "source": "espeak-ng en-us, speed 145",
+    "role": "test input, not serving TTS",
+    "leading_silence_ms": 3000,
+    "trailing_silence_seconds": 45,
+    "sample_rate": 48000,
+    "pcm_format": "mono signed PCM16",
+    "sha256": "e34bf6e95730ec81652ccdb49bac87ce296466d832445a8e05451738579e0412"
+  },
+  "cohorts": {
+    "eof": {
+      "source": {
+        "kind": "complete",
+        "cancelled": false,
+        "valid_samples": 384000,
+        "padding_samples": 0,
+        "video_frames": 240,
+        "camera_cleared": true,
+        "camera_format_changed": false,
+        "maximum_schedule_lateness_ms": 0.085601,
+        "post_eof_black_frames": 17,
+        "physical_presentation_ack": false
+      },
+      "source_pcm_sha256": "c93890d70a5388d5d56d23096212f5b88bba4e8f7c725d7a15d5da4b1bdb7d5f",
+      "browser": "Firefox/157.0",
+      "capture_dimensions": [
+        640,
+        480
+      ],
+      "inbound_dimensions": [
+        480,
+        360
+      ],
+      "presented_frames": 231,
+      "presented_nonblack_frames": 215,
+      "receiver_peak": 0.776153564453125,
+      "exact_virtual_devices": true,
+      "final_receiver_black": true,
+      "frames_decoded": 231,
+      "case_sha256": "04f5fbceb79e5702ef6a65ee6135cd6b2eb4a3d0aa6d52dc24bc378b4e049e6b"
+    },
+    "cancel": {
+      "source": {
+        "kind": "complete",
+        "cancelled": true,
+        "valid_samples": 179040,
+        "padding_samples": 0,
+        "video_frames": 112,
+        "camera_cleared": true,
+        "camera_format_changed": false,
+        "maximum_schedule_lateness_ms": 0.112028,
+        "post_eof_black_frames": 4,
+        "physical_presentation_ack": false
+      },
+      "source_pcm_sha256": "c93890d70a5388d5d56d23096212f5b88bba4e8f7c725d7a15d5da4b1bdb7d5f",
+      "browser": "Firefox/157.0",
+      "capture_dimensions": [
+        640,
+        480
+      ],
+      "inbound_dimensions": [
+        320,
+        240
+      ],
+      "presented_frames": 92,
+      "presented_nonblack_frames": 88,
+      "receiver_peak": 0.687713623046875,
+      "exact_virtual_devices": true,
+      "final_receiver_black": true,
+      "frames_decoded": 93,
+      "case_sha256": "787e68b578e14699af22723b547cb5f7c0fb79c3b1df3ed64049668277b54e90"
+    }
+  },
+  "camera_owner_contract": {
+    "shared_device_owner_rejected": true,
+    "private_camera_frame_not_written": true,
+    "pulse_connection_not_attempted": true
+  },
+  "received_speech": {
+    "recording_sha256": "d1b3608cf12137da46495a234b69fcbf97643503a73b58309db769dc6cc6c13c",
+    "decoded_16k_samples": 145816,
+    "asr": "existing pinned faster-whisper-base.en, CPU int8, local_files_only",
+    "transcript": "What is 2 plus 2?",
+    "known_phrase_content_check": true,
+    "quality_or_wer_gate": false
+  },
+  "temporary_modules_retired": true,
+  "host_driver_or_default_device_changed": false,
+  "browser_profile": "new temporary profile only; localhost camera/microphone grants, legacy enumeration, real capture; loopback ICE remains disabled",
+  "chromium_status": "camera not enumerated with current combined capture/output device capabilities; microphone enumerates; no kernel reload performed",
+  "acceptance": {
+    "virtual_reference_delivery": true,
+    "third_party_conference_app": false,
+    "live_qwen_to_virtual_devices": false,
+    "physical_av_skew": false,
+    "arbitrary_client_cancel_flush": false,
+    "hard_kill_camera_privacy": false,
+    "native_product_integration": false,
+    "release": false
+  },
+  "copies": "CPU BGRA frame \u2192 V4L2 write; browser conversion/VP8 encoding; PCM \u2192 PulseAudio/PipeWire; independent from CUDA no-readback trace"
+}
