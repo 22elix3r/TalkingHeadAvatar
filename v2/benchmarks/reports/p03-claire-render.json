@@ -1,0 +1,215 @@
+{
+  "schema_version": 1,
+  "phase": "P03/P06",
+  "phase_status": "in_progress",
+  "evidence_category": "local_gpu_observation",
+  "scope": "recorded synthetic Qwen -> actual Claire SDK geometry -> full-size source-matched skin/tongue -> CUDA raster/NV12/NVENC; direct GPU vs recorded-host reference",
+  "source_sha256": {
+    "native/media/CMakeLists.txt": "f0e5b023a324c7bd2eac1152d03dbf97c1704ff1492dfb8267eb6b70a4a8c123",
+    "native/media/encoder_contract.cpp": "9d6b799947ab27c042d3d9e2e2a1d8fb707011423b6f70a920c9494b27f2188a",
+    "native/media/encoder_probe.cpp": "5f0946cbcd1e54d19d324e3965598e84ef0f992aaca5057504ac58e89a8deef5",
+    "native/media/gpu_encoder.cpp": "bf26cf62068b5331f398812345991f2ecee86d42aabba0aa6af2cf98d069de68",
+    "native/media/gpu_encoder.h": "2870756197f53c08e22930b7a38b64c05e839304faaefa95b911a1e9644e7882",
+    "native/media/kernels.cu": "39bff8ec69949f2ab8e3d787e8b493171c228d26e0ce7f97ddd80891e937d587",
+    "native/media/large_contract.cpp": "9442ee2a8a1eb29caf2d5f4e46bae83262bd9751b072d12af740ac3a5d089b52",
+    "native/media/large_file.h": "648f71e8af43e3f56b9945bbf4324131e5ee1ab75ada06047bd0421a9abdbf1b",
+    "native/media/large_probe.cpp": "f0ac498b844a009731f118e13b04c68390529f9598a5ca0913e5b32df3562d8d",
+    "native/media/mesh_probe.cpp": "6e552a459fc56d63975d5da79b088373337ae94f9176c2b968b78d9528c3a787",
+    "native/media/projected_file.h": "1b48cc798118b33ba3f760be25b28d92b648f24b2976a4c081c882cb6fc88e03",
+    "native/media/publisher_probe.cpp": "a2dc32437a70eddf12eb36f7b839d6aaf0f3f26bb7755f896e1c5f8cc7b0157b",
+    "native/media/session_worker.cpp": "5819ac31a3ba21ff63eadb4c43d05afc79d46046a8edc54a5802290d317af094",
+    "native/motion/render_probe.cpp": "dbc641540dcae9209c6f30f823cf4cee667c9d773118eba01c72ee4b30c578b8",
+    "scripts/prepare_claire_render_scene.py": "1f0188519f83f26aa60fcdcd8ab05d0c6652b0d9361dc95cf65eebd77ffaee3e",
+    "scripts/run_claire_render.py": "86e63acad1edf809c755b1d39c6a36928ab3cb405a9091257fe7288dea55094b",
+    "scripts/qualify_claire_render.py": "0b2863b72a44c9666fbcee3fdeac187781719b800bca95829c59ef745ab02c8f"
+  },
+  "binary_sha256": {
+    "recorded": "5537fe49c429a5c4533eadb1b77d6247dc883d1a336c5413b887fcef47467303",
+    "direct": "44e5f742e8293f3d83b27d82846ca0a4a9f1cf5e799ecd1c4b4910e67e666495"
+  },
+  "ptx_sha256": "5cf29df273ed9e18d5d617b59317564b9276b709315d80a4d26325c0d0c4199b",
+  "geometry": {
+    "vertices": 67122,
+    "triangles": 134236,
+    "decimated": false,
+    "source_scene_sha256": "9dd13fb06c7a46c06e51ae6ad8630a8ff18b828ab1299aafb5e1902d41b33b1a",
+    "source_geometry_parity_report_sha256": "55b4fcba71085af6e5a768d2fb9cee3b3851d6419e76c57bc0ccbe3094414589",
+    "camera": {
+      "rotation": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        -1.0,
+        0.0,
+        0.0,
+        0.0,
+        -1.0
+      ],
+      "translation_m": [
+        -0.00048767566680908204,
+        1.4202217483520507,
+        1.0
+      ],
+      "model_units": "centimeter",
+      "units_to_meters": 0.01,
+      "half_extent_m": 0.1749473915100098,
+      "projection": "orthographic OpenCV x-right/y-down/z-forward"
+    },
+    "reference_material": "two-sided flat skin/tongue only; no source texture, eyeball/denture meshes or Gaussian appearance"
+  },
+  "parity": {
+    "decoded_frames": 84,
+    "all_decoded_yuv_frame_sha256_equal": true,
+    "decoded_hash_inventory_sha256": "2f2614d68a6cf3cce7c6454f5e715da36a6bb50fab30e6bf9c5d09a50874852a",
+    "snapshots": {
+      "0": {
+        "rgba_sha256": "f10308ae978ca27d3f0f9304129e2eb301d030a96bde9569db8ba426bb127522",
+        "reference_exact": true
+      },
+      "82": {
+        "rgba_sha256": "2e489ff6817499dc0cf1e7daa3aa1dcb8eccfadf413944d8e856531157d4ae63",
+        "reference_exact": true
+      }
+    },
+    "projection_max_error_pixels": 2.2737367544323206e-13,
+    "projection_max_depth_error_m": 2.220446049250313e-16
+  },
+  "recorded_reference": {
+    "source_frames": 167,
+    "encoded_frames": 84,
+    "vertices": 67122,
+    "triangles": 134236,
+    "geometry_update_gpu_total_ms": 16.6903,
+    "render_gpu_total_ms": 621.378,
+    "maximum_tile_faces": 1985,
+    "tile_edge": 8,
+    "tile_face_limit": 8192,
+    "maximum_tile_references": 262658,
+    "tile_reference_capacity": 4194304,
+    "geometry_host_uploads_per_frame": 1,
+    "status_readback_bytes_per_frame": 20,
+    "qualification_rgba_readbacks": 2,
+    "elapsed_ms": 697.063
+  },
+  "direct_gpu": {
+    "source_samples": 44430,
+    "neural_frames": 167,
+    "frames_before_eof": 152,
+    "encoded_frames": 84,
+    "first_result_after_samples": 4160,
+    "retained_audio_peak_samples": 24320,
+    "geometry_gpu_ms": 16.8255,
+    "render_gpu_ms": 625.104,
+    "maximum_tile_faces": 1985,
+    "maximum_tile_references": 262658,
+    "status_readback_bytes_per_update": 20,
+    "qualification_rgba_readbacks": 2,
+    "qualification_projection_readbacks": 1,
+    "geometry_host_stage": false,
+    "borrowed_sdk_cuda_context": true,
+    "elapsed_ms": 1522.63
+  },
+  "traced_no_readback": {
+    "source_samples": 44430,
+    "neural_frames": 167,
+    "frames_before_eof": 152,
+    "encoded_frames": 84,
+    "first_result_after_samples": 4160,
+    "retained_audio_peak_samples": 24320,
+    "geometry_gpu_ms": 17.2822,
+    "render_gpu_ms": 594.252,
+    "maximum_tile_faces": 1985,
+    "maximum_tile_references": 262658,
+    "status_readback_bytes_per_update": 20,
+    "qualification_rgba_readbacks": 0,
+    "qualification_projection_readbacks": 0,
+    "geometry_host_stage": false,
+    "borrowed_sdk_cuda_context": true,
+    "elapsed_ms": 1706.72
+  },
+  "trace": {
+    "sqlite_sha256": "4b6bef68ab962a196c508c8391fb9fc7c16ee9e2919aabe05aca5877218d1a8e",
+    "scope": "complete direct-process run with --no-readback, including model initialization, streaming audio and EOF",
+    "our_kernel_counts": {
+      "project_large_mesh": 84,
+      "bin_large_mesh": 84,
+      "scan_large_tiles": 84,
+      "fill_large_tiles": 84,
+      "render_large_mesh": 84,
+      "rgba_to_nv12": 84,
+      "Convert_PL2BL": 168
+    },
+    "all_cuda_d2h": [
+      {
+        "bytes": 4,
+        "count": 12
+      },
+      {
+        "bytes": 20,
+        "count": 84
+      },
+      {
+        "bytes": 40,
+        "count": 1
+      }
+    ],
+    "owned_geometry_d2d": [
+      {
+        "bytes": 738240,
+        "count": 84
+      },
+      {
+        "bytes": 67224,
+        "count": 84
+      }
+    ],
+    "observed_large_cuda_d2h": false,
+    "zero_copy_claimed": false,
+    "copies": "initial model/topology/material/camera H2D, ongoing audio H2D, owned geometry D2D, small SDK/status D2H, encoded CPU/driver copies and internal NVENC conversion remain",
+    "instrumentation": "Nsight device-side event completion trace was enabled; possible false dependencies are not used as latency/concurrency evidence"
+  },
+  "contracts": {
+    "tha_large_mesh_contract": {
+      "full_size_gpu_contract": "passed",
+      "owner_lifetimes": 4,
+      "successful_frames": 10,
+      "global_reference_overflow_rejected": true,
+      "per_tile_overflow_rejected": true,
+      "wrong_context_rejected": true,
+      "borrowed_context_survives": true
+    },
+    "tha_encoder_contract": {
+      "gpu_contract": "passed",
+      "owner_lifetimes": 3,
+      "failed_initializations": 3,
+      "frames": 270,
+      "immutable_mesh_owner": true,
+      "physical_av_qualified": false
+    }
+  },
+  "core_tests_passed": 287,
+  "memory": {
+    "samples": 15,
+    "query_failures": 0,
+    "sampled_total_device_max_mib": 1121,
+    "sampled_combined_worker_max_mib": 541,
+    "scope": "SDK + renderer + NVENC in one process/context; sampled observations, not guaranteed loading peaks or a matched isolated encoder-budget comparison",
+    "qwen_coload": false,
+    "capacity_qualified": false
+  },
+  "ownership": "one GPU owner thread, borrowed SDK context retained by SDK until encoder destruction; producer events then owned D2D copies; CPU completion protects source lifetime; fixed surface refs",
+  "failures_retained": "initial fixed tile-list overflow; compact-list diagnostic still failed until a pageable host-upload/default-stream race was explicitly fenced. No triangles were deleted to pass.",
+  "model_impact": "no additional downloads or training; uses the explicitly authorized pinned Claire package/vendor sample and existing Qwen recording",
+  "acceptance": {
+    "full_size_neural_render_encode": true,
+    "direct_gpu_reference_parity": true,
+    "scoped_no_large_cuda_readback": true,
+    "live_actor_integration": false,
+    "receiver_playback": false,
+    "physical_av": false,
+    "gaussian_retarget": false,
+    "independent_quality": false,
+    "release": false
+  }
+}
