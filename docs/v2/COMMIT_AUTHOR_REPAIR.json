@@ -346,5 +346,41 @@
   "local_readme_deletions_not_staged": [
     "data/README.md",
     "output/README.md"
-  ]
+  ],
+  "post_switch_validation": {
+    "default_branch": "main",
+    "checked_out_branch": "main",
+    "phase_heads_ancestors_of_main": true,
+    "legacy_tip_unchanged": true,
+    "working_tree_changes_preserved_exactly": true,
+    "backup_directory_inode_unchanged": true,
+    "merge_and_layout_github_verification": [
+      {
+        "sha": "2d4a3d8ea18166a7d52250e5f1feed5dc4b97bf0",
+        "author": "22elix3r",
+        "committer": "22elix3r",
+        "verified": true,
+        "reason": "valid"
+      },
+      {
+        "sha": "2e97931e1a7b85cb416d13262b275dd2d9001680",
+        "author": "22elix3r",
+        "committer": "22elix3r",
+        "verified": true,
+        "reason": "valid"
+      }
+    ],
+    "offline_core_tests": {
+      "passed": 287,
+      "seconds": 5.42
+    },
+    "isolated_api_postgresql_tests": {
+      "passed": 24,
+      "seconds": 3.58
+    },
+    "cli_help": "passed",
+    "preview_ready": true,
+    "preview_avatar_ready": false,
+    "no_additional_model_downloads": true
+  }
 }
