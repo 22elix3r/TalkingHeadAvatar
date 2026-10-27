@@ -1,6 +1,6 @@
 # Claire C ABI and bounded GPU timeline
 
-Local observation, 2026-10-27. This extends the [full-size renderer](p03-claire-render.md) toward live transport. It does not change the running browser backend or close P03/P06. [Structured evidence](../benchmarks/reports/p03-claire-bridge.json) binds source, binary, shared library, PTX, engine, SDK, scene and synthetic Qwen input hashes.
+Local observation, 2026-10-27. This extends the [full-size renderer](p03-claire-render.md) toward live transport. It does not change the running browser backend or close P03/P06. [Structured evidence](../benchmarks/reports/p03-claire-bridge-20261027.json) binds source, binary, shared library, PTX, engine, SDK, scene and synthetic Qwen input hashes.
 
 The pinned Claire SDK requires libstdc++ ABI 0; the existing LiveKit runtime uses ABI 1. `native/motion/claire_bridge.h` exposes only eight C functions and fixed C structures. A version script hides all C++ symbols. The actual ABI-1 probe links and calls the ABI-0 SDK/encoder library; no LiveKit rebuild, global dependency change or additional model download occurred.
 

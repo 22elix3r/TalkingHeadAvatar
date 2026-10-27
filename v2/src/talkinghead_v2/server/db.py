@@ -100,6 +100,22 @@ class Store:
     def get(self,sid,tenant):
         with self.sessions() as db: return db.scalar(select(Session).where(Session.id==sid,Session.tenant_id==tenant))
 
+    def reference_asset(self,tenant,asset_id,revision=None):
+        """Operator-provided research reference; never revive a revoked row."""
+        if asset_id!='claire-vendor-research': raise ValueError('unknown operator reference')
+        with self.sessions.begin() as db:
+            db.execute(text('SELECT pg_advisory_xact_lock(1740290404)'))
+            asset=db.get(Asset,(tenant,asset_id),with_for_update=True)
+            if revision is not None:
+                if asset is None:
+                    asset=Asset(tenant_id=tenant,id=asset_id,revision=revision,status='approved');db.add(asset)
+                elif asset.revision!=revision:
+                    active=db.scalar(select(Session.id).where(Session.tenant_id==tenant,Session.asset_id==asset_id,
+                        Session.status.in_(['PREPARING','READY','ACTIVE','DRAINING'])).limit(1))
+                    if active: raise RuntimeError('reference_active_revision_conflict')
+                    asset.revision=revision
+            return asset
+
     def reserve(self,tenant,key,body_hash,asset_id):
         with self.sessions.begin() as db:
             db.execute(text('SELECT pg_advisory_xact_lock(1740290404)'))

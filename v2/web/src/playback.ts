@@ -1,4 +1,4 @@
-export type Binding = { epoch: number; audio_sid: string; video_sid: string; publisher: string };
+export type Binding = { epoch: number; audio_sid: string; video_sid: string; publisher: string; visual_mode?: string };
 
 /** Receiver authorization is an exact new track identity, never a server cancel ack. */
 export class PlaybackGate {

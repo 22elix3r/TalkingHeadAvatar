@@ -1,0 +1,244 @@
+{
+  "schema_version": 1,
+  "observation": "local cached-model C ABI / bounded GPU ownership qualification",
+  "source_sha256": {
+    "native/motion/claire_bridge.cpp": "9e005e23af543261887c6123c7106654ae2b2bd264f416b17817ac4a9929a762",
+    "native/motion/claire_bridge.h": "5f11e8e6704a1bfeb52327b6a870a1e24887e2b872b0d4bbdf2e0d09e030d042",
+    "native/motion/claire_bridge.map": "57947164ab4aac877b8fc0a95a169930609cadfb71f1e115610a5c7e063daca0",
+    "native/motion/claire_bridge_probe.cpp": "cd5bb479cde553539502ff1d099f24a82b3b3c8de5f3d17bacafcdbbe1467867",
+    "native/media/gpu_encoder.cpp": "bf26cf62068b5331f398812345991f2ecee86d42aabba0aa6af2cf98d069de68",
+    "native/media/gpu_encoder.h": "2870756197f53c08e22930b7a38b64c05e839304faaefa95b911a1e9644e7882",
+    "native/media/kernels.cu": "39bff8ec69949f2ab8e3d787e8b493171c228d26e0ce7f97ddd80891e937d587",
+    "native/media/CMakeLists.txt": "996889da78c33abdf24f26a9f0dd0689706a3424f881fe8462c90755188f0c2a",
+    "scripts/qualify_claire_bridge.py": "a84a777e3b7ca6104597a3ce93a2e8cd233565b651c0ef96bef05aeb29877f68"
+  },
+  "binary_sha256": "c2b76fa36a94e2759fdd3ae2c6b9c9055c093508707bbdab29d15cd057acdc53",
+  "library_sha256": "1b77033a9f07a75e8c8d2e7066c0c2d72840df277749d1404d1ef8c42606aba0",
+  "ptx_sha256": "5cf29df273ed9e18d5d617b59317564b9276b709315d80a4d26325c0d0c4199b",
+  "engine_sha256": "69b7d0951ded6bae1a5b12e02c582cafc37fa221b098e0c2364849881167ab9b",
+  "sdk_library_sha256": "fee3b86393785fe6c828d982965a54f75fe4dfae6ed63be4d7c30fac99c4bbd7",
+  "scene_sha256": "9dd13fb06c7a46c06e51ae6ad8630a8ff18b828ab1299aafb5e1902d41b33b1a",
+  "source_pcm_sha256": "97140c297b1a4eae2a6ddb6e826de73f0bfd2ecea2e97f60085f2cdd573e2871",
+  "caller_cxx_abi": 1,
+  "sdk_cxx_abi": 0,
+  "exported_symbols": [
+    "tha_claire_close",
+    "tha_claire_get_metrics",
+    "tha_claire_hold",
+    "tha_claire_open",
+    "tha_claire_preroll",
+    "tha_claire_push",
+    "tha_claire_rate",
+    "tha_claire_render"
+  ],
+  "queue_bound_frames": 32,
+  "queue_bound_duration_ms": 1066.6666666666667,
+  "owned_pose_storage_bytes": 25774848,
+  "immutable_neutral_init_host_upload_bytes": 805464,
+  "render_grid_samples_48k": 1600,
+  "model_cadence_hz": 60,
+  "render_cadence_hz": 30,
+  "neural_to_render_max_rounding_samples_48k": 2,
+  "cases": {
+    "normal": {
+      "metrics": {
+        "case": "normal",
+        "source_samples": 44430,
+        "neural_frames": 167,
+        "encoded_frames": 84,
+        "idle_frames": 0,
+        "preroll_frames": 0,
+        "discarded_video_frames": 0,
+        "queue_peak_frames": 8,
+        "first_result_after_samples": 4160,
+        "retained_audio_peak_samples": 24320,
+        "maximum_schedule_lateness_ms": 0,
+        "caller_cxx_abi": 1,
+        "sdk_cxx_abi": 0,
+        "geometry_host_stage": false,
+        "physical_playback": false
+      },
+      "coded_sha256": "d6be544a08a008d6d0f96c1c88453894c5516051932741296f7efcbe5acebd9c",
+      "decoded_frames": 84,
+      "all_source_decoded_frames_equal_direct_reference": true
+    },
+    "paced": {
+      "metrics": {
+        "case": "paced",
+        "source_samples": 44430,
+        "neural_frames": 167,
+        "encoded_frames": 84,
+        "idle_frames": 0,
+        "preroll_frames": 0,
+        "discarded_video_frames": 0,
+        "queue_peak_frames": 11,
+        "first_result_after_samples": 4160,
+        "retained_audio_peak_samples": 24320,
+        "maximum_schedule_lateness_ms": 33.5468,
+        "caller_cxx_abi": 1,
+        "sdk_cxx_abi": 0,
+        "geometry_host_stage": false,
+        "physical_playback": false
+      },
+      "coded_sha256": "d6be544a08a008d6d0f96c1c88453894c5516051932741296f7efcbe5acebd9c",
+      "decoded_frames": 84,
+      "all_source_decoded_frames_equal_direct_reference": true
+    },
+    "irregular": {
+      "metrics": {
+        "case": "irregular",
+        "source_samples": 44430,
+        "neural_frames": 167,
+        "encoded_frames": 84,
+        "idle_frames": 0,
+        "preroll_frames": 0,
+        "discarded_video_frames": 0,
+        "queue_peak_frames": 8,
+        "first_result_after_samples": 4429,
+        "retained_audio_peak_samples": 24263,
+        "maximum_schedule_lateness_ms": 0,
+        "caller_cxx_abi": 1,
+        "sdk_cxx_abi": 0,
+        "geometry_host_stage": false,
+        "physical_playback": false
+      },
+      "coded_sha256": "d6be544a08a008d6d0f96c1c88453894c5516051932741296f7efcbe5acebd9c",
+      "decoded_frames": 84,
+      "all_source_decoded_frames_equal_direct_reference": true
+    },
+    "short": {
+      "metrics": {
+        "case": "short",
+        "source_samples": 177,
+        "neural_frames": 1,
+        "encoded_frames": 1,
+        "idle_frames": 0,
+        "preroll_frames": 0,
+        "discarded_video_frames": 0,
+        "queue_peak_frames": 1,
+        "first_result_after_samples": 177,
+        "retained_audio_peak_samples": 177,
+        "maximum_schedule_lateness_ms": 0,
+        "caller_cxx_abi": 1,
+        "sdk_cxx_abi": 0,
+        "geometry_host_stage": false,
+        "physical_playback": false
+      },
+      "coded_sha256": "3c732ea8a332a768db2c6e99c6c7b7b1b1e83b6b01b7051bf8808c29939b7416",
+      "decoded_frames": 1
+    },
+    "late": {
+      "metrics": {
+        "case": "late",
+        "source_samples": 44430,
+        "neural_frames": 167,
+        "encoded_frames": 74,
+        "idle_frames": 0,
+        "preroll_frames": 0,
+        "discarded_video_frames": 10,
+        "queue_peak_frames": 11,
+        "first_result_after_samples": 4160,
+        "retained_audio_peak_samples": 24320,
+        "maximum_schedule_lateness_ms": 0,
+        "caller_cxx_abi": 1,
+        "sdk_cxx_abi": 0,
+        "geometry_host_stage": false,
+        "physical_playback": false
+      },
+      "coded_sha256": "22bc47a0a794699e77d4a3260e22e864544714fdecf9c198c243256e96e3212f",
+      "decoded_frames": 74
+    },
+    "cancel": {
+      "metrics": {
+        "case": "cancel",
+        "source_samples": 44430,
+        "neural_frames": 167,
+        "encoded_frames": 84,
+        "idle_frames": 0,
+        "preroll_frames": 0,
+        "discarded_video_frames": 0,
+        "queue_peak_frames": 8,
+        "first_result_after_samples": 4160,
+        "retained_audio_peak_samples": 24320,
+        "maximum_schedule_lateness_ms": 0,
+        "caller_cxx_abi": 1,
+        "sdk_cxx_abi": 0,
+        "geometry_host_stage": false,
+        "physical_playback": false
+      },
+      "coded_sha256": "d6be544a08a008d6d0f96c1c88453894c5516051932741296f7efcbe5acebd9c",
+      "decoded_frames": 84,
+      "all_source_decoded_frames_equal_direct_reference": true
+    },
+    "overflow": {
+      "metrics": {
+        "case": "overflow",
+        "queue_peak_frames": 32,
+        "silent_overwrite": false
+      }
+    },
+    "invalid": {
+      "metrics": {
+        "case": "invalid",
+        "wrong_thread_rejected": true,
+        "nonfinite_rejected": true,
+        "failed_epoch_rejected": true
+      }
+    },
+    "ordering": {
+      "metrics": {
+        "case": "ordering",
+        "retired_failed_epochs": 6,
+        "gap_quantum_empty_eof_grid_timebase_duplicate_rejected": true
+      }
+    },
+    "idle": {
+      "metrics": {
+        "case": "idle",
+        "source_samples": 44430,
+        "neural_frames": 167,
+        "encoded_frames": 84,
+        "idle_frames": 3,
+        "preroll_frames": 0,
+        "discarded_video_frames": 0,
+        "queue_peak_frames": 8,
+        "first_result_after_samples": 4160,
+        "retained_audio_peak_samples": 24320,
+        "maximum_schedule_lateness_ms": 0,
+        "caller_cxx_abi": 1,
+        "sdk_cxx_abi": 0,
+        "geometry_host_stage": false,
+        "physical_playback": false
+      },
+      "coded_sha256": "746c7dd393d8336e383ec844fa54ef991c895a40e55d40128ebfbbae68dfe5ac",
+      "decoded_frames": 87,
+      "all_source_decoded_frames_equal_direct_reference": true
+    },
+    "preroll": {
+      "metrics": {
+        "case": "preroll",
+        "source_samples": 44430,
+        "neural_frames": 167,
+        "encoded_frames": 84,
+        "idle_frames": 0,
+        "preroll_frames": 3,
+        "discarded_video_frames": 0,
+        "queue_peak_frames": 8,
+        "first_result_after_samples": 4160,
+        "retained_audio_peak_samples": 24320,
+        "maximum_schedule_lateness_ms": 0,
+        "caller_cxx_abi": 1,
+        "sdk_cxx_abi": 0,
+        "geometry_host_stage": false,
+        "physical_playback": false
+      },
+      "coded_sha256": "e261fc71d28f956956707d2da2c577c647efcbfb54e3fb38297e0102e4859a32",
+      "decoded_frames": 87
+    }
+  },
+  "admission_reacquired_after_exit": true,
+  "additional_downloads": false,
+  "livekit_session_integration": false,
+  "physical_av_qualified": false,
+  "qwen_coload_qualified": false
+}

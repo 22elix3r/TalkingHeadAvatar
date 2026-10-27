@@ -44,6 +44,11 @@ class Command(BaseModel):
 
 
 def create_app(settings: Settings,*,load_models=True,run_jobs=True):
+    research=settings.media_backend=='native_claire_research'
+    profile='claire_vendor_research' if research else 'audio_reference'
+    reference_id='claire-vendor-research' if research else 'synthetic-audio-reference'
+    cookie_name='tha_dev_claire' if research else 'tha_dev'
+    csrf_cookie='tha_csrf_claire' if research else 'tha_csrf'
     store=Store(settings.database_url)
     actors={}
     resources={'ready':False}
@@ -58,7 +63,13 @@ def create_app(settings: Settings,*,load_models=True,run_jobs=True):
             asr=await asyncio.to_thread(Asr,settings.asr_path,settings.asr_files)
             llm=Llm(settings);await llm.prepare()
             resources.update(config=config,asr=asr,llm=llm,asset_revision=sha256_file(settings.tts_runtime))
-        lifecycle.tts_revision=resources.get('asset_revision','0'*64)
+            resources['tts_revision']=resources['asset_revision']
+            if research:
+                from talkinghead_v2.server.claire_media import ClaireMediaConfig
+                avatar=await asyncio.to_thread(ClaireMediaConfig.load,settings.native_media_runtime)
+                await asyncio.to_thread(avatar.validate_device)
+                resources.update(avatar_config=avatar,asset_revision=hashed(resources['tts_revision']+':'+avatar.revision))
+        lifecycle.tts_revision=resources.get('tts_revision',resources.get('asset_revision','0'*64))
         lk=api.LiveKitAPI(settings.livekit_url.replace('ws://','http://'),settings.livekit_key,settings.livekit_secret)
         resources['lk']=lk
         for room,sid in await asyncio.to_thread(store.recover):
@@ -71,7 +82,7 @@ def create_app(settings: Settings,*,load_models=True,run_jobs=True):
                 for sid,actor in list(actors.items()):
                     if actor.closed and getattr(actor,'close_done',None) and actor.close_done.is_set(): actors.pop(sid,None)
         reaper=asyncio.create_task(reap())
-        jobs=asyncio.create_task(lifecycle_worker(lifecycle,actors,lk)) if run_jobs else None
+        jobs=asyncio.create_task(lifecycle_worker(lifecycle,actors,lk)) if run_jobs and not research else None
         yield
         resources['ready']=False
         reaper.cancel();await asyncio.gather(reaper,return_exceptions=True)
@@ -93,6 +104,8 @@ def create_app(settings: Settings,*,load_models=True,run_jobs=True):
         origin=request.headers.get('origin')
         if origin and origin!=settings.origin:
             return JSONResponse({'detail':'origin_denied'},status_code=403)
+        if research and request.method in {'POST','PUT'} and request.url.path.startswith(('/v1/consents','/v1/uploads','/v1/enrollments','/v1/jobs','/v1/assets')):
+            return JSONResponse({'detail':'research_reference_only'},status_code=422)
         # A navigation to localhost should enter the configured cookie/CSRF origin,
         # rather than loading a UI whose first mutation will then be rejected.
         if request.method=='GET' and request.url.path=='/' and str(request.url).rstrip('/')!=settings.origin.rstrip('/'):
@@ -116,7 +129,7 @@ def create_app(settings: Settings,*,load_models=True,run_jobs=True):
         return response
 
     async def principal(request,*,mutation=False):
-        cookie=request.cookies.get('tha_dev','')
+        cookie=request.cookies.get(cookie_name,'')
         p=await asyncio.to_thread(store.authenticate,cookie)
         if not p: raise HTTPException(401,'login_required')
         if mutation:
@@ -130,7 +143,7 @@ def create_app(settings: Settings,*,load_models=True,run_jobs=True):
         if not row: raise HTTPException(404,'session_not_found')
         return row
     def summary(row):
-        return {'id':row.id,'status':row.status,'epoch':row.epoch,'profile':'audio_reference',
+        return {'id':row.id,'status':row.status,'epoch':row.epoch,'profile':profile,
             'asset_revision':row.asset_revision,'error_code':row.error_code,
             'visual_quality_qualified':False,'conversation_slo_qualified':False}
 
@@ -138,24 +151,38 @@ def create_app(settings: Settings,*,load_models=True,run_jobs=True):
     async def live(): return {'status':'live'}
     @app.get('/health/ready')
     async def ready():
-        return JSONResponse({'ready':resources['ready'],'profile':'audio_reference','avatar_ready':False},status_code=200 if resources['ready'] else 503)
+        return JSONResponse({'ready':resources['ready'],'profile':profile,'avatar_ready':research and resources['ready'],
+                             'visual_quality_qualified':False},status_code=200 if resources['ready'] else 503)
     @app.get('/v1/capabilities')
     async def capabilities():
-        return {'profiles':['audio_reference'],'voice_kind':'synthetic_fixture','avatar_ready':False,
+        return {'profiles':[profile],'voice_kind':'synthetic_fixture','avatar_ready':research,
+                'visual_quality_qualified':False,'asset_imports':not research,
                 'authentication':'loopback_development','recording':False,'asr_streaming':'rolling_window_revisions',
                 'llm':'explicit_cpu_qwen','tts':'Qwen3-TTS Base 1.7B','receiver_resume':'replace_tracks'}
     @app.post('/v1/dev-login')
     async def login(request: Request):
         if request.headers.get('origin')!=settings.origin: raise HTTPException(403,'origin_required')
-        revision=resources.get('asset_revision','0'*64)
-        tenant,cookie,csrf=await asyncio.to_thread(store.resume_login,revision,request.cookies.get('tha_dev',''),request.headers.get('x-csrf-token',''))
-        response=JSONResponse({'csrf_token':csrf,'tenant_id':tenant,'mode':'loopback_development'})
-        response.set_cookie('tha_dev',cookie,httponly=True,samesite='strict',max_age=28800)
-        response.set_cookie('tha_csrf',csrf,httponly=False,samesite='strict',max_age=28800)
+        revision=resources.get('tts_revision',resources.get('asset_revision','0'*64))
+        tenant,cookie,csrf=await asyncio.to_thread(store.resume_login,revision,request.cookies.get(cookie_name,''),request.headers.get('x-csrf-token',''))
+        if research:
+            try: await asyncio.to_thread(store.reference_asset,tenant,reference_id,resources.get('asset_revision','0'*64))
+            except RuntimeError: raise HTTPException(409,'reference_active_revision_conflict')
+        response=JSONResponse({'csrf_token':csrf,'tenant_id':tenant,'mode':'loopback_development',
+                               'profile':profile,'default_asset_id':reference_id})
+        response.set_cookie(cookie_name,cookie,httponly=True,samesite='strict',max_age=28800)
+        response.set_cookie(csrf_cookie,csrf,httponly=False,samesite='strict',max_age=28800)
         return response
     @app.get('/v1/assets')
     async def assets(request: Request,after: str=Query('',pattern='^([a-f0-9]{32})?$'),limit: int=Query(50,ge=1,le=50)):
         p=await principal(request)
+        if research:
+            asset=await asyncio.to_thread(store.reference_asset,p.id,reference_id)
+            avatar=resources.get('avatar_config')
+            return {'items':[] if asset is None else [{'id':reference_id,'name':'Claire research avatar · synthetic voice',
+                'status':asset.status,'revision':asset.revision,'visual_mode':'claire_vendor_research','builtin':True,
+                'supports_imports':False,'allowed_uses':['local_noncommercial_research'],'consent_evidence':'vendor_assertion',
+                'human_enrollment':False,'basis_hash':getattr(avatar,'basis_hash',None),'topology_hash':getattr(avatar,'topology_hash',None),
+                'model_hash':getattr(avatar,'model_hash',None)}],'next_cursor':None}
         managed=await asyncio.to_thread(lifecycle.rows,ManagedAsset,p.id,after,limit)
         return {'items':[{'id':'synthetic-audio-reference','name':'Synthetic demo voice','status':'approved',
                            'visual_mode':'static_procedural_reference','allowed_uses':['synthetic_plumbing_only']},
@@ -163,7 +190,8 @@ def create_app(settings: Settings,*,load_models=True,run_jobs=True):
     @app.post('/v1/sessions')
     async def new_session(body: NewSession,request: Request):
         p=await principal(request,mutation=True)
-        if body.profile!='audio_reference': raise HTTPException(422,'profile_unavailable')
+        if body.profile!=profile: raise HTTPException(422,'profile_unavailable')
+        if research and body.asset_id!=reference_id: raise HTTPException(422,'research_reference_only')
         if not resources['ready']: raise HTTPException(503,'providers_not_ready')
         key=request.headers.get('idempotency-key','')
         if not 1<=len(key)<=100: raise HTTPException(422,'idempotency_key_required')
@@ -176,10 +204,10 @@ def create_app(settings: Settings,*,load_models=True,run_jobs=True):
             async with mutation_lock:
                 try:
                     selected=None
-                    if body.asset_id!='synthetic-audio-reference':
+                    if body.asset_id not in {'synthetic-audio-reference',reference_id}:
                         path=await asyncio.to_thread(lifecycle.serving_manifest,p.id,row.asset_id,row.asset_revision)
                         selected=await asyncio.to_thread(load_avatar,path,tenant_id=p.id)
-                    actor=Actor(settings,store,row,resources['asr'],resources['llm'],resources['config'])
+                    actor=Actor(settings,store,row,resources['asr'],resources['llm'],resources['config'],resources.get('avatar_config'))
                     if selected:
                         actor.media.asset=selected;actor.media.renderer=MeshRenderer(selected,resolution=128)
                     actors[row.id]=actor
@@ -194,7 +222,10 @@ def create_app(settings: Settings,*,load_models=True,run_jobs=True):
     async def join(sid: str,request: Request):
         row=await owned(request,sid,mutation=True)
         if row.status not in {'READY','ACTIVE'}: raise HTTPException(409,'session_not_ready')
-        if row.asset_id!='synthetic-audio-reference':
+        if research:
+            asset=await asyncio.to_thread(store.reference_asset,row.tenant_id,reference_id)
+            if asset is None or asset.status!='approved' or asset.revision!=row.asset_revision: raise HTTPException(403,'asset_unavailable')
+        elif row.asset_id!='synthetic-audio-reference':
             try: await asyncio.to_thread(lifecycle.serving_manifest,row.tenant_id,row.asset_id,row.asset_revision)
             except (PermissionError,LookupError): raise HTTPException(403,'asset_unavailable')
         actor=actors.get(sid)

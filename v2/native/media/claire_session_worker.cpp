@@ -52,7 +52,7 @@ struct State {
   std::array<int16_t,48000> audio{};size_t head=0,tail=0,count=0,peak=0,motion_peak=0;
   std::deque<Motion> motions;uint64_t received=0;bool eof=false;std::string failure;
   std::atomic<uint64_t> base_us{0},first{unset},source_samples{0},stream_samples{0},pose_end{0};
-  std::atomic<uint64_t> video_frames{0},source_frames{0},idle_frames{0},preroll_frames{0},video_skipped{0},pose_peak{0},key_requests{0},rate_updates{0};std::atomic<bool> video_eof{false};
+  std::atomic<uint64_t> video_frames{0},source_frames{0},idle_frames{0},preroll_frames{0},video_skipped{0},pose_peak{0},key_requests{0},rate_updates{0},eof_padding{0};std::atomic<bool> video_eof{false};
   void fail(const char* reason){std::lock_guard<std::mutex> lock(mutex);if(failure.empty())failure=reason;stopped.store(true);space.notify_all();}
 };
 void receive(State& state,uint64_t epoch){
@@ -92,14 +92,17 @@ void render(State& state,const char* ptx,const char* scene,const char* model,con
       Motion chunk;bool feed=false,input_eof=false;uint64_t total=0;
       {
         std::lock_guard<std::mutex> lock(state.mutex);input_eof=state.eof;total=state.received;
-        // Limit source lead to 500 ms, including Claire's 260 ms lookahead.
+        // Limit source lead to 800 ms, including Claire's 260 ms lookahead.
         // The remaining host queues backpressure Qwen rather than drop words.
-        if(!state.motions.empty()&&offered*3<state.source_samples.load()+24000){chunk=state.motions.front();state.motions.pop_front();feed=true;state.space.notify_all();}
+        if(!state.motions.empty()&&offered*3<state.source_samples.load()+38400){chunk=state.motions.front();state.motions.pop_front();feed=true;state.space.notify_all();}
       }
       if(feed){
         owner.check(tha_claire_push(owner.handle,chunk.samples.data(),chunk.count,chunk.start,chunk.eof?1:0,owner.error,sizeof(owner.error)));
-        offered+=chunk.count;motion_eof=chunk.eof;tha_claire_metrics metrics{};owner.check(tha_claire_get_metrics(owner.handle,&metrics,owner.error,sizeof(owner.error)));
-        state.pose_end.store((metrics.neural_frames+1)/2*1600);state.pose_peak.store(metrics.queue_peak_frames);
+        offered+=chunk.count;motion_eof=chunk.eof;
+        if(motion_eof)owner.check(tha_claire_audio_end(owner.handle,total,owner.error,sizeof(owner.error)));
+        tha_claire_metrics metrics{};owner.check(tha_claire_get_metrics(owner.handle,&metrics,owner.error,sizeof(owner.error)));
+        state.pose_end.store(((metrics.neural_frames+1)/2-metrics.eof_padding_frames)*1600);
+        state.pose_peak.store(metrics.queue_peak_frames);state.eof_padding.store(metrics.eof_padding_frames);
       }
       uint64_t first=0,cursor=0,stream_sample=0;
       {std::lock_guard<std::mutex> lock(state.mutex);first=state.first.load();cursor=state.source_samples.load();stream_sample=state.stream_samples.load();}
@@ -153,7 +156,7 @@ int main(int argc,char** argv){
   try {
     require(argc==5,"usage: tha_claire_session_media private-bootstrap.txt kernels.ptx research-scene.bin model.json");
     struct stat info{};require(lstat(argv[1],&info)==0&&S_ISREG(info.st_mode)&&info.st_uid==getuid()&&!(info.st_mode&0077)&&info.st_size<16384,"private operator bootstrap required");
-    std::ifstream bootstrap(argv[1]);require(line(bootstrap,64)=="THA_CLAIRE_MEDIA_1","Claire bootstrap version mismatch");
+    std::ifstream bootstrap(argv[1]);require(line(bootstrap,64)=="THA_CLAIRE_MEDIA_2","Claire bootstrap version mismatch");
     const auto url=line(bootstrap,128),token=line(bootstrap,8192),session=line(bootstrap,100),turn=line(bootstrap,100);const auto epoch=number(line(bootstrap,32)),prebuffer=number(line(bootstrap,32));
     require(identifier(session)&&identifier(turn)&&token.size()>50&&url.rfind("ws://127.0.0.1:",0)==0&&number(url.substr(15))>=1024&&number(url.substr(15))<=65535&&prebuffer>=300&&prebuffer<=500&&prebuffer%10==0,"qualified Claire loopback bootstrap required");
     protocol=dup(STDOUT_FILENO);require(protocol>=0&&dup2(STDERR_FILENO,STDOUT_FILENO)>=0,"vendor stdout isolation failed");
@@ -180,7 +183,10 @@ int main(int argc,char** argv){
           std::vector<int16_t> pcm(480,0);
           {
             std::lock_guard<std::mutex> lock(state.mutex);
-            if(!playing&&!done&&tick>=10&&state.preroll_frames.load()>=3&&(state.count>=prebuffer*48||state.eof)&&state.pose_end.load()>0){playing=true;first=tick*480;state.first.store(first);}
+            if(!playing&&!done&&tick>=10&&state.preroll_frames.load()>=3&&(state.count>=prebuffer*48||state.eof)&&
+              state.pose_end.load()>0&&state.pose_end.load()>=std::min<uint64_t>(prebuffer*48,state.received)) {
+              playing=true;first=tick*480;state.first.store(first);
+            }
             if(playing&&!done){
               if(flush){++flush;padding+=480;if(flush==3)done=true;}
               else {
@@ -196,7 +202,7 @@ int main(int argc,char** argv){
           audio->captureFrame(livekit::AudioFrame(std::move(pcm),48000,1,480),0);
           state.stream_samples.store((tick+1)*480);
           if(done&&!acknowledged&&state.video_eof.load()){
-            acknowledged=true;event("{\"kind\":\"eof\",\"session_id\":\""+session+"\",\"turn_id\":\""+turn+"\",\"epoch\":"+std::to_string(epoch)+",\"valid_samples\":"+std::to_string(valid)+",\"padding_samples\":"+std::to_string(padding)+",\"first_pcm_stream_sample\":"+std::to_string(first)+",\"source_clock_late_max_ms\":"+std::to_string(maximum_late)+",\"queue_peak_samples\":"+std::to_string(state.peak)+",\"motion_queue_peak_packets\":"+std::to_string(state.motion_peak)+",\"pose_queue_peak_frames\":"+std::to_string(state.pose_peak.load())+",\"keyframe_requests\":"+std::to_string(state.key_requests.load())+",\"rate_updates\":"+std::to_string(state.rate_updates.load())+",\"video_frames\":"+std::to_string(state.video_frames.load())+",\"source_video_frames\":"+std::to_string(state.source_frames.load())+",\"idle_video_frames\":"+std::to_string(state.idle_frames.load())+",\"preroll_video_frames\":"+std::to_string(state.preroll_frames.load())+",\"video_skipped\":"+std::to_string(state.video_skipped.load())+",\"presentation_ack\":false}");
+            acknowledged=true;event("{\"kind\":\"eof\",\"session_id\":\""+session+"\",\"turn_id\":\""+turn+"\",\"epoch\":"+std::to_string(epoch)+",\"valid_samples\":"+std::to_string(valid)+",\"padding_samples\":"+std::to_string(padding)+",\"first_pcm_stream_sample\":"+std::to_string(first)+",\"source_clock_late_max_ms\":"+std::to_string(maximum_late)+",\"queue_peak_samples\":"+std::to_string(state.peak)+",\"motion_queue_peak_packets\":"+std::to_string(state.motion_peak)+",\"pose_queue_peak_frames\":"+std::to_string(state.pose_peak.load())+",\"keyframe_requests\":"+std::to_string(state.key_requests.load())+",\"rate_updates\":"+std::to_string(state.rate_updates.load())+",\"video_frames\":"+std::to_string(state.video_frames.load())+",\"source_video_frames\":"+std::to_string(state.source_frames.load())+",\"idle_video_frames\":"+std::to_string(state.idle_frames.load())+",\"preroll_video_frames\":"+std::to_string(state.preroll_frames.load())+",\"motion_eof_padding_frames\":"+std::to_string(state.eof_padding.load())+",\"video_skipped\":"+std::to_string(state.video_skipped.load())+",\"presentation_ack\":false}");
           }
           require(tick<360000,"bounded Claire epoch duration exceeded");
         }

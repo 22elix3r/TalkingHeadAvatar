@@ -31,10 +31,10 @@ class Settings:
             if urlparse(d[name]).hostname not in {'127.0.0.1','localhost','::1'}:
                 raise ValueError('P04 development mode refuses non-loopback endpoints')
         for name in ('asr_path','tts_runtime','web_dist','private_dir'): d[name]=(path.parent/d[name]).resolve()
-        if d.get('media_backend','raw_reference') not in {'raw_reference','native_static'}:
+        if d.get('media_backend','raw_reference') not in {'raw_reference','native_static','native_claire_research'}:
             raise ValueError('unknown media backend')
         if d.get('native_media_runtime') is not None:
             d['native_media_runtime']=(path.parent/d['native_media_runtime']).resolve()
-        if d.get('media_backend')=='native_static' and not d.get('native_media_runtime'):
-            raise ValueError('native_static requires an explicit pinned runtime')
+        if d.get('media_backend') in {'native_static','native_claire_research'} and not d.get('native_media_runtime'):
+            raise ValueError('native media requires an explicit pinned runtime')
         return cls(**d)

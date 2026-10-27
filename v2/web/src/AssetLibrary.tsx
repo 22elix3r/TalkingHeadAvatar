@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from './api';
 
-type Asset = { id: string; name: string; status: string; revision?: string; consent_id?: string;
+type Asset = { id: string; name: string; status: string; revision?: string; consent_id?: string; builtin?: boolean;
   evaluation?: { vertices: number; faces: number; structural_compatibility: boolean } };
 type Job = { id: string; asset_id: string; status: string; stage: string; attempt: number; error_code?: string };
 
@@ -14,6 +14,8 @@ export function AssetLibrary({ selected, onSelect, disabled }: { selected: strin
   const [cursor, setCursor] = useState<string | null>(null);
   const importKeys = useRef<{ signature: string; consent: string; upload: string; enrollment: string } | undefined>(undefined);
   const approvalKeys = useRef(new Map<string, string>());
+  const research = import.meta.env.VITE_REFERENCE_PROFILE === 'claire_vendor_research' || assets.some(row => row.id === 'claire-vendor-research');
+  const selectedReference = research && selected === 'synthetic-audio-reference' ? 'claire-vendor-research' : selected;
   const refresh = useCallback(async () => { const data = await api<{ items: Asset[]; next_cursor: string | null }>('/v1/assets'); setAssets(data.items); setCursor(data.next_cursor); }, []);
   useEffect(() => { let mounted = true;
     void Promise.all([api<{ items: Asset[]; next_cursor: string | null }>('/v1/assets'), api<{ items: Job[] }>('/v1/jobs')]).then(([data, jobs]) => {
@@ -73,11 +75,11 @@ export function AssetLibrary({ selected, onSelect, disabled }: { selected: strin
   }
   return <section className="asset-library" aria-label="Avatar library">
     <label htmlFor="avatar">Avatar reference</label>
-    <select id="avatar" value={selected} disabled={disabled || busy} onChange={e => onSelect(e.target.value)}>
+    <select id="avatar" value={selectedReference} disabled={disabled || busy} onChange={e => onSelect(e.target.value)}>
       {assets.filter(row => row.status === 'approved').map(row => <option key={row.id} value={row.id}>{row.name}</option>)}
       {!assets.length && <option value="synthetic-audio-reference">Synthetic demo voice</option>}
     </select>
-    <details><summary>Manage avatar imports</summary>
+    {research ? <p>Vendor research sample with a synthetic voice. Imported identities require retargeting.</p> : <details><summary>Manage avatar imports</summary>
       <p>Import an authorized canonical mesh for static reference playback with the demo voice. Facial animation and human likeness quality remain unqualified.</p>
       <form onSubmit={e => { e.preventDefault(); void submit(); }}>
         <label htmlFor="asset-name">Asset name</label><input id="asset-name" value={name} maxLength={80} required onChange={e => setName(e.target.value)} />
@@ -92,7 +94,7 @@ export function AssetLibrary({ selected, onSelect, disabled }: { selected: strin
       {job && <div role="status"><p>Import: {job.stage} · {job.status}{job.error_code ? ' · The file could not be validated.' : ''}</p>
         {['queued', 'running', 'review'].includes(job.status) && <button disabled={busy} onClick={() => void act(async () => { setJob(await api(`/v1/jobs/${job.id}/cancel`, {})); await refresh(); })}>Cancel import</button>}
       </div>}
-      <ul>{assets.filter(row => row.id !== 'synthetic-audio-reference').map(row => <li key={row.id}>
+      <ul>{assets.filter(row => !row.builtin && row.id !== 'synthetic-audio-reference').map(row => <li key={row.id}>
         <span>{row.name} · {row.status}</span>
         {row.status === 'review' && <button disabled={busy} onClick={() => void act(async () => { setReview(await api(`/v1/assets/${row.id}`)); setAccepted(false); })}>Review {row.name}</button>}
         {row.status !== 'revoked' && <button disabled={busy} onClick={() => void act(async () => {
@@ -111,7 +113,7 @@ export function AssetLibrary({ selected, onSelect, disabled }: { selected: strin
         <label className="check"><input type="checkbox" checked={accepted} onChange={e => setAccepted(e.target.checked)} />Approve this exact revision for static reference playback only.</label>
         <button disabled={busy || !accepted} onClick={() => void approve()}>Approve reference</button>
       </div>}
-      {error && <p role="alert">{error}</p>}
-    </details>
+    </details>}
+    {error && <p role="alert">{error}</p>}
   </section>;
 }

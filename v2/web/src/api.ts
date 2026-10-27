@@ -1,7 +1,8 @@
 export function csrfToken() {
-  return document.cookie.split('; ').find(row => row.startsWith('tha_csrf='))?.slice('tha_csrf='.length) ?? '';
+  const name = import.meta.env.VITE_CSRF_COOKIE_NAME || 'tha_csrf';
+  return document.cookie.split('; ').find(row => row.startsWith(`${name}=`))?.slice(name.length + 1) ?? '';
 }
-let pending: Promise<{ csrf_token: string; tenant_id: string }> | undefined;
+let pending: Promise<{ csrf_token: string; tenant_id: string; profile?: string; default_asset_id?: string }> | undefined;
 
 export function identity() {
   if (!pending) pending = fetch('/v1/dev-login', { method: 'POST', credentials: 'same-origin',
@@ -26,7 +27,8 @@ export async function api<T>(path: string, body?: unknown, options: { method?: s
     const data = await response.json().catch(() => ({}));
     const messages: Record<string, string> = { authorization_unavailable: 'Permission for this asset is no longer available.',
       upload_size_or_hash_mismatch: 'The file did not match its declared size or fingerprint. Choose it again.',
-      review_revision_changed: 'The asset changed. Reload its review before approving.', invalid_import: 'The file is not a compatible mesh import.' };
+      review_revision_changed: 'The asset changed. Reload its review before approving.', invalid_import: 'The file is not a compatible mesh import.',
+      research_reference_only: 'This preview uses the vendor research avatar. Imported identities need retargeting first.' };
     throw new Error(messages[data.detail] ?? 'That library action could not finish. Please retry.');
   }
   return response.json();

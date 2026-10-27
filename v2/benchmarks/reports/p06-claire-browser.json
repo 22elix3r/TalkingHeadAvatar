@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "observation": "Local browser functional cohorts; not physical A/V, complete delivery, quality or latency qualification.",
+  "source_sha256": {
+    "web/tests/claire-session.spec.ts": "d5979a8677b04f40805073387598802ba254c10692eed7327dec0e8b6e490770",
+    "src/talkinghead_v2/server/app.py": "b3018a94cab94eafeb7cd6b20348d9c3e9b23f4f01ee759503d9b1ca06f1ab60",
+    "src/talkinghead_v2/server/actor.py": "11c45c968379369acf6126d136c596cab184a57d58b1838b9396ad626f8e3132"
+  },
+  "source_avatar": "vendor_research_sample",
+  "voice_kind": "synthetic_fixture",
+  "microphone_input": "synthetic file through browser capture",
+  "cohorts": [
+    {
+      "browser": "firefox",
+      "browser_version": "157.0",
+      "journey": "typed_interrupt_resume",
+      "playback_bindings": 2,
+      "decoded_audio_observations": 2,
+      "video_presented_callbacks": 2,
+      "fresh_audio_and_video_after_interrupt": true,
+      "sender_complete_count": 1,
+      "physical_presentation_ack": false,
+      "receiver_recovery_required": false,
+      "web_bundle_sha256": {
+        "index-E9ohFpFs.js": "6b066d58150e1e2aaa1b773969f984de1192ecc58c07ffc9a3b9b645d77cd89f",
+        "index-DMrnnzYf.css": "7a453c8ea4e3efe97443065bc3bc9552f08762f6eab285678c4151f23f1e1f4f",
+        "client-RFH1LGI7.js": "c8e5ca0aae8fba5d5157d087d215ae6591348cbcba83e9d6f6dc969b579ebb8f"
+      }
+    },
+    {
+      "browser": "chromium",
+      "browser_version": "154.0.8037.57",
+      "journey": "typed_interrupt_resume",
+      "playback_bindings": 2,
+      "decoded_audio_observations": 2,
+      "video_presented_callbacks": 2,
+      "fresh_audio_and_video_after_interrupt": true,
+      "sender_complete_count": 1,
+      "physical_presentation_ack": false,
+      "receiver_recovery_required": false,
+      "web_bundle_sha256": {
+        "index-CMA82B6u.js": "756ae8455ee479948fd51ddb11e6a5c5428cb34e77162a4213278652109892af",
+        "index-B859qWNj.css": "22679813bc1edef58b9887dbc284edaa2fec015e3cc25c0176a8272dde0f2c36",
+        "client-Ck0LDdgv.js": "340609fb23e5546c969b4161d238909b72300dcd6b1a460348edb30bc1d25657"
+      },
+      "web_source_sha256": {
+        "web/src/main.tsx": "18dd8978f2a544a512a0ebe7ca8f1884bcc27edf46394ddeebfc29966c5c7797",
+        "web/src/style.css": "8199776bb5ba228a7ad45d30f9816d9d71275d8ba63bb3a5bded78a6d9870be4"
+      }
+    },
+    {
+      "browser": "chromium",
+      "browser_version": "154.0.8037.57",
+      "journey": "synthetic_microphone",
+      "playback_bindings": 1,
+      "decoded_audio_observations": 1,
+      "video_presented_callbacks": 1,
+      "fresh_audio_and_video_after_interrupt": null,
+      "sender_complete_count": 1,
+      "physical_presentation_ack": false,
+      "receiver_recovery_required": false,
+      "web_bundle_sha256": {
+        "index-CMA82B6u.js": "756ae8455ee479948fd51ddb11e6a5c5428cb34e77162a4213278652109892af",
+        "index-B859qWNj.css": "22679813bc1edef58b9887dbc284edaa2fec015e3cc25c0176a8272dde0f2c36",
+        "client-Ck0LDdgv.js": "340609fb23e5546c969b4161d238909b72300dcd6b1a460348edb30bc1d25657"
+      },
+      "web_source_sha256": {
+        "web/src/main.tsx": "18dd8978f2a544a512a0ebe7ca8f1884bcc27edf46394ddeebfc29966c5c7797",
+        "web/src/style.css": "8199776bb5ba228a7ad45d30f9816d9d71275d8ba63bb3a5bded78a6d9870be4"
+      }
+    }
+  ],
+  "physical_av_qualified": false,
+  "visual_quality_qualified": false,
+  "release_qualified": false,
+  "additional_downloads": false,
+  "limitations": [
+    "Single local run per journey; no stable loss rate, percentile or concurrency claim.",
+    "Browser callbacks and decoded audio are not physical presentation measurements.",
+    "The separately reported live Qwen receiver cohort retained twelve missing source-frame indices.",
+    "Firefox used the immediately preceding build; its only subsequent UI adjustment restored the raw-profile thumbnail while preserving the research view."
+  ]
+}

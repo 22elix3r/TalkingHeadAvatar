@@ -170,6 +170,7 @@ class NativeMedia:
             await process.wait()
             if not self.cancelled and self.state is state: raise RuntimeError('native worker exited before cancellation')
         except Exception as error:
+            state['failed'] = True
             for name in ('ready', 'eof'):
                 if not state[name].done(): state[name].set_exception(error)
             if process.returncode is None:
@@ -261,10 +262,35 @@ class NativeMedia:
                 process.stdin.close()
                 try: await process.stdin.wait_closed()
                 except (BrokenPipeError, ConnectionResetError): pass
+            if state.get('failed') or (process.returncode is not None and process.returncode > 0):
+                self._retain_failure(state)
         for name in ('ready', 'eof'):
             if not state[name].done(): state[name].cancel()
         shutil.rmtree(state['directory'])
         if self.state is state: self.state = None
+
+    def _retain_failure(self, state):
+        # Retain only known fixed fault strings, not vendor stderr, credentials,
+        # model paths, PCM or arbitrary exception text. Cleanup remains primary.
+        allowed = {'active Claire audio underrun; retire epoch', 'Claire motion underrun; retire epoch',
+                   'claire_input_protocol_failure', 'claire_gpu_media_failure', 'Claire encoded frame rejected',
+                   'local SFU connection failed', 'native_gpu_media_failure', 'pcm_protocol_failure',
+                   'active audio underrun; no silent speech deletion'}
+        try:
+            with open(state['directory'] / 'diagnostics.log', 'rb', opener=lambda name, flags: os.open(name, flags | os.O_NOFOLLOW)) as source:
+                source.seek(0, os.SEEK_END)
+                source.seek(max(0, source.tell() - 16384))
+                lines = source.read(16384).decode('utf-8', errors='replace').splitlines()
+            reasons = [line.split(':', 1)[1].strip() for line in lines
+                       if line.startswith(('Claire session:', 'Claire GPU owner:', 'native session media:'))]
+            reason = next((value for value in reversed(reasons) if value in allowed), 'unclassified_native_failure')
+            key = state['key']
+            descriptor, name = tempfile.mkstemp(prefix='native-failure-', suffix='.json', dir=self.settings.private_dir)
+            with os.fdopen(descriptor, 'w') as target:
+                json.dump({'session_id': key.session_id, 'turn_id': key.turn_id, 'epoch': key.epoch,
+                           'process_exit': state['process'].returncode, 'code': reason}, target)
+        except OSError:
+            pass
 
     async def close(self):
         await self.cancel()

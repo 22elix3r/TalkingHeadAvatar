@@ -15,6 +15,7 @@ function App() {
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]), [device, setDevice] = useState('');
   const [captions, setCaptions] = useState<Caption[]>([]), [text, setText] = useState('');
   const [assetId, setAssetId] = useState('synthetic-audio-reference');
+  const researchAvatar = import.meta.env.VITE_REFERENCE_PROFILE === 'claire_vendor_research' || assetId === 'claire-vendor-research';
   function event(e: ServerEvent) {
     if (e.kind === 'caption' && e.text) {
       const id = e.speaker === 'user' ? `u-${e.utterance}` : `a-${e.epoch}-${e.segment}`;
@@ -51,10 +52,14 @@ function App() {
     <AssetLibrary selected={assetId} onSelect={setAssetId} disabled={busy || active} />
     <div className="workspace">
       <section className="voice-card" aria-label="Voice conversation">
-        <div className="card-top"><span className="pill">AUDIO REFERENCE</span><span className={active ? 'connection online' : 'connection'}>{active ? 'Connected' : 'Not connected'}</span></div>
-        <div className="presence"><div className={'orb ' + (status === 'Speaking' ? 'speaking' : '')}><span>◎</span></div><h2>Synthetic demo voice</h2><p>A generated voice for this local research preview.</p></div>
+        <div className="card-top"><span className="pill">{researchAvatar ? 'RESEARCH AVATAR' : 'AUDIO REFERENCE'}</span><span className={active ? 'connection online' : 'connection'}>{active ? 'Connected' : 'Not connected'}</span></div>
+        <div className={'presence' + (researchAvatar ? ' presence-avatar' : '')}>
+          <div className={'orb ' + (status === 'Speaking' ? 'speaking' : '')} hidden={researchAvatar}><span>◎</span></div>
+          <video ref={video} muted playsInline aria-label={researchAvatar ? 'Vendor research avatar' : 'Static timing reference; speaking avatar unavailable'} />
+          <h2>{researchAvatar ? 'Claire research preview' : 'Synthetic demo voice'}</h2><p>{researchAvatar ? 'Vendor sample with a synthetic voice.' : 'A generated voice for this local research preview.'}</p>
+        </div>
         <div className="status" role="status" aria-live="polite"><span className={active ? 'dot live' : 'dot'} />{status}</div>
-        <div className="avatar-note"><video ref={video} muted playsInline aria-label="Static timing reference; speaking avatar unavailable" /><div><strong>Speaking avatar coming next</strong><p>This preview uses audio and a static reference. Facial animation has not been qualified.</p></div></div>
+        <div className="avatar-note"><div><strong>{researchAvatar ? 'Research reference' : 'Speaking avatar coming next'}</strong><p>{researchAvatar ? 'Visual quality and audio/video alignment are still being evaluated.' : 'This preview uses audio and a static reference. Facial animation has not been qualified.'}</p></div></div>
         <label className="device-label" htmlFor="microphone">Microphone</label><select id="microphone" value={device} disabled={busy} onChange={async e => { setDevice(e.target.value); if (active) { await end(); setStatus('Device changed. Start a new conversation.'); } }}><option value="">System default</option>{devices.map(d => <option key={d.deviceId} value={d.deviceId}>{d.label || 'Microphone'}</option>)}</select>
         <div className="actions">{active ? <><button className="primary" disabled={busy} onClick={() => void end()}>End conversation</button><button className="secondary" onClick={async () => { try { await client.current?.control('interrupt'); setStatus('Listening'); } catch (e) { setError((e as Error).message); } }}>Interrupt</button></> : <button className="primary" disabled={busy} onClick={() => void start()}>{busy ? 'Connecting…' : 'Start conversation'}<span aria-hidden="true"> ↗</span></button>}</div>
         {busy && !active ? <button className="text-button" onClick={() => void end()}>Cancel connection</button> : null}
@@ -67,7 +72,7 @@ function App() {
         <form onSubmit={send}><label className="sr-only" htmlFor="message">Your message</label><input id="message" value={text} onChange={e => setText(e.target.value)} maxLength={1500} placeholder={active ? 'Or type a message…' : 'Connect to send a message'} disabled={!active} /><button className="send" aria-label="Send message" disabled={!active || !text.trim()}>↑</button></form>
         <p className="privacy">Local research mode · Recording is off · Captions stay in memory</p>
       </section>
-    </div><footer><span>A voice first. An avatar when it is ready.</span><span>Qwen3-TTS · Synthetic reference</span></footer>
+    </div><footer><span>{researchAvatar ? 'Research avatar · synthetic voice' : 'A voice first. An avatar when it is ready.'}</span><span>Qwen3-TTS · Synthetic reference</span></footer>
     <audio ref={audio} autoPlay />
   </main>;
 }

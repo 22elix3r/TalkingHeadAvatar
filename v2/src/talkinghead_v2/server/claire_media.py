@@ -17,6 +17,7 @@ from talkinghead_v2.server.native_media import NativeMedia, SDK_REVISION
 
 CLAIRE_REVISION = 'a46eafb067adfdd7cc8f5c7941586b309004561c'
 CLAIRE_SDK_REVISION = '1ca0f02535ed774f5dbcd724a31cd486368dc783'
+CLAIRE_PROTOCOL = 'THA_CLAIRE_MEDIA_2'
 RESEARCH_ASSET_ID = 'claire-vendor-research'
 REQUIRED = frozenset(('executable', 'ptx', 'bridge_library', 'livekit_library', 'ffi_library', 'sdk_library',
                       'scene', 'scene_descriptor', 'model_descriptor', 'engine', 'engine_descriptor', 'runtime_manifest'))
@@ -50,7 +51,7 @@ class ClaireMediaConfig:
     def load(cls, path):
         data = owned_descriptor(path)
         if (type(data.get('schema_version')) is not int or data.get('schema_version') != 1 or data.get('profile') != 'claire_vendor_research' or
-            data.get('sdk_revision') != SDK_REVISION or data.get('claire_revision') != CLAIRE_REVISION or
+            data.get('protocol') != CLAIRE_PROTOCOL or data.get('sdk_revision') != SDK_REVISION or data.get('claire_revision') != CLAIRE_REVISION or
             data.get('claire_sdk_revision') != CLAIRE_SDK_REVISION or
             data.get('allowed_use') != 'local_noncommercial_research' or
             data.get('consent_evidence') != 'vendor_assertion' or data.get('human_enrollment') is not False or
@@ -128,7 +129,7 @@ class ClaireMediaConfig:
 
 class ClaireMedia(NativeMedia):
     runtime_type = ClaireMediaConfig
-    bootstrap_version = 'THA_CLAIRE_MEDIA_1'
+    bootstrap_version = CLAIRE_PROTOCOL
 
     def __init__(self, *args, expected_revision=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -162,7 +163,8 @@ class ClaireMedia(NativeMedia):
         environment = dict(os.environ, THA_DEVICE_LEASE_FD=str(self.device_lease.fileno), HF_HUB_OFFLINE='1',
                            TRANSFORMERS_OFFLINE='1', CUDA_VISIBLE_DEVICES='0',
                            CUDA_CACHE_PATH=str(self.settings.private_dir / 'claire-cuda-cache'),
-                           LD_LIBRARY_PATH=str(self.config.paths['runtime_manifest'].parent / 'lib') + ':/usr/local/cuda-12.8/lib64')
+                           LD_LIBRARY_PATH=str(self.config.paths['bridge_library'].parent) + ':' +
+                           str(self.config.paths['runtime_manifest'].parent / 'lib') + ':/usr/local/cuda-12.8/lib64')
         environment.pop('LD_PRELOAD', None)
         environment.pop('LD_AUDIT', None)
         return environment
@@ -189,7 +191,8 @@ class ClaireMedia(NativeMedia):
         expected = state['mux'].sent_samples
         padding = (-expected) % 480 + 960
         bounded = {'valid_samples': (expected, expected), 'padding_samples': (padding, padding), 'queue_peak_samples': (1, 48000),
-                   'motion_queue_peak_packets': (1, 50), 'pose_queue_peak_frames': (1, 32), 'preroll_video_frames': (3, 120000)}
+                   'motion_queue_peak_packets': (1, 50), 'pose_queue_peak_frames': (1, 32), 'preroll_video_frames': (3, 120000),
+                   'motion_eof_padding_frames': (0, 1)}
         if any(type(result.get(name)) is not int or not low <= result[name] <= high for name, (low, high) in bounded.items()):
             raise ContractError('Claire EOF sample/queue accounting mismatch')
         if (result['valid_samples'] != self.cursor or type(result.get('source_video_frames')) is not int or
@@ -200,5 +203,5 @@ class ClaireMedia(NativeMedia):
         state['sender_eof'] = result
         self.sender_metrics = {name: result[name] for name in ('first_pcm_stream_sample', 'source_clock_late_max_ms',
             'queue_peak_samples', 'video_frames', 'video_skipped', 'source_video_frames', 'preroll_video_frames',
-            'motion_queue_peak_packets', 'pose_queue_peak_frames')}
+            'motion_queue_peak_packets', 'pose_queue_peak_frames', 'motion_eof_padding_frames')}
         return True

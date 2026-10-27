@@ -10,7 +10,7 @@ import pytest
 
 from talkinghead_v2.contracts import AudioChunk, AudioEOF, ContractError, Envelope, GenerationKey
 from talkinghead_v2.providers.motion.paired import ClaireInputMux
-from talkinghead_v2.server.claire_media import CLAIRE_REVISION, CLAIRE_SDK_REVISION, ClaireMedia, ClaireMediaConfig
+from talkinghead_v2.server.claire_media import CLAIRE_PROTOCOL, CLAIRE_REVISION, CLAIRE_SDK_REVISION, ClaireMedia, ClaireMediaConfig
 from talkinghead_v2.server.native_media import SDK_REVISION
 
 
@@ -42,7 +42,7 @@ def fixture(tmp_path):
     write('scene_descriptor', {'profile': 'claire_full_size_research_mesh', 'vertex_count': 67122, 'triangle_count': 134236,
         'geometry_sha256': digest('scene'), 'source_geometry_parity_report_sha256': 'a' * 64, 'topology_material_sha256': 'b' * 64})
     def records(): return {role: {'path': str(path), 'size': path.stat().st_size, 'sha256': digest(role)} for role, path in paths.items()}
-    data = {'schema_version': 1, 'profile': 'claire_vendor_research', 'sdk_revision': SDK_REVISION,
+    data = {'schema_version': 1, 'profile': 'claire_vendor_research', 'protocol': CLAIRE_PROTOCOL, 'sdk_revision': SDK_REVISION,
         'claire_revision': CLAIRE_REVISION, 'claire_sdk_revision': CLAIRE_SDK_REVISION, 'prebuffer_ms': 300,
         'allowed_use': 'local_noncommercial_research', 'consent_evidence': 'vendor_assertion', 'human_enrollment': False,
         'basis_hash': 'a' * 64, 'topology_hash': 'b' * 64, 'files': records()}
@@ -120,7 +120,7 @@ def test_sender_eof_cannot_hide_loss_or_queue_overflow(tmp_path, corrupt):
         await instance.submit(AudioChunk(Envelope(key, 0, 'test'), 'segment', 24000, 0, (.1,) * 721))
         result = dict(valid_samples=1442, padding_samples=1438, source_video_frames=1, video_skipped=0, queue_peak_samples=1442,
             motion_queue_peak_packets=2, pose_queue_peak_frames=1, preroll_video_frames=3, first_pcm_stream_sample=4800,
-            source_clock_late_max_ms=0., video_frames=4)
+            source_clock_late_max_ms=0., video_frames=4, motion_eof_padding_frames=0)
         if corrupt: result[corrupt] += 1 if corrupt != 'pose_queue_peak_frames' else 32
         state['eof'].set_result(result)
         eof = AudioEOF(Envelope(key, 1, 'test'), 24000, 721)
@@ -156,7 +156,7 @@ def test_imported_identity_is_rejected_and_child_environment_does_not_mutate_par
         instance.asset = SimpleNamespace(kind='human_consented')
         with pytest.raises(ContractError, match='cannot retarget'): await instance._stage_geometry(tmp_path)
         instance.device_lease = SimpleNamespace(fileno=7)
-        instance.config = SimpleNamespace(paths={'runtime_manifest': tmp_path / 'runtime/runtime.json'})
+        instance.config = SimpleNamespace(paths={'runtime_manifest': tmp_path / 'runtime/runtime.json','bridge_library': tmp_path / 'native/libbridge.so'})
         monkeypatch.setenv('LD_PRELOAD', 'unqualified.so')
         environment = instance._environment()
         assert 'LD_PRELOAD' not in environment and environment['THA_DEVICE_LEASE_FD'] == '7'

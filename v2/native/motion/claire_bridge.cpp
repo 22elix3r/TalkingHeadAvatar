@@ -30,7 +30,8 @@ struct tha_claire {
   CUstream copies=nullptr;CUevent producer=nullptr;
   std::array<Slot,slot_count> slots{};size_t head=0,count=0;
   tha_claire_metrics metrics{};std::string failure;
-  uint64_t last_target=0,last_neural=0;int64_t pts_origin=0,last_pts=-1;bool rendered=false,poisoned=false;
+  uint64_t last_target=0,last_neural=0,valid_audio_end=0;int64_t pts_origin=0,last_pts=-1;
+  bool rendered=false,poisoned=false,audio_end_bound=false;
   tha::EncodedFrame packet;
 
   void ownership()const {
@@ -105,7 +106,7 @@ extern "C" int tha_claire_push(tha_claire* state,const float* samples,size_t cou
     if(count)checked(accumulator.Accumulate(nva2x::HostTensorFloatConstView{samples,count},state->bundle->GetCudaStream().Data()));
     state->metrics.offered_samples+=count;
     state->metrics.retained_audio_peak_samples=std::max<uint64_t>(state->metrics.retained_audio_peak_samples,accumulator.NbAccumulatedSamples()-accumulator.NbDroppedSamples());
-    if(eof){checked(accumulator.Close());state->metrics.eof=1;}
+    if(eof){checked(accumulator.Close());state->metrics.eof=1;state->valid_audio_end=state->metrics.offered_samples*3;}
     while(nva2x::GetNbReadyTracks(executor)>0) {
       const auto executed=executor.Execute(nullptr);
       require(state->failure.empty(),state->failure.c_str());checked(executed);
@@ -125,6 +126,7 @@ extern "C" int tha_claire_render(tha_claire* state,uint64_t target,int64_t pts,i
     require(target%1600==0 && target<48000*120ULL && (!state->rendered || target>state->last_target) && pts>state->last_pts && (keyframe==0 || keyframe==1),"Claire render source grid/order/PTS mismatch");
     const auto relative_pts=static_cast<int64_t>(target*1000000/48000);
     require(pts>=relative_pts && (!state->rendered || pts-relative_pts==state->pts_origin),"Claire presentation timebase changed within epoch");
+    if(state->metrics.eof && target>=state->valid_audio_end)return 0;
     // A missing future frame is backpressure, never permission to show it early
     // or hold an older mouth pose over new speech without declaring the fault.
     if(!state->count || state->slots[state->head].target>target ||
@@ -174,5 +176,18 @@ extern "C" int tha_claire_preroll(tha_claire* state,int64_t pts,int keyframe,tha
     require(!state->rendered && pts>state->last_pts && (keyframe==0 || keyframe==1),"Claire preroll requires increasing PTS before speech");
     state->packet=state->encoder->encode(0,pts,keyframe!=0);state->last_pts=pts;
     *packet={state->packet.data.data(),state->packet.data.size(),pts,UINT64_MAX,UINT64_MAX,state->packet.keyframe?1:0};return 1;
+  }catch(const std::exception& exception){message(error,size,exception.what());return -1;}
+}
+extern "C" int tha_claire_audio_end(tha_claire* state,uint64_t end,char* error,size_t size) {
+  try {
+    require(state,"Claire EOF timeline handle required");state->usable();
+    const auto rounded=state->metrics.offered_samples*3;
+    require(state->metrics.eof && !state->audio_end_bound && end>0 && end<=rounded && rounded-end<=2 &&
+      (!state->rendered || state->last_target<end),"Claire exact audio EOF binding mismatch");
+    state->valid_audio_end=end;state->audio_end_bound=true;
+    while(state->count && state->slots[(state->head+state->count-1)%slot_count].target>=end) {
+      --state->count;++state->metrics.eof_padding_frames;
+    }
+    return 0;
   }catch(const std::exception& exception){message(error,size,exception.what());return -1;}
 }

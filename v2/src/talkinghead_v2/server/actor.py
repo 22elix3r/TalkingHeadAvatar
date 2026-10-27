@@ -45,13 +45,19 @@ class Events:
 
 
 class Actor:
-    def __init__(self,settings,store,row,asr,llm,native_config):
+    def __init__(self,settings,store,row,asr,llm,native_config,avatar_config=None):
         self.settings,self.store,self.row=settings,store,row
         self.asr,self.llm=asr,llm
         lease_path=getattr(native_config,'device_lease_path',None)
         self.device_lease=DeviceLease(lease_path) if lease_path else None
         self.tts=QwenNativeProvider(native_config,diagnostic_log=settings.private_dir/'native-diagnostics.log',device_lease=self.device_lease)
-        if getattr(settings,'media_backend','raw_reference')=='native_static':
+        self.visual_mode='static_procedural_reference'
+        if getattr(settings,'media_backend','raw_reference')=='native_claire_research':
+            from talkinghead_v2.server.claire_media import ClaireMedia
+            if avatar_config is None: raise ValueError('pinned Claire serving revision required')
+            self.media=ClaireMedia(settings,row.room,row.id,self.device_lease,expected_revision=avatar_config.revision)
+            self.visual_mode='claire_vendor_research'
+        elif getattr(settings,'media_backend','raw_reference')=='native_static':
             from talkinghead_v2.server.native_media import NativeMedia
             self.media=NativeMedia(settings,row.room,row.id,self.device_lease)
         else: self.media=Media(settings,row.room,row.id)
@@ -90,7 +96,7 @@ class Actor:
                 options=rtc.RoomOptions(auto_subscribe=False))
             await asyncio.to_thread(self.store.update,self.row.id,status='READY')
             self.ready=True;self.ready_at=time.monotonic();self.heartbeat=asyncio.create_task(self.lease())
-            await self.events.emit('ready',self.epoch,visual_mode='static_procedural_reference')
+            await self.events.emit('ready',self.epoch,visual_mode=self.visual_mode)
         except DeviceBusy:
             await self.fail('gpu_capacity_busy')
         except Exception:

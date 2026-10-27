@@ -123,3 +123,25 @@ def test_worker_eof_cannot_hide_sample_loss(tmp_path):
         with pytest.raises(ContractError, match='accounting'):
             await instance.submit(AudioEOF(Envelope(key, 1, 'test'), 24000, 240))
     asyncio.run(run())
+
+
+def test_failed_worker_retains_only_bounded_known_diagnostics_and_purges_bootstrap(tmp_path):
+    from unittest.mock import AsyncMock
+    async def run():
+        instance, state, key = media(tmp_path)
+        directory = tmp_path / 'native-epoch'
+        directory.mkdir(mode=0o700)
+        (directory / 'bootstrap.txt').write_text('PRIVATE_SECRET_TOKEN')
+        (directory / 'diagnostics.log').write_text('PRIVATE_SECRET_TOKEN\n' * 5000 + 'Claire session: Claire motion underrun; retire epoch\n')
+        state.update(directory=directory, reader=None, failed=True,
+                     process=SimpleNamespace(returncode=1, stdin=None, wait=AsyncMock(return_value=1)))
+        state['ready'] = asyncio.get_running_loop().create_future()
+        state['ready'].set_result({})
+        state['eof'].set_result({})
+        await instance._retire()
+        retained = list(tmp_path.glob('native-failure-*.json'))
+        assert len(retained) == 1 and not directory.exists() and instance.state is None
+        assert 'PRIVATE_SECRET_TOKEN' not in retained[0].read_text()
+        assert json.loads(retained[0].read_text())['code'] == 'Claire motion underrun; retire epoch'
+        assert retained[0].stat().st_mode & 0o077 == 0
+    asyncio.run(run())

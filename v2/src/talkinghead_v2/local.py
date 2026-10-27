@@ -182,6 +182,16 @@ def doctor(root, name):
     checks = {'cached_asr_hashes': all(digest(settings.asr_path / filename) == expected for filename, expected in settings.asr_files.items()),
         'tts_descriptor_present': settings.tts_runtime.is_file(), 'web_build_present': (settings.web_dist / 'index.html').is_file(),
         'offline_runtime_present': (directory / 'api-venv/bin/python').is_file()}
+    if (directory / 'runtime-source.json').exists():
+        try:
+            source = safe_read(directory / 'runtime-source.json')
+            expected = (root / 'runtimes/session-api/.venv').resolve(strict=True)
+            checks['shared_runtime_identity'] = (source['mode'] == 'shared_qualified_v2' and
+                (directory / 'api-venv').is_symlink() and (directory / 'api-venv').resolve(strict=True) == expected and
+                source['source'] == str(expected) and source['lock_sha256'] == digest(root / 'runtimes/session-api/uv.lock') and
+                source['fingerprint'] == runtime_fingerprint(expected))
+        except (OSError, ValueError, KeyError, RuntimeError):
+            checks['shared_runtime_identity'] = False
     for label, image in [('postgres_image', PG), ('livekit_image', SFU)]:
         try:
             command(['docker', 'image', 'inspect', '--format={{.Id}}', image], timeout=5)
@@ -200,13 +210,79 @@ def doctor(root, name):
             checks['pinned_native_media_runtime'] = True
         except (OSError, ValueError, KeyError):
             checks['pinned_native_media_runtime'] = False
+    elif settings.media_backend == 'native_claire_research':
+        from talkinghead_v2.server.claire_media import ClaireMediaConfig
+        try:
+            config = ClaireMediaConfig.load(settings.native_media_runtime)
+            config.validate_device()
+            checks['pinned_claire_media_runtime'] = True
+        except (OSError, ValueError, KeyError, subprocess.SubprocessError):
+            checks['pinned_claire_media_runtime'] = False
     return {'status': 'ready' if all(checks.values()) else 'incomplete', 'profile': name, 'checks': checks,
         'media_backend': settings.media_backend, 'no_fetch_attempted': True}
 
 
-def provision(root, name):
+def runtime_fingerprint(source):
+    # Read-only audit of already-installed wheel RECORDs. This never imports
+    # inference packages, downloads artifacts or changes the source environment.
+    script = r'''
+import base64,hashlib,importlib.metadata as metadata,json,pathlib,sys
+prefix=pathlib.Path(sys.prefix).resolve()
+packages=[]
+for distribution in metadata.distributions():
+    files=[]
+    for entry in distribution.files or ():
+        expected=entry.hash
+        if expected is None:continue
+        if expected.mode!='sha256':raise ValueError('unsupported installed RECORD hash')
+        path=distribution.locate_file(entry).resolve()
+        if not path.is_relative_to(prefix) or not path.is_file():raise ValueError('installed file outside qualified runtime')
+        digest=hashlib.sha256()
+        with path.open('rb') as stream:
+            for block in iter(lambda:stream.read(1024*1024),b''):digest.update(block)
+        if base64.urlsafe_b64encode(digest.digest()).decode().rstrip('=')!=expected.value:raise ValueError('installed RECORD mismatch')
+        files.append((str(entry),digest.hexdigest()))
+    if not files:raise ValueError('installed distribution lacks a verifiable RECORD')
+    packages.append((distribution.metadata['Name'].lower().replace('_','-'),distribution.version,
+        hashlib.sha256(json.dumps(sorted(files),separators=(',',':')).encode()).hexdigest()))
+print(json.dumps({'python':sys.version.split()[0],'packages':sorted(packages)}))
+'''
+    result = command([str(source / 'bin/python'), '-I', '-c', script], timeout=30)
+    data = json.loads(result)
+    if not data['python'].startswith('3.12.') or not data['packages']:
+        raise ValueError('qualified V2 Python 3.12 runtime required')
+    return data
+
+
+def provision(root, name, *, borrow_runtime=None):
     directory, _ = load_profile(root, name)
     with locked(directory):
+        if owned_process(root, directory):
+            raise ValueError('stop the owned API before provisioning its software environment')
+        if borrow_runtime is not None:
+            source = borrow_runtime.resolve(strict=True)
+            if source != (root / 'runtimes/session-api/.venv').resolve(strict=True) or not source.is_relative_to(root.resolve()):
+                raise ValueError('only this checkout\'s qualified V2 API runtime may be shared')
+            fingerprint = runtime_fingerprint(source)
+            env = dict(os.environ, UV_PROJECT_ENVIRONMENT=str(source), HF_HUB_OFFLINE='1', TRANSFORMERS_OFFLINE='1', UV_OFFLINE='1')
+            audit = subprocess.run(['uv', 'sync', '--locked', '--offline', '--dry-run', '--project', str(root / 'runtimes/session-api'),
+                '--python', '/usr/bin/python3.12'], env=env, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT, text=True, timeout=30, check=True)
+            if 'Would make no changes' not in audit.stdout:
+                raise ValueError('source runtime does not match the existing dependency lock')
+            target = directory / 'api-venv'
+            if target.is_symlink():
+                if target.resolve() != source: raise ValueError('refusing to replace another runtime link')
+            else:
+                if target.exists(): target.rename(directory / ('api-venv-retained-' + str(time.time_ns())))
+                target.symlink_to(source, target_is_directory=True)
+            record = directory / 'runtime-source.json'
+            data = {'mode': 'shared_qualified_v2', 'source': str(source), 'lock_sha256': digest(root / 'runtimes/session-api/uv.lock'),
+                    'fingerprint': fingerprint, 'downloads': False}
+            if record.exists():
+                if safe_read(record) != data: raise ValueError('shared runtime identity changed; retain the existing record for review')
+            else: private_json(record, data)
+            return doctor(root, name)
         env = dict(os.environ, UV_PROJECT_ENVIRONMENT=str(directory / 'api-venv'),
             HF_HUB_OFFLINE='1', TRANSFORMERS_OFFLINE='1', UV_OFFLINE='1')
         with open(directory / 'operator.log', 'a', opener=lambda p, flags: os.open(p, flags | os.O_NOFOLLOW, 0o600)) as log:

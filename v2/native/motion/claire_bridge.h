@@ -15,7 +15,7 @@ typedef struct {
 typedef struct {
   uint64_t offered_samples, neural_frames, rendered_frames, discarded_video_frames;
   uint64_t first_result_after_samples, retained_audio_peak_samples, queue_peak_frames;
-  uint64_t queued_frames, eof;
+  uint64_t queued_frames, eof, eof_padding_frames;
 } tha_claire_metrics;
 // Paths must already be hash/provenance checked by the operator. The caller
 // must hold the project device lease. No download or engine build occurs here.
@@ -40,6 +40,9 @@ int tha_claire_hold(tha_claire*, int64_t pts_us, int keyframe, tha_claire_packet
 // Static source-matched neutral before the first speech pose. No source PCM
 // timestamp exists: both returned source sample fields are UINT64_MAX.
 int tha_claire_preroll(tha_claire*, int64_t pts_us, int keyframe, tha_claire_packet*, char* error, size_t error_size);
+// Bind exact playable 48 kHz EOF after closing ceil-resampled 16 kHz input.
+// Retire only video poses on/after that end (at most one rounded grid pose).
+int tha_claire_audio_end(tha_claire*, uint64_t valid_end_48k, char* error, size_t error_size);
 int tha_claire_close(tha_claire*, char* error, size_t error_size);
 #if defined(__cplusplus)
 }

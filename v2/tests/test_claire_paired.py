@@ -12,7 +12,7 @@ from talkinghead_v2.providers.motion.paired import ClaireInputMux
 KEY = GenerationKey('session', 'turn', 3)
 
 
-@pytest.mark.parametrize('size', [1, 2, 239, 240, 479, 480, 481, 997, 3333])
+@pytest.mark.parametrize('size', [1, 2, 239, 240, 479, 480, 481, 800, 997, 1600, 3333])
 @pytest.mark.parametrize('quanta', [(2400,), (1, 17, 319, 2, 997)])
 def test_irregular_qwen_chunks_preserve_both_pcm_domains_and_one_eof(size, quanta):
     samples = tuple(math.sin(index * .071) * .6 for index in range(size))

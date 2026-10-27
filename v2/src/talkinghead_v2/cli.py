@@ -19,6 +19,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     local.add_argument('--name', required=True)
     local.add_argument('--root', type=Path, required=True, help='V2 checkout root containing scripts and runtimes')
     local.add_argument('--from-config', type=Path, help='init: existing operator-owned local runtime with verified cached models')
+    local.add_argument('--borrow-runtime', type=Path, help='provision: explicitly reuse this checkout\'s verified V2 API environment; no downloads')
     for name, port in [('api', 18710), ('postgres', 15442), ('signal', 17890), ('tcp', 17891), ('udp', 17892)]:
         local.add_argument('--' + name + '-port', type=int, default=port)
     doctor = commands.add_parser("doctor", help="read-only environment diagnostics; no model loading")
@@ -78,6 +79,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                     raise ValueError('local init requires --from-config; no model provisioning is inferred')
                 ports = {name: getattr(args, name + '_port') for name in ('api', 'postgres', 'signal', 'tcp', 'udp')}
                 result = profiles.initialize(root, args.name, args.from_config.resolve(), ports)
+            elif args.local_action == 'provision':
+                result = profiles.provision(root, args.name, borrow_runtime=args.borrow_runtime)
             else:
                 result = getattr(profiles, args.local_action)(root, args.name)
         except (OSError, ValueError, RuntimeError) as error:

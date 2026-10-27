@@ -29,11 +29,12 @@ void write_all(int fd,const uint8_t* data,size_t count) {
 int main(int argc,char** argv) {
   int output=-1;
   try {
-    require(argc==7,"usage: tha_claire_bridge_probe ptx scene model input.f32 new-output.h264 normal|late|cancel|overflow|invalid|ordering|paced|irregular|short|idle|preroll");
-    const std::string mode=argv[6];require(mode=="normal" || mode=="late" || mode=="cancel" || mode=="overflow" || mode=="invalid" || mode=="ordering" || mode=="paced" || mode=="irregular" || mode=="short" || mode=="idle" || mode=="preroll","unknown bridge case");
+    require(argc==7,"usage: tha_claire_bridge_probe ptx scene model input.f32 new-output.h264 normal|late|cancel|overflow|invalid|ordering|paced|irregular|short|idle|preroll|boundary_eof");
+    const std::string mode=argv[6];require(mode=="normal" || mode=="late" || mode=="cancel" || mode=="overflow" || mode=="invalid" || mode=="ordering" || mode=="paced" || mode=="irregular" || mode=="short" || mode=="idle" || mode=="preroll" || mode=="boundary_eof","unknown bridge case");
     struct stat info{};require(lstat(argv[4],&info)==0 && S_ISREG(info.st_mode) && info.st_size>16000*4 && info.st_size<30*16000*4 && info.st_size%4==0,"bounded fixture PCM required");
     std::vector<float> pcm(info.st_size/4);std::ifstream input(argv[4],std::ios::binary);input.read(reinterpret_cast<char*>(pcm.data()),info.st_size);require(bool(input),"truncated fixture");
     if(mode=="short")pcm.resize(177); // Shorter than one pose and the lookahead.
+    if(mode=="boundary_eof")pcm.resize(534); // ceil(1600 playable 48k samples / 3).
     if(mode=="cancel") {
       Owner cancelled(argv[1],argv[2],argv[3]);
       for(size_t offset=0;offset<16000;offset+=320)ok(tha_claire_push(cancelled.handle,pcm.data()+offset,320,offset,0,error,sizeof(error)));
@@ -103,6 +104,11 @@ int main(int argc,char** argv) {
       const auto quantum=mode=="irregular"?irregular[step++%7]:320;
       const auto count=std::min<size_t>(quantum,pcm.size()-offset);eof=offset+count==pcm.size();
       ok(tha_claire_push(state.handle,pcm.data()+offset,count,offset,eof?1:0,error,sizeof(error)));
+      if(eof && mode=="boundary_eof") {
+        require(tha_claire_audio_end(state.handle,1598,error,sizeof(error))==-1,"excessive source EOF trim accepted");
+        ok(tha_claire_audio_end(state.handle,1600,error,sizeof(error)));
+        require(tha_claire_audio_end(state.handle,1600,error,sizeof(error))==-1,"duplicate EOF binding accepted");
+      }
       offset+=count;
       tha_claire_metrics before{},after{};ok(tha_claire_get_metrics(state.handle,&before,error,sizeof(error)));
       require(tha_claire_render(state.handle,48000*100,101000000,0,&packet,error,sizeof(error))==0,"future geometry rendered");
@@ -122,8 +128,9 @@ int main(int argc,char** argv) {
     require(eof,"missing fixture EOF");
     tha_claire_metrics metrics{};ok(tha_claire_get_metrics(state.handle,&metrics,error,sizeof(error)));
     require(metrics.offered_samples==pcm.size() && metrics.neural_frames==(pcm.size()*60+15999)/16000 && metrics.eof && metrics.queued_frames==0,"EOF neural frame/sample conservation failed");
-    require(metrics.rendered_frames+metrics.discarded_video_frames==(metrics.neural_frames+1)/2,"presentation frame conservation failed");
-    require((mode=="short"?metrics.first_result_after_samples==177:
+    require(metrics.rendered_frames+metrics.discarded_video_frames+metrics.eof_padding_frames==(metrics.neural_frames+1)/2,"presentation frame conservation failed");
+    require(metrics.eof_padding_frames==(mode=="boundary_eof"?1:0),"EOF-only video padding accounting failed");
+    require((mode=="short"?metrics.first_result_after_samples==177:mode=="boundary_eof"?metrics.first_result_after_samples==534:
       (mode=="irregular"?metrics.first_result_after_samples>=4160 && metrics.first_result_after_samples<4480:metrics.first_result_after_samples==4160)) &&
       metrics.queue_peak_frames<=32 && metrics.retained_audio_peak_samples<=24640,"lookahead/queue bound changed");
     require((mode=="late" && metrics.discarded_video_frames==10) || (mode!="late" && metrics.discarded_video_frames==0),"unexpected video discard");
@@ -142,7 +149,7 @@ int main(int argc,char** argv) {
     require(tha_claire_push(state.handle,pcm.data(),1,pcm.size(),0,error,sizeof(error))==-1,"post-EOF PCM accepted");
     require(fsync(output)==0,"coded persistence failed");close(output);output=-1;
     std::cout<<"{\"case\":\""<<mode<<"\",\"source_samples\":"<<metrics.offered_samples<<",\"neural_frames\":"<<metrics.neural_frames
-      <<",\"encoded_frames\":"<<packets<<",\"idle_frames\":"<<idle_frames<<",\"preroll_frames\":"<<preroll_frames<<",\"discarded_video_frames\":"<<metrics.discarded_video_frames<<",\"queue_peak_frames\":"<<metrics.queue_peak_frames
+      <<",\"encoded_frames\":"<<packets<<",\"idle_frames\":"<<idle_frames<<",\"preroll_frames\":"<<preroll_frames<<",\"eof_padding_frames\":"<<metrics.eof_padding_frames<<",\"discarded_video_frames\":"<<metrics.discarded_video_frames<<",\"queue_peak_frames\":"<<metrics.queue_peak_frames
       <<",\"first_result_after_samples\":"<<metrics.first_result_after_samples<<",\"retained_audio_peak_samples\":"<<metrics.retained_audio_peak_samples
       <<",\"maximum_schedule_lateness_ms\":"<<maximum_late_ms<<",\"caller_cxx_abi\":1,\"sdk_cxx_abi\":0,\"geometry_host_stage\":false,\"physical_playback\":false}\n";
     return 0;

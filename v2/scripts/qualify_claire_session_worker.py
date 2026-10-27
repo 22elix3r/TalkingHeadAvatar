@@ -31,6 +31,11 @@ async def main(args):
     if args.directory.exists():raise ValueError('preserve previous worker evidence')
     bridge=json.loads((ROOT/'benchmarks/reports/p03-claire-bridge.json').read_text())
     build=ROOT/'var/build/native-media';library=build/'libtha_claire_bridge.so';binary=build/'tha_claire_session_media';ptx=build/'media_kernels.ptx'
+    sources=['native/media/claire_session_worker.cpp','native/motion/claire_bridge.cpp','native/motion/claire_bridge.h','native/media/CMakeLists.txt',
+        'src/talkinghead_v2/providers/motion/paired.py','scripts/qualify_claire_session_worker.py']
+    if args.live_qwen:sources.append('src/talkinghead_v2/providers/tts/native.py')
+    source_before={path:digest(ROOT/path) for path in sources}
+    binaries_before={str(path):digest(path) for path in (binary,library,ptx)}
     if digest(library)!=bridge['library_sha256'] or digest(ptx)!=bridge['ptx_sha256']:raise ValueError('qualify the current bridge before session integration')
     engine=json.loads((args.engine/'engine.json').read_text());scene=json.loads((args.scene/'scene.json').read_text())
     if (digest(args.engine/'network.trt')!=engine['engine_sha256'] or engine['engine_sha256']!=bridge['engine_sha256'] or
@@ -65,8 +70,9 @@ async def main(args):
             sample_stop.wait(.1)
     sampling=threading.Thread(target=sample_memory);sampling.start()
     try:
-        selected_cases=[('qwen_live',None,None)] if args.live_qwen else [('qwen_recorded',len(audio),None),('one',1,None),('short',479,None),('aligned',480,None),
-            ('partial',481,None),('quantum',960,None),('tail',961,None),('empty',0,'empty'),('wrong_epoch',960,'epoch'),
+        selected_cases=[('qwen_live',None,None)] if args.live_qwen else [('qwen_recorded',len(audio),None),('segmented_gap',len(audio),None),('one',1,None),('short',479,None),('aligned',480,None),
+            ('partial',481,None),('quantum',960,None),('tail',961,None),('grid_before',1599,None),('grid_exact',1600,None),
+            ('grid_after',1601,None),('grid_second',3200,None),('grid_third',4800,None),('empty',0,'empty'),('wrong_epoch',960,'epoch'),
             ('gap',960,'gap'),('sequence',960,'sequence'),('wrong_motion',960,'motion'),('backpressure_cancel',960,'cancel')]
         for name,count,fault in selected_cases:
             directory=args.directory/name;directory.mkdir(mode=0o700);sid='claire-worker-'+name;room_name='claire-worker-'+name
@@ -107,8 +113,8 @@ async def main(args):
                 tts=QwenNativeProvider(native,diagnostic_log=directory/'qwen-stderr.log',device_lease=lease)
                 owned_tts.append(tts)
                 await tts.open_session(GenerationKey(sid,'test',7));qwen_pids.add(tts._process.pid)
-            private_write(directory/'bootstrap.txt',('\n'.join(('THA_CLAIRE_MEDIA_1',settings.livekit_url,
-                grant(settings,room_name,'media-'+sid,'media'),sid,'test','7','300'))+'\n').encode())
+            private_write(directory/'bootstrap.txt',('\n'.join(('THA_CLAIRE_MEDIA_2',settings.livekit_url,
+                grant(settings,room_name,'media-'+sid,'media'),sid,'test','7',str(args.prebuffer_ms)))+'\n').encode())
             env=dict(os.environ,THA_DEVICE_LEASE_FD=str(lease.fileno),HF_HUB_OFFLINE='1',TRANSFORMERS_OFFLINE='1',CUDA_VISIBLE_DEVICES='0',
                 LD_LIBRARY_PATH=str(runtime/'lib')+':/usr/local/cuda-12.8/lib64',CUDA_CACHE_PATH=str(ROOT/'var/cache/claire-cuda'))
             log=open(directory/'stderr.log','xb',opener=lambda path,flags:os.open(path,flags,0o600))
@@ -170,6 +176,7 @@ async def main(args):
                         data=packet(index,offset,selected_audio[offset:offset+960],selected_motion[offset//3:offset//3+320])
                         if fault=='motion':data=packet(index,offset,selected_audio[offset:offset+960],selected_motion[:319])
                         process.stdin.write(data);await process.stdin.drain();offset+=960;index+=1
+                        if name=='segmented_gap' and offset==19200:await asyncio.sleep(.3)
                         if fault:break
                     if not name.startswith('qwen_') and (not fault or fault=='empty'):
                         process.stdin.write(packet(index,offset,selected_audio[offset:],selected_motion[offset//3:],True));await process.stdin.drain()
@@ -219,13 +226,14 @@ async def main(args):
         private_write(args.directory/'memory.json',(json.dumps({'samples':memory,'query_failures':query_failures},indent=2)+'\n').encode())
     lease.acquire('claire-session-post-exit');lease.release()
     if len(set(bindings))!=len(bindings):raise ValueError('publication IDs reused across retired epochs')
-    sources=['native/media/claire_session_worker.cpp','native/motion/claire_bridge.cpp','native/motion/claire_bridge.h','native/media/CMakeLists.txt',
-        'src/talkinghead_v2/providers/motion/paired.py','scripts/qualify_claire_session_worker.py']
+    if (source_before!={path:digest(ROOT/path) for path in sources} or binaries_before!={str(path):digest(path) for path in (binary,library,ptx)}):
+        raise ValueError('source or binary changed during qualification; private observations retained without a passing export')
     report={'schema_version':1,'observation':'local actual Claire SDK/GPU/NVENC/LiveKit sender and Python receiver; '+('live cached Qwen' if args.live_qwen else 'recorded synthetic-reference Qwen PCM'),
         'source_sha256':{path:digest(ROOT/path) for path in sources},'binary_sha256':digest(binary),'bridge_sha256':digest(library),'ptx_sha256':digest(ptx),
         'bridge_report_sha256':digest(ROOT/'benchmarks/reports/p03-claire-bridge.json'),'engine_sha256':engine['engine_sha256'],'scene_sha256':scene['geometry_sha256'],
         'source_wave_sha256':digest(wave),'source_pcm_24k_sha256':hashlib.sha256(raw).hexdigest(),'cases':cases,'fresh_publication_ids':True,
-        'admission_reacquired':True,'audio_queue_bound_samples':48000,'host_motion_queue_bound_packets':50,'motion_input_lead_bound_ms':500,
+        'admission_reacquired':True,'audio_queue_bound_samples':48000,'host_motion_queue_bound_packets':50,'motion_input_lead_bound_ms':800,
+        'eligible_motion_start_buffer_ms':args.prebuffer_ms,'protocol':'THA_CLAIRE_MEDIA_2',
         'live_qwen_streaming':args.live_qwen,'browser_receiver':False,'physical_av_qualified':False,'qwen_coload_qualified':False,'quality_qualified':False,'additional_downloads':False}
     def usage(sample,pids):return sum(process['mib'] for process in sample['processes'] if process['pid'] in pids)
     coload=[sample for sample in memory if usage(sample,qwen_pids)>0 and usage(sample,worker_pids)>0]
@@ -249,5 +257,6 @@ async def main(args):
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--live-qwen',action='store_true',help='execute one pinned cached-Qwen/SFU/Claire co-load case instead of recorded/fault cohort')
+    parser.add_argument('--prebuffer-ms',type=int,choices=(300,500),default=500)
     for name in ('config','engine','scene','directory','report'):parser.add_argument('--'+name,type=Path,required=True)
     asyncio.run(main(parser.parse_args()))

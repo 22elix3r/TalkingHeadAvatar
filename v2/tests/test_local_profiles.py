@@ -126,6 +126,51 @@ def test_offline_provision_pins_project_and_never_fetches(tmp_path, monkeypatch)
     assert not any('pip' in part or 'pull' in part for part in argv)
 
 
+def test_explicit_shared_runtime_preserves_incomplete_environment_and_audits_lock(tmp_path, monkeypatch):
+    directory, _ = initialized(tmp_path)
+    runtime = tmp_path / 'runtimes/session-api/.venv'
+    (runtime / 'bin').mkdir(parents=True)
+    (runtime / 'bin/python').write_text('qualified interpreter fixture')
+    (runtime.parent / 'uv.lock').write_text('qualified lock fixture')
+    target = directory / 'api-venv'
+    target.mkdir()
+    (target / 'retained-user-file').write_text('do not delete')
+    fingerprint = {'python': '3.12.13', 'packages': [['fixture', '1.0', 'a' * 64]]}
+    monkeypatch.setattr(local, 'runtime_fingerprint', lambda source: fingerprint)
+    calls = []
+    def audit(argv, **kwargs):
+        calls.append((argv, kwargs))
+        return type('Result', (), {'stdout': 'Would make no changes\n'})()
+    monkeypatch.setattr(local.subprocess, 'run', audit)
+    monkeypatch.setattr(local, 'command', lambda *args, **kwargs: '')
+    monkeypatch.setattr(local, 'request_json', lambda *args: {'models': [{'name': 'cached', 'digest': 'pinned'}]})
+    result = local.provision(tmp_path, 'check', borrow_runtime=runtime)
+    assert result['status'] == 'ready' and result['checks']['shared_runtime_identity']
+    assert target.is_symlink() and target.resolve() == runtime
+    retained = list(directory.glob('api-venv-retained-*/retained-user-file'))
+    assert len(retained) == 1 and retained[0].read_text() == 'do not delete'
+    assert (runtime / 'bin/python').read_text() == 'qualified interpreter fixture'
+    argv, options = calls[0]
+    assert '--offline' in argv and '--dry-run' in argv and '--locked' in argv
+    assert options['env']['UV_PROJECT_ENVIRONMENT'] == str(runtime)
+    (runtime.parent / 'uv.lock').write_text('changed lock')
+    assert not local.doctor(tmp_path, 'check')['checks']['shared_runtime_identity']
+
+
+def test_provision_does_not_change_live_api_or_borrow_an_unrelated_environment(tmp_path, monkeypatch):
+    directory, _ = initialized(tmp_path)
+    unrelated = tmp_path / 'other-runtime'
+    unrelated.mkdir()
+    allowed = tmp_path / 'runtimes/session-api/.venv'
+    allowed.mkdir(parents=True)
+    with pytest.raises(ValueError, match='only this checkout'):
+        local.provision(tmp_path, 'check', borrow_runtime=unrelated)
+    monkeypatch.setattr(local, 'owned_process', lambda *args: {'pid': 1, 'start_ticks': 1})
+    with pytest.raises(ValueError, match='stop the owned API'):
+        local.provision(tmp_path, 'check', borrow_runtime=allowed)
+    assert not (directory / 'api-venv').exists()
+
+
 def test_shutdown_waits_on_owned_kernel_process_before_stopping_services(tmp_path, monkeypatch):
     directory, _ = initialized(tmp_path)
     argv = [sys.executable, '-c', 'import time;time.sleep(30)']

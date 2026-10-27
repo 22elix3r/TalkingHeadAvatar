@@ -100,7 +100,8 @@ export class ConversationClient {
     this.hooks.status('Preparing voice');
     const login = await identity();
     this.csrf = login.csrf_token;
-    this.session = await this.request<Session>('/v1/sessions', { profile: 'audio_reference', asset_id: assetId },
+    const selected = assetId === 'synthetic-audio-reference' ? (login.default_asset_id ?? assetId) : assetId;
+    this.session = await this.request<Session>('/v1/sessions', { profile: login.profile ?? 'audio_reference', asset_id: selected },
       { 'Idempotency-Key': crypto.randomUUID() });
     if (this.stopping) { await this.stop(); throw new DOMException('Connection cancelled', 'AbortError'); }
     const deadline = performance.now() + 45000;
@@ -158,7 +159,7 @@ export class ConversationClient {
       this.updateSubscriptions();
       this.attach(binding.audio_sid); this.attach(binding.video_sid);
       observation('playback_binding', { epoch: event.epoch, audio_sid: binding.audio_sid, video_sid: binding.video_sid,
-        transport: event.transport ?? 'livekit_python_raw', source_sample_rate: event.source_sample_rate });
+        transport: event.transport ?? 'livekit_python_raw', source_sample_rate: event.source_sample_rate, visual_mode: event.visual_mode });
     }
     if (event.kind === 'caption' && event.speaker === 'user' && event.final) this.hooks.status('Thinking');
     if (event.kind === 'sender_complete') {
@@ -195,7 +196,8 @@ export class ConversationClient {
       this.video.dataset.trackSid = sid;
       void this.video.play().catch(() => {});
       if ('requestVideoFrameCallback' in this.video) this.video.requestVideoFrameCallback(() => {
-        if (this.gate.accepts(sid, entry.publisher)) observation('video_presented_callback', { epoch: this.gate.epoch, video_sid: sid, visual_mode: 'static_reference' });
+        if (this.gate.accepts(sid, entry.publisher)) observation('video_presented_callback', { epoch: this.gate.epoch, video_sid: sid,
+          visual_mode: this.gate.binding?.visual_mode ?? 'static_reference' });
       });
     }
   }
