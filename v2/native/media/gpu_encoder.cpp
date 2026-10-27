@@ -1,4 +1,5 @@
 #include "gpu_encoder.h"
+#include <algorithm>
 #include <array>
 #include <chrono>
 #include <cmath>
@@ -33,10 +34,12 @@ struct GpuEncoder::State {
   AVPacket* packet=nullptr;
   CUcontext context=nullptr;
   CUmodule module=nullptr;
-  CUfunction render=nullptr,convert=nullptr;
+  CUfunction render=nullptr,convert=nullptr,render_mesh=nullptr;
   CUstream render_stream=nullptr,convert_stream=nullptr;
   std::array<CUevent,4> events{};
   CUdeviceptr rgba=0;
+  CUdeviceptr mesh_vertices=0,mesh_faces=0,mesh_bounds=0;
+  int mesh_face_count=0;
   std::size_t rgb_pitch=0;
   bool pushed=false;
   std::int64_t previous_pts=-1;
@@ -51,6 +54,9 @@ struct GpuEncoder::State {
     if(convert_stream) cuStreamSynchronize(convert_stream);
     for(auto event:events) if(event) cuEventDestroy(event);
     if(rgba) cuMemFree(rgba);
+    if(mesh_vertices) cuMemFree(mesh_vertices);
+    if(mesh_faces) cuMemFree(mesh_faces);
+    if(mesh_bounds) cuMemFree(mesh_bounds);
     if(module) cuModuleUnload(module);
     if(convert_stream) cuStreamDestroy(convert_stream);
     if(render_stream) cuStreamDestroy(render_stream);
@@ -68,6 +74,7 @@ struct GpuEncoder::State {
       cu(cuCtxPushCurrent(context),"own CUDA context");pushed=true;
       cu(cuModuleLoad(&module,ptx.c_str()),"load pinned PTX");
       cu(cuModuleGetFunction(&render,module,"render_pattern"),"render entry point");
+      cu(cuModuleGetFunction(&render_mesh,module,"render_mesh"),"mesh render entry point");
       cu(cuModuleGetFunction(&convert,module,"rgba_to_nv12"),"conversion entry point");
       cu(cuStreamCreate(&render_stream,CU_STREAM_NON_BLOCKING),"render stream");
       cu(cuStreamCreate(&convert_stream,CU_STREAM_NON_BLOCKING),"convert stream");
@@ -130,6 +137,55 @@ void GpuEncoder::framerate(double fps) {
 }
 std::uint64_t GpuEncoder::coded_bytes() const {return state_->bytes;}
 
+void GpuEncoder::mesh(const std::vector<double>& xyz,const std::vector<std::uint32_t>& triangles) {
+  auto& s=*state_;s.thread();
+  if(s.previous_pts>=0 || s.mesh_face_count) throw std::runtime_error("serving geometry is immutable for this owner");
+  if(xyz.size()%3 || xyz.size()<9 || xyz.size()>512*3 || triangles.size()%3 || triangles.empty() || triangles.size()>1024*3)
+    throw std::invalid_argument("bounded mesh shape mismatch; no padding/truncation");
+  for(std::size_t i=0;i<xyz.size();++i) {
+    if(!std::isfinite(xyz[i]) || std::abs(xyz[i])>1000000 || (i%3==2 && xyz[i]<=0))
+      throw std::invalid_argument("finite positive-depth projected geometry required");
+  }
+  for(std::size_t i=0;i<triangles.size();i+=3) {
+    const auto a=triangles[i],b=triangles[i+1],c=triangles[i+2];
+    if(a>=xyz.size()/3 || b>=xyz.size()/3 || c>=xyz.size()/3 || a==b || a==c || b==c)
+      throw std::invalid_argument("invalid face binding; no index clamping");
+  }
+  std::vector<std::int32_t> bounds;
+  bounds.reserve(triangles.size()/3*4);
+  for(std::size_t i=0;i<triangles.size();i+=3) {
+    const auto a=triangles[i]*3,b=triangles[i+1]*3,c=triangles[i+2]*3;
+    // Pixel clipping follows the CPU rasterizer's floor/ceil convention. Face
+    // indices/geometry remain unchanged; no shape repair occurs here.
+    bounds.push_back(std::max(0,static_cast<int>(std::floor(std::min({xyz[a],xyz[b],xyz[c]})))));
+    bounds.push_back(std::min(s.width-1,static_cast<int>(std::ceil(std::max({xyz[a],xyz[b],xyz[c]})))));
+    bounds.push_back(std::max(0,static_cast<int>(std::floor(std::min({xyz[a+1],xyz[b+1],xyz[c+1]})))));
+    bounds.push_back(std::min(s.height-1,static_cast<int>(std::ceil(std::max({xyz[a+1],xyz[b+1],xyz[c+1]})))));
+  }
+  CUdeviceptr vertices=0,faces=0,boxes=0;
+  try {
+    cu(cuMemAlloc(&vertices,xyz.size()*sizeof(double)),"immutable geometry allocation");
+    cu(cuMemAlloc(&faces,triangles.size()*sizeof(std::uint32_t)),"immutable face allocation");
+    cu(cuMemAlloc(&boxes,bounds.size()*sizeof(std::int32_t)),"immutable triangle bounds allocation");
+    cu(cuMemcpyHtoD(vertices,xyz.data(),xyz.size()*sizeof(double)),"initial geometry upload");
+    cu(cuMemcpyHtoD(faces,triangles.data(),triangles.size()*sizeof(std::uint32_t)),"initial face upload");
+    cu(cuMemcpyHtoD(boxes,bounds.data(),bounds.size()*sizeof(std::int32_t)),"initial triangle bounds upload");
+    cu(cuCtxSynchronize(),"initial geometry ready for nonblocking render stream");
+  } catch(...) {if(vertices) cuMemFree(vertices);if(faces) cuMemFree(faces);if(boxes) cuMemFree(boxes);throw;}
+  s.mesh_vertices=vertices;s.mesh_faces=faces;s.mesh_bounds=boxes;s.mesh_face_count=triangles.size()/3;
+}
+
+std::vector<std::uint8_t> GpuEncoder::qualification_readback_rgba() {
+  auto& s=*state_;s.thread();
+  if(s.previous_pts<0) throw std::runtime_error("no completed frame to qualify");
+  std::vector<std::uint8_t> result(s.width*s.height*4);
+  CUDA_MEMCPY2D copy{};copy.srcMemoryType=CU_MEMORYTYPE_DEVICE;copy.srcDevice=s.rgba;copy.srcPitch=s.rgb_pitch;
+  copy.dstMemoryType=CU_MEMORYTYPE_HOST;copy.dstHost=result.data();copy.dstPitch=s.width*4;
+  copy.WidthInBytes=s.width*4;copy.Height=s.height;
+  cu(cuMemcpy2D(&copy),"explicit qualification-only RGBA readback");
+  return result;
+}
+
 EncodedFrame GpuEncoder::encode(int pattern,std::int64_t pts,bool force) {
   auto& s=*state_;s.thread();
   if(pts<=s.previous_pts) throw std::invalid_argument("nonmonotonic video PTS");
@@ -140,7 +196,9 @@ EncodedFrame GpuEncoder::encode(int pattern,std::int64_t pts,bool force) {
   if(!av_frame_is_writable(frame)) throw std::runtime_error("encoder still retains a slot; refusing overwrite/allocation");
   cu(cuEventRecord(s.events[0],s.render_stream),"render start");
   void* render_args[]={&s.rgba,&s.rgb_pitch,&s.width,&s.height,&pattern};
-  cu(cuLaunchKernel(s.render,(s.width+15)/16,(s.height+15)/16,1,16,16,1,0,s.render_stream,render_args,nullptr),"render pattern");
+  void* mesh_args[]={&s.rgba,&s.rgb_pitch,&s.width,&s.height,&s.mesh_vertices,&s.mesh_faces,&s.mesh_bounds,&s.mesh_face_count};
+  cu(cuLaunchKernel(s.mesh_face_count?s.render_mesh:s.render,(s.width+15)/16,(s.height+15)/16,1,16,16,1,0,s.render_stream,
+    s.mesh_face_count?mesh_args:render_args,nullptr),"render owned surface");
   cu(cuEventRecord(s.events[1],s.render_stream),"render complete");
   cu(cuStreamWaitEvent(s.convert_stream,s.events[1],0),"conversion waits for renderer");
   cu(cuEventRecord(s.events[2],s.convert_stream),"conversion start");

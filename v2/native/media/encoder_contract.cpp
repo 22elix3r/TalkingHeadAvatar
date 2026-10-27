@@ -19,6 +19,15 @@ int main(int argc,char** argv) {
     for(int i=0;i<3;++i) rejected([]{tha::GpuEncoder missing("/nonexistent/tha-qualification.ptx");});
     for(int owner=0;owner<3;++owner) {
       tha::GpuEncoder encoder(argv[1]);
+      if(owner==0) {
+        const std::vector<double> xyz{100.,100.,1.,400.,100.,1.,256.,400.,1.};
+        rejected([&]{encoder.mesh(xyz,{0,1,3});});
+        rejected([&]{encoder.mesh(xyz,{0,0,2});});
+        auto nonfinite=xyz;nonfinite[2]=0;
+        rejected([&]{encoder.mesh(nonfinite,{0,1,2});});
+        encoder.mesh(xyz,{0,1,2});
+        rejected([&]{encoder.mesh(xyz,{0,1,2});});
+      }
       const auto first=encoder.encode(0,1000000,true);
       if(!first.keyframe || first.data.empty()) throw std::runtime_error("first access unit is not independently decodable");
       rejected([&]{encoder.encode(1,1000000);});
@@ -35,7 +44,7 @@ int main(int argc,char** argv) {
           throw std::runtime_error("slot/access-unit/keyframe contract failed");
       }
     }
-    std::cout<<"{\"gpu_contract\":\"passed\",\"owner_lifetimes\":3,\"failed_initializations\":3,\"frames\":270,\"physical_av_qualified\":false}\n";
+    std::cout<<"{\"gpu_contract\":\"passed\",\"owner_lifetimes\":3,\"failed_initializations\":3,\"frames\":270,\"immutable_mesh_owner\":true,\"physical_av_qualified\":false}\n";
     return 0;
   } catch(const std::exception& error) {std::cerr<<error.what()<<'\n';return 1;}
 }

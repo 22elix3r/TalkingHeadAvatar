@@ -15,7 +15,8 @@ struct EncodedFrame {
 };
 
 // One thread owns the CUDA context, fixed surfaces, conversion streams and NVENC.
-// The encoded payload owns its CPU bytes; no raw frame crosses this boundary.
+// Publishing owns CPU encoded bytes and retains raw frames on the device.
+// The separately named qualification readback is an explicit exception.
 class GpuEncoder {
 public:
   GpuEncoder(const std::string& ptx,int width=512,int height=512,int fps=30,int bitrate=1200000);
@@ -23,6 +24,11 @@ public:
   GpuEncoder(const GpuEncoder&)=delete;
   GpuEncoder& operator=(const GpuEncoder&)=delete;
   EncodedFrame encode(int pattern,std::int64_t pts_us,bool force_keyframe=false);
+  // Immutable projected neutral geometry. Canonical authorization/rig checks
+  // remain the server's responsibility; this boundary validates every index.
+  void mesh(const std::vector<double>& xyz,const std::vector<std::uint32_t>& triangles);
+  // Explicit qualification-only readback, never used by the publishing path.
+  std::vector<std::uint8_t> qualification_readback_rgba();
   void bitrate(int bits_per_second);
   void framerate(double frames_per_second);
   std::uint64_t coded_bytes() const;

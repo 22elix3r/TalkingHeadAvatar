@@ -12,6 +12,8 @@ The [P06 virtual-device reference](docs/p06-virtual.md) exercises the existing p
 
 The [device admission guard](docs/p06-device.md) protects an active Qwen session from competing managed profiles/workers and retains ownership in inherited GPU children. This is N=1 admission, with multi-session sharing/capacity qualification still pending.
 
+[Static native mesh qualification](docs/p06-mesh.md) adds canonical neutral CUDA rasterization with exact CPU parity and scoped upload/readback traces. Real motion/appearance and native conversation integration remain unfinished.
+
 From the repository root, with `uv` and Python 3.12 already installed:
 
 ```sh
