@@ -1,0 +1,375 @@
+{
+  "schema_version": 1,
+  "observation": "Alternating local same-utterance sender and Python receiver queue requests; experimental measurement, not browser delivery qualification.",
+  "cohorts": [
+    {
+      "repeat": 1,
+      "requested_native_video_queue_frames": 1,
+      "sender_source_frames": 324,
+      "receiver_source_frames": 319,
+      "missing_source_indices": [
+        294,
+        296,
+        299,
+        302,
+        308
+      ],
+      "checked_python_video_queue_peak_frames": 1,
+      "native_video_drop_warning_events": 0,
+      "native_video_drop_reported_lower_bound": 0,
+      "sender_rtp_initial": {
+        "video_frames_accepted_total": 358,
+        "frames_sent": 350,
+        "frames_encoded": 350,
+        "packets_sent": 2106,
+        "retransmitted_packets_sent": 0,
+        "nack_count": 0,
+        "pli_count": 0,
+        "fir_count": 0,
+        "key_frames_encoded": 19
+      },
+      "sender_rtp_after_300ms": {
+        "video_frames_accepted_total": 358,
+        "frames_sent": 350,
+        "frames_encoded": 350,
+        "packets_sent": 2106,
+        "retransmitted_packets_sent": 0,
+        "nack_count": 0,
+        "pli_count": 0,
+        "fir_count": 0,
+        "key_frames_encoded": 19
+      },
+      "receiver_video_rtp": [
+        {
+          "frames_received": 349,
+          "frames_decoded": 348,
+          "frames_dropped": 0,
+          "packets_received": 2052,
+          "packets_lost": 0,
+          "packets_discarded": 0,
+          "retransmitted_packets_received": 0,
+          "nack_count": 0,
+          "pli_count": 0,
+          "fir_count": 0
+        }
+      ],
+      "source_sha256": {
+        "native/media/claire_session_worker.cpp": "8fad4e0682eefd54699cf307ae3023914a3785de7dc2aa07216847c4245fb872",
+        "native/motion/claire_bridge.cpp": "87d03fd75d924b168114f204a3f991c8f42db48725cb68aa91d78e32245ef0f6",
+        "native/motion/claire_bridge.h": "031832df8263c662d40a6e34fa1fd49be6385686216ca8716c2786d1cd385834",
+        "native/media/CMakeLists.txt": "996889da78c33abdf24f26a9f0dd0689706a3424f881fe8462c90755188f0c2a",
+        "src/talkinghead_v2/providers/motion/paired.py": "8cfbfd955361451cfe5f6c1b468e9e86512fed886757c7b63b61902caf816946",
+        "scripts/qualify_claire_session_worker.py": "f4999d63f28c8b98f7ec8879285726c76acafea1e55cba3ec192361a90356db3",
+        "src/talkinghead_v2/providers/tts/native.py": "b2724a1a6a657ead3021dccf543772862595f8d9aa8f334901533d5342a4e31e"
+      },
+      "binary_sha256": "9ba6d3748f2a1375a5756d7dd0f3e48df2c727de84766f5dbee94690b4c399e2"
+    },
+    {
+      "repeat": 1,
+      "requested_native_video_queue_frames": 8,
+      "sender_source_frames": 324,
+      "receiver_source_frames": 324,
+      "missing_source_indices": [],
+      "checked_python_video_queue_peak_frames": 1,
+      "native_video_drop_warning_events": 0,
+      "native_video_drop_reported_lower_bound": 0,
+      "sender_rtp_initial": {
+        "video_frames_accepted_total": 356,
+        "frames_sent": 353,
+        "frames_encoded": 353,
+        "packets_sent": 2090,
+        "retransmitted_packets_sent": 0,
+        "nack_count": 0,
+        "pli_count": 0,
+        "fir_count": 0,
+        "key_frames_encoded": 20
+      },
+      "sender_rtp_after_300ms": {
+        "video_frames_accepted_total": 356,
+        "frames_sent": 353,
+        "frames_encoded": 353,
+        "packets_sent": 2090,
+        "retransmitted_packets_sent": 0,
+        "nack_count": 0,
+        "pli_count": 0,
+        "fir_count": 0,
+        "key_frames_encoded": 20
+      },
+      "receiver_video_rtp": [
+        {
+          "frames_received": 352,
+          "frames_decoded": 350,
+          "frames_dropped": 0,
+          "packets_received": 2061,
+          "packets_lost": 0,
+          "packets_discarded": 0,
+          "retransmitted_packets_received": 0,
+          "nack_count": 0,
+          "pli_count": 0,
+          "fir_count": 0
+        }
+      ],
+      "source_sha256": {
+        "native/media/claire_session_worker.cpp": "8fad4e0682eefd54699cf307ae3023914a3785de7dc2aa07216847c4245fb872",
+        "native/motion/claire_bridge.cpp": "87d03fd75d924b168114f204a3f991c8f42db48725cb68aa91d78e32245ef0f6",
+        "native/motion/claire_bridge.h": "031832df8263c662d40a6e34fa1fd49be6385686216ca8716c2786d1cd385834",
+        "native/media/CMakeLists.txt": "996889da78c33abdf24f26a9f0dd0689706a3424f881fe8462c90755188f0c2a",
+        "src/talkinghead_v2/providers/motion/paired.py": "8cfbfd955361451cfe5f6c1b468e9e86512fed886757c7b63b61902caf816946",
+        "scripts/qualify_claire_session_worker.py": "f4999d63f28c8b98f7ec8879285726c76acafea1e55cba3ec192361a90356db3",
+        "src/talkinghead_v2/providers/tts/native.py": "b2724a1a6a657ead3021dccf543772862595f8d9aa8f334901533d5342a4e31e"
+      },
+      "binary_sha256": "9ba6d3748f2a1375a5756d7dd0f3e48df2c727de84766f5dbee94690b4c399e2"
+    },
+    {
+      "repeat": 2,
+      "requested_native_video_queue_frames": 1,
+      "sender_source_frames": 324,
+      "receiver_source_frames": 323,
+      "missing_source_indices": [
+        224
+      ],
+      "checked_python_video_queue_peak_frames": 2,
+      "native_video_drop_warning_events": 0,
+      "native_video_drop_reported_lower_bound": 0,
+      "sender_rtp_initial": {
+        "video_frames_accepted_total": 356,
+        "frames_sent": 352,
+        "frames_encoded": 352,
+        "packets_sent": 2096,
+        "retransmitted_packets_sent": 0,
+        "nack_count": 0,
+        "pli_count": 0,
+        "fir_count": 0,
+        "key_frames_encoded": 17
+      },
+      "sender_rtp_after_300ms": {
+        "video_frames_accepted_total": 356,
+        "frames_sent": 352,
+        "frames_encoded": 352,
+        "packets_sent": 2096,
+        "retransmitted_packets_sent": 0,
+        "nack_count": 0,
+        "pli_count": 0,
+        "fir_count": 0,
+        "key_frames_encoded": 17
+      },
+      "receiver_video_rtp": [
+        {
+          "frames_received": 351,
+          "frames_decoded": 350,
+          "frames_dropped": 0,
+          "packets_received": 2043,
+          "packets_lost": 0,
+          "packets_discarded": 0,
+          "retransmitted_packets_received": 0,
+          "nack_count": 0,
+          "pli_count": 0,
+          "fir_count": 0
+        }
+      ],
+      "source_sha256": {
+        "native/media/claire_session_worker.cpp": "8fad4e0682eefd54699cf307ae3023914a3785de7dc2aa07216847c4245fb872",
+        "native/motion/claire_bridge.cpp": "87d03fd75d924b168114f204a3f991c8f42db48725cb68aa91d78e32245ef0f6",
+        "native/motion/claire_bridge.h": "031832df8263c662d40a6e34fa1fd49be6385686216ca8716c2786d1cd385834",
+        "native/media/CMakeLists.txt": "996889da78c33abdf24f26a9f0dd0689706a3424f881fe8462c90755188f0c2a",
+        "src/talkinghead_v2/providers/motion/paired.py": "8cfbfd955361451cfe5f6c1b468e9e86512fed886757c7b63b61902caf816946",
+        "scripts/qualify_claire_session_worker.py": "f4999d63f28c8b98f7ec8879285726c76acafea1e55cba3ec192361a90356db3",
+        "src/talkinghead_v2/providers/tts/native.py": "b2724a1a6a657ead3021dccf543772862595f8d9aa8f334901533d5342a4e31e"
+      },
+      "binary_sha256": "9ba6d3748f2a1375a5756d7dd0f3e48df2c727de84766f5dbee94690b4c399e2"
+    },
+    {
+      "repeat": 2,
+      "requested_native_video_queue_frames": 8,
+      "sender_source_frames": 324,
+      "receiver_source_frames": 322,
+      "missing_source_indices": [
+        217,
+        223
+      ],
+      "checked_python_video_queue_peak_frames": 1,
+      "native_video_drop_warning_events": 0,
+      "native_video_drop_reported_lower_bound": 0,
+      "sender_rtp_initial": {
+        "video_frames_accepted_total": 356,
+        "frames_sent": 351,
+        "frames_encoded": 351,
+        "packets_sent": 2103,
+        "retransmitted_packets_sent": 0,
+        "nack_count": 0,
+        "pli_count": 0,
+        "fir_count": 0,
+        "key_frames_encoded": 18
+      },
+      "sender_rtp_after_300ms": {
+        "video_frames_accepted_total": 356,
+        "frames_sent": 351,
+        "frames_encoded": 351,
+        "packets_sent": 2103,
+        "retransmitted_packets_sent": 0,
+        "nack_count": 0,
+        "pli_count": 0,
+        "fir_count": 0,
+        "key_frames_encoded": 18
+      },
+      "receiver_video_rtp": [
+        {
+          "frames_received": 350,
+          "frames_decoded": 349,
+          "frames_dropped": 0,
+          "packets_received": 2054,
+          "packets_lost": 0,
+          "packets_discarded": 0,
+          "retransmitted_packets_received": 0,
+          "nack_count": 0,
+          "pli_count": 0,
+          "fir_count": 0
+        }
+      ],
+      "source_sha256": {
+        "native/media/claire_session_worker.cpp": "8fad4e0682eefd54699cf307ae3023914a3785de7dc2aa07216847c4245fb872",
+        "native/motion/claire_bridge.cpp": "87d03fd75d924b168114f204a3f991c8f42db48725cb68aa91d78e32245ef0f6",
+        "native/motion/claire_bridge.h": "031832df8263c662d40a6e34fa1fd49be6385686216ca8716c2786d1cd385834",
+        "native/media/CMakeLists.txt": "996889da78c33abdf24f26a9f0dd0689706a3424f881fe8462c90755188f0c2a",
+        "src/talkinghead_v2/providers/motion/paired.py": "8cfbfd955361451cfe5f6c1b468e9e86512fed886757c7b63b61902caf816946",
+        "scripts/qualify_claire_session_worker.py": "f4999d63f28c8b98f7ec8879285726c76acafea1e55cba3ec192361a90356db3",
+        "src/talkinghead_v2/providers/tts/native.py": "b2724a1a6a657ead3021dccf543772862595f8d9aa8f334901533d5342a4e31e"
+      },
+      "binary_sha256": "9ba6d3748f2a1375a5756d7dd0f3e48df2c727de84766f5dbee94690b4c399e2"
+    },
+    {
+      "repeat": 3,
+      "requested_native_video_queue_frames": 1,
+      "sender_source_frames": 324,
+      "receiver_source_frames": 322,
+      "missing_source_indices": [
+        226,
+        230
+      ],
+      "checked_python_video_queue_peak_frames": 2,
+      "native_video_drop_warning_events": 0,
+      "native_video_drop_reported_lower_bound": 0,
+      "sender_rtp_initial": {
+        "video_frames_accepted_total": 358,
+        "frames_sent": 353,
+        "frames_encoded": 353,
+        "packets_sent": 2068,
+        "retransmitted_packets_sent": 0,
+        "nack_count": 0,
+        "pli_count": 0,
+        "fir_count": 0,
+        "key_frames_encoded": 19
+      },
+      "sender_rtp_after_300ms": {
+        "video_frames_accepted_total": 358,
+        "frames_sent": 353,
+        "frames_encoded": 353,
+        "packets_sent": 2068,
+        "retransmitted_packets_sent": 0,
+        "nack_count": 0,
+        "pli_count": 0,
+        "fir_count": 0,
+        "key_frames_encoded": 19
+      },
+      "receiver_video_rtp": [
+        {
+          "frames_received": 352,
+          "frames_decoded": 351,
+          "frames_dropped": 0,
+          "packets_received": 2015,
+          "packets_lost": 0,
+          "packets_discarded": 0,
+          "retransmitted_packets_received": 0,
+          "nack_count": 0,
+          "pli_count": 0,
+          "fir_count": 0
+        }
+      ],
+      "source_sha256": {
+        "native/media/claire_session_worker.cpp": "8fad4e0682eefd54699cf307ae3023914a3785de7dc2aa07216847c4245fb872",
+        "native/motion/claire_bridge.cpp": "87d03fd75d924b168114f204a3f991c8f42db48725cb68aa91d78e32245ef0f6",
+        "native/motion/claire_bridge.h": "031832df8263c662d40a6e34fa1fd49be6385686216ca8716c2786d1cd385834",
+        "native/media/CMakeLists.txt": "996889da78c33abdf24f26a9f0dd0689706a3424f881fe8462c90755188f0c2a",
+        "src/talkinghead_v2/providers/motion/paired.py": "8cfbfd955361451cfe5f6c1b468e9e86512fed886757c7b63b61902caf816946",
+        "scripts/qualify_claire_session_worker.py": "f4999d63f28c8b98f7ec8879285726c76acafea1e55cba3ec192361a90356db3",
+        "src/talkinghead_v2/providers/tts/native.py": "b2724a1a6a657ead3021dccf543772862595f8d9aa8f334901533d5342a4e31e"
+      },
+      "binary_sha256": "9ba6d3748f2a1375a5756d7dd0f3e48df2c727de84766f5dbee94690b4c399e2"
+    },
+    {
+      "repeat": 3,
+      "requested_native_video_queue_frames": 8,
+      "sender_source_frames": 324,
+      "receiver_source_frames": 320,
+      "missing_source_indices": [
+        257,
+        260,
+        272,
+        278
+      ],
+      "checked_python_video_queue_peak_frames": 1,
+      "native_video_drop_warning_events": 0,
+      "native_video_drop_reported_lower_bound": 0,
+      "sender_rtp_initial": {
+        "video_frames_accepted_total": 356,
+        "frames_sent": 349,
+        "frames_encoded": 349,
+        "packets_sent": 2092,
+        "retransmitted_packets_sent": 0,
+        "nack_count": 0,
+        "pli_count": 0,
+        "fir_count": 0,
+        "key_frames_encoded": 21
+      },
+      "sender_rtp_after_300ms": {
+        "video_frames_accepted_total": 356,
+        "frames_sent": 349,
+        "frames_encoded": 349,
+        "packets_sent": 2092,
+        "retransmitted_packets_sent": 0,
+        "nack_count": 0,
+        "pli_count": 0,
+        "fir_count": 0,
+        "key_frames_encoded": 21
+      },
+      "receiver_video_rtp": [
+        {
+          "frames_received": 348,
+          "frames_decoded": 346,
+          "frames_dropped": 0,
+          "packets_received": 2044,
+          "packets_lost": 0,
+          "packets_discarded": 0,
+          "retransmitted_packets_received": 0,
+          "nack_count": 0,
+          "pli_count": 0,
+          "fir_count": 0
+        }
+      ],
+      "source_sha256": {
+        "native/media/claire_session_worker.cpp": "8fad4e0682eefd54699cf307ae3023914a3785de7dc2aa07216847c4245fb872",
+        "native/motion/claire_bridge.cpp": "87d03fd75d924b168114f204a3f991c8f42db48725cb68aa91d78e32245ef0f6",
+        "native/motion/claire_bridge.h": "031832df8263c662d40a6e34fa1fd49be6385686216ca8716c2786d1cd385834",
+        "native/media/CMakeLists.txt": "996889da78c33abdf24f26a9f0dd0689706a3424f881fe8462c90755188f0c2a",
+        "src/talkinghead_v2/providers/motion/paired.py": "8cfbfd955361451cfe5f6c1b468e9e86512fed886757c7b63b61902caf816946",
+        "scripts/qualify_claire_session_worker.py": "f4999d63f28c8b98f7ec8879285726c76acafea1e55cba3ec192361a90356db3",
+        "src/talkinghead_v2/providers/tts/native.py": "b2724a1a6a657ead3021dccf543772862595f8d9aa8f334901533d5342a4e31e"
+      },
+      "binary_sha256": "9ba6d3748f2a1375a5756d7dd0f3e48df2c727de84766f5dbee94690b4c399e2"
+    }
+  ],
+  "native_queue_option": "Requested through the Python wheel FFI; no queue-size echo or native high-water counter is exposed.",
+  "native_queue_warning_scope": "Process-wide periodic SDK warning observed up to the receiver snapshot; no warning does not prove no overflow.",
+  "sender_counter_scope": "Accepted, sent and encoded totals include preroll and idle; snapshots are asynchronous relative to the receiver and the 300 ms wait is not a delivery acknowledgment.",
+  "sdk_source_provenance": "Inspected separately pinned LiveKit Rust revision bae4df2f3d6c8f0f6ce81a7370c445779f1948d2; its exact identity with the Python wheel FFI is not established.",
+  "python_ffi_sha256": "05a58fc83b3515cd4e984a66c69c22e0aad09eadb6e972edde626488dafbf5ad",
+  "limitations": [
+    "Six local sequential runs are not a stable loss-rate or causal comparison.",
+    "A requested eight-frame native video queue can still silently evict on overflow; the checked Python queue cannot see this.",
+    "The pinned Python audio stream requests native queue size 0; inspected Rust source interprets 0 as unbounded. A fail-closed bounded audio path remains unqualified.",
+    "No physical audio/video presentation, browser delivery or release acceptance is inferred."
+  ],
+  "physical_av_qualified": false,
+  "delivery_qualified": false,
+  "additional_downloads": false
+}

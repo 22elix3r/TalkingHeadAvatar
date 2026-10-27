@@ -1,11 +1,14 @@
 """Actual local SFU/Claire GPU sender and receiver checks, using cached audio."""
 import argparse
 import asyncio
+from copy import deepcopy
 import hashlib
 import json
+import logging
 import math
 import os
 from pathlib import Path
+import re
 import signal
 import struct
 import subprocess
@@ -13,6 +16,9 @@ import threading
 import time
 
 from livekit import rtc
+from livekit.rtc._ffi_client import FfiClient
+from livekit.rtc._proto import ffi_pb2,video_frame_pb2
+from livekit.rtc.log import logger as livekit_logger
 
 from talkinghead_v2.audio.resample import RationalResampler
 from talkinghead_v2.local import digest
@@ -25,6 +31,41 @@ from talkinghead_v2.server.transport import CheckedReceiveQueue,grant
 from talkinghead_v2.session.device import DeviceLease
 
 ROOT=Path(__file__).resolve().parents[1]
+
+
+class QualifiedVideoStream(rtc.VideoStream):
+    """Set the pinned SDK's native queue, independently of its Python queue."""
+    def __init__(self,track,native_queue_frames):
+        if type(native_queue_frames) is not int or native_queue_frames not in (1,8):
+            raise ValueError('qualified native video queue requires 1 or 8 frames')
+        self._native_queue_frames=native_queue_frames
+        super().__init__(track)
+
+    def _create_owned_stream(self):
+        if self._track is None:raise ValueError('track required')
+        request=ffi_pb2.FfiRequest();stream=request.new_video_stream
+        if 'queue_size_frames' not in stream.DESCRIPTOR.fields_by_name:
+            raise ValueError('pinned SDK native video queue option unavailable')
+        stream.track_handle=self._track._ffi_handle.handle
+        stream.type=video_frame_pb2.VideoStreamType.VIDEO_STREAM_NATIVE
+        if self._format is not None:stream.format=self._format
+        stream.normalize_stride=True;stream.queue_size_frames=self._native_queue_frames
+        return FfiClient.instance.request(request).new_video_stream.stream
+
+
+class NativeVideoDropWarnings(logging.Handler):
+    """Retain only the SDK's periodic drop count, never arbitrary log text."""
+    pattern=re.compile(r'native video stream queue overflow; dropped (\d{1,10}) queued frames')
+    def __init__(self):
+        super().__init__();self.events=0;self.reported_lower_bound=0
+    def emit(self,record):
+        match=self.pattern.search(record.getMessage())
+        if match:
+            self.events+=1;self.reported_lower_bound=max(self.reported_lower_bound,int(match.group(1)))
+    def snapshot(self):
+        self.acquire()
+        try:return self.events,self.reported_lower_bound
+        finally:self.release()
 
 
 def receiver_video_stats(stats):
@@ -62,11 +103,27 @@ def source_capture_trace(lines,expected):
     return rows
 
 
-def read_source_capture_trace(path,expected):
+def read_capture_log(path):
     with open(path,'rb',opener=lambda name,flags:os.open(name,flags|os.O_NOFOLLOW)) as source:
         data=source.read(4*1024*1024+1)
     if len(data)>4*1024*1024:raise ValueError('source capture log exceeded bound')
-    return source_capture_trace(data.decode('utf-8',errors='replace').splitlines(),expected)
+    return data.decode('utf-8',errors='replace').splitlines()
+
+
+def read_source_capture_trace(path,expected):
+    return source_capture_trace(read_capture_log(path),expected)
+
+
+def sender_rtp_stats(lines,tag='THA_SENDER_RTP'):
+    if tag not in {'THA_SENDER_RTP','THA_SENDER_RTP_AFTER_300MS'}:raise ValueError('invalid sender RTP stats tag')
+    rows=[line.split() for line in lines if line.startswith(tag+' ')]
+    if not rows:return None
+    if len(rows)!=1 or len(rows[0])!=10:raise ValueError('invalid sender RTP stats')
+    try:values=list(map(int,rows[0][1:]))
+    except ValueError:raise ValueError('invalid sender RTP stats') from None
+    if any(value<0 for value in values):raise ValueError('invalid sender RTP stats')
+    return dict(zip(('video_frames_accepted_total','frames_sent','frames_encoded','packets_sent',
+                     'retransmitted_packets_sent','nack_count','pli_count','fir_count','key_frames_encoded'),values))
 
 
 async def main(args):
@@ -101,6 +158,7 @@ async def main(args):
     if native and (native.voice_kind!='synthetic_fixture' or native.device_lease_path!=ROOT/'var/gpu-device-0.lock'):raise ValueError('live qualification requires the pinned synthetic voice and shared device lease')
     args.directory.mkdir(parents=True,mode=0o700);lease=DeviceLease(ROOT/'var/gpu-device-0.lock');lease.acquire('claire-session-worker-qualification')
     cases=[];bindings=[];memory=[];query_failures=[];sample_stop=threading.Event();qwen_pids=set();worker_pids=set()
+    video_warnings=NativeVideoDropWarnings();livekit_logger.addHandler(video_warnings)
     owned_tts=[];owned_rooms=[];owned_processes=[]
     def sample_memory():
         while not sample_stop.is_set():
@@ -127,7 +185,7 @@ async def main(args):
                 def subscribed_track(track,publication,participant):
                     async def consume():
                         video=track.kind==rtc.TrackKind.KIND_VIDEO
-                        stream=rtc.VideoStream(track) if video else rtc.AudioStream(track,sample_rate=48000,num_channels=1,frame_size_ms=10)
+                        stream=QualifiedVideoStream(track,args.native_video_queue_frames) if video else rtc.AudioStream(track,sample_rate=48000,num_channels=1,frame_size_ms=10)
                         if type(stream._queue).__name__!='RingQueue':raise ValueError('unqualified receiver queue implementation')
                         stream._queue=CheckedReceiveQueue(30);streams.append(stream)
                         kind='video' if video else 'audio';tracks[kind]=track;queues[kind]=stream._queue;kinds.add(kind)
@@ -253,21 +311,28 @@ async def main(args):
                             for task in tasks:
                                 if task.done():task.result()
                             receiver['checked_queue_peak_frames']={kind:queue.peak for kind,queue in queues.items()}
+                            receiver['requested_native_video_queue_frames']=args.native_video_queue_frames
+                            events,lower_bound=video_warnings.snapshot()
+                            receiver['native_video_drop_warning_events']=events
+                            receiver['native_video_drop_reported_lower_bound']=lower_bound
+                            receiver['native_video_drop_warning_scope']='process-wide periodic SDK logs; absence does not prove no overflow'
                             receiver.pop('_first_source_arrival_ns',None)
                             rows=receiver['video'];positions=[row['source_sample'] for row in rows]
                             if (len(rows)<50 or len(set(row['decoded_sha256'] for row in rows))<10 or receiver['maximum_rms']<100 or
                                 positions!=sorted(set(positions)) or positions[0]!=0 or positions[-1]!=(count-1)//1600*1600 or receiver['preroll_frames']<1 or receiver['idle_frames']<1 or any(row['width']!=512 or row['height']!=512 for row in rows)):
                                 raise ValueError('actual receiver did not decode moving Claire/audio')
                             receiver['missing_source_frame_indices']=[index for index in range((count+1599)//1600) if index*1600 not in positions]
-                            record['receiver']=receiver
+                            record['receiver']=deepcopy(receiver)
                         cases.append(record);process.send_signal(signal.SIGTERM);await asyncio.wait_for(process.wait(),5)
                         if process.returncode:raise ValueError('post-EOF owner retirement failed')
                         if args.trace_source_captures:
-                            trace=read_source_capture_trace(directory/'stderr.log',result['source_video_frames'])
+                            lines=read_capture_log(directory/'stderr.log')
+                            trace=source_capture_trace(lines,result['source_video_frames'])
                             sent={row['frame_id']:row['source_sample'] for row in trace}
                             if any(sent.get(row['frame_id'])!=row['source_sample'] for row in receiver['video']):
                                 raise ValueError('receiver source identity differs from capture trace')
-                            record['source_capture_trace']=trace
+                            record['source_capture_trace']=trace;record['sender_rtp_stats']=sender_rtp_stats(lines)
+                            record['sender_rtp_after_300ms']=sender_rtp_stats(lines,'THA_SENDER_RTP_AFTER_300MS')
                 private_write(directory/'result.json',(json.dumps(cases[-1],indent=2)+'\n').encode())
             finally:
                 if process.returncode is None:process.kill();await process.wait()
@@ -286,7 +351,7 @@ async def main(args):
             if child.returncode is None:child.kill();await child.wait()
         for provider in owned_tts:await provider.close()
         for room in owned_rooms:await room.disconnect()
-        sample_stop.set();sampling.join(timeout=10);lease.release()
+        sample_stop.set();sampling.join(timeout=10);lease.release();livekit_logger.removeHandler(video_warnings)
         private_write(args.directory/'memory.json',(json.dumps({'samples':memory,'query_failures':query_failures},indent=2)+'\n').encode())
     lease.acquire('claire-session-post-exit');lease.release()
     if len(set(bindings))!=len(bindings):raise ValueError('publication IDs reused across retired epochs')
@@ -323,6 +388,7 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--live-qwen',action='store_true',help='execute one pinned cached-Qwen/SFU/Claire co-load case instead of recorded/fault cohort')
     parser.add_argument('--trace-source-captures',action='store_true',help='live qualification only: privately trace source capture timing and payload sizes')
+    parser.add_argument('--native-video-queue-frames',type=int,choices=(1,8),default=1,help='request bounded native receiver queue for research comparison')
     parser.add_argument('--prebuffer-ms',type=int,choices=(300,500),default=500)
     for name in ('config','engine','scene','directory','report'):parser.add_argument('--'+name,type=Path,required=True)
     asyncio.run(main(parser.parse_args()))

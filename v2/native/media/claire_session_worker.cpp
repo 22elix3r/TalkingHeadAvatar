@@ -8,6 +8,7 @@
 #include <livekit/local_video_track.h>
 #include <livekit/local_track_publication.h>
 #include <livekit/encoded_video_source.h>
+#include <livekit/stats.h>
 #include <livekit/audio_source.h>
 #include <livekit/audio_frame.h>
 #include <algorithm>
@@ -227,6 +228,26 @@ int main(int argc,char** argv){
         }
       }catch(...){stopped.store(true);state.space.notify_all();if(input.joinable())input.join();gpu.join();throw;}
       stopped.store(true);state.space.notify_all();if(input.joinable())input.join();gpu.join();if(!state.failure.empty())throw std::runtime_error(state.failure);
+      const char* trace_setting=std::getenv("THA_CLAIRE_CAPTURE_TRACE");
+      if(trace_setting&&std::strcmp(trace_setting,"1")==0){
+        const auto snapshot=[&](const char* tag){
+          try {
+            auto pending=vt->getStats();
+            if(pending.wait_for(std::chrono::seconds(1))==std::future_status::ready){
+              for(const auto& item:pending.get())if(const auto* rtp=std::get_if<livekit::RtcOutboundRtpStats>(&item.stats)){
+                if(rtp->stream.kind!="video")continue;
+                const auto& o=rtp->outbound;
+                std::cerr<<tag<<' '<<state.video_frames.load()<<' '<<o.frames_sent<<' '<<o.frames_encoded<<' '
+                  <<rtp->sent.packets_sent<<' '<<o.retransmitted_packets_sent<<' '<<o.nack_count<<' '<<o.pli_count<<' '
+                  <<o.fir_count<<' '<<o.key_frames_encoded<<'\n';
+              }
+            }
+          }catch(...){std::cerr<<tag<<"_UNAVAILABLE\n";}
+        };
+        snapshot("THA_SENDER_RTP");
+        std::this_thread::sleep_for(std::chrono::milliseconds(300));
+        snapshot("THA_SENDER_RTP_AFTER_300MS");
+      }
       participant->unpublishTrack(audio_sid);participant->unpublishTrack(video_sid);audio->clearQueue();room.disconnect();
     }
     livekit::shutdown();close(protocol);return 0;

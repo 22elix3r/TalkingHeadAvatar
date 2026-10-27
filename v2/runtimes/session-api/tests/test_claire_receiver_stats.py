@@ -1,6 +1,8 @@
 """Keep receiver diagnostics scoped to counters, not track identities."""
 import importlib.util
+import logging
 from pathlib import Path
+from types import SimpleNamespace
 
 from livekit.rtc._proto import stats_pb2
 import pytest
@@ -56,3 +58,34 @@ def test_source_capture_trace_validates_order_and_completeness(tmp_path):
     path.write_bytes(b'x' * (4 * 1024 * 1024 + 1))
     with pytest.raises(ValueError, match='exceeded bound'):
         module.read_source_capture_trace(path, 2)
+    assert module.sender_rtp_stats(['THA_SENDER_RTP_UNAVAILABLE']) is None
+    counters = module.sender_rtp_stats(['THA_SENDER_RTP 100 98 99 500 1 2 3 4 5'])
+    assert counters['video_frames_accepted_total'] == 100
+    assert counters['frames_sent'] == 98 and counters['nack_count'] == 2
+    settled = module.sender_rtp_stats(['THA_SENDER_RTP_AFTER_300MS 100 100 100 510 1 2 3 4 5'], 'THA_SENDER_RTP_AFTER_300MS')
+    assert settled['frames_sent'] == 100
+    assert module.sender_rtp_stats(['THA_SENDER_RTP_AFTER_300MS 100 100 100 510 1 2 3 4 5']) is None
+    with pytest.raises(ValueError, match='invalid sender RTP'):
+        module.sender_rtp_stats(['THA_SENDER_RTP 1 2'])
+
+
+def test_native_video_queue_request_and_warning_redaction(monkeypatch):
+    script = Path(__file__).resolve().parents[3] / 'scripts/qualify_claire_session_worker.py'
+    spec = importlib.util.spec_from_file_location('claire_queue_qualification', script)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    requests = []
+    def request(value):
+        requests.append(value)
+        return SimpleNamespace(new_video_stream=SimpleNamespace(stream='stream'))
+    monkeypatch.setattr(module, 'FfiClient', SimpleNamespace(instance=SimpleNamespace(request=request)))
+    stream = SimpleNamespace(_track=SimpleNamespace(_ffi_handle=SimpleNamespace(handle=42)),
+                             _format=None, _native_queue_frames=8)
+    assert module.QualifiedVideoStream._create_owned_stream(stream) == 'stream'
+    config = requests[0].new_video_stream
+    assert config.track_handle == 42 and config.queue_size_frames == 8 and config.normalize_stride
+    assert config.HasField('queue_size_frames')
+    warnings = module.NativeVideoDropWarnings()
+    warnings.handle(logging.makeLogRecord({'msg': 'native video stream queue overflow; dropped 100 queued frames'}))
+    warnings.handle(logging.makeLogRecord({'msg': 'private transcript must not be retained'}))
+    assert warnings.snapshot() == (1, 100)

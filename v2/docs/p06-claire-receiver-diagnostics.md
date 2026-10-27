@@ -38,4 +38,26 @@ HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 v2/runtimes/session-api/.venv/bin/python
   --report v2/var/p03/claire-capture-trace-20261028-3.json
 ```
 
-The unchanged 19-case native protocol/fault cohort passed with tracing disabled, receiving **84/84** recorded-Qwen source frames. Offline core tests passed **335**, and API/PostgreSQL tests passed **31**. A new private descriptor binds the traced runtime and the last imperfect live observation with explicit gap opt-in; neither running preview was changed. See the [capture summary](../benchmarks/reports/p06-claire-source-capture.json), [detailed trace](../benchmarks/reports/p03-claire-live-preroll.json) and [untraced worker report](../benchmarks/reports/p03-claire-session-worker.json). The trace, receiver timestamps and RTP snapshots do not establish a browser/physical A/V, stable delivery or latency pass.
+The unchanged 19-case native protocol/fault cohort passed with tracing disabled, receiving **84/84** recorded-Qwen source frames. Offline core tests passed **335**, and API/PostgreSQL tests passed **31**. A new private descriptor binds the traced runtime and the last imperfect live observation with explicit gap opt-in; neither running preview was changed. See the [capture summary](../benchmarks/reports/p06-claire-source-capture.json), [detailed trace](../benchmarks/reports/p03-claire-live-preroll-20261028-source-trace.json) and [untraced worker report](../benchmarks/reports/p03-claire-session-worker-20261028-capture.json). The trace, receiver timestamps and RTP snapshots do not establish a browser/physical A/V, stable delivery or latency pass.
+
+## Native queue and sender counters
+
+The checked Python video queue is not the first receiver queue. The installed Python SDK constructs a native stream without setting its native queue limit. Separately inspected, pinned LiveKit Rust source defaults that queue to one frame and can evict the oldest frame; the Python wheel's exact source identity with that checkout is not established. The qualification now explicitly requests a native queue of either one or eight frames, bounds the checked Python queue separately, and records only the SDK's periodic native-overflow warning count. The SDK does not echo the configured size or expose a native queue high-water/drop counter through this interface, so a missing warning is not proof of no overflow.
+
+Three alternating pairs received **319, 323 and 322 of 324** source frames with a one-frame request and **324, 322 and 320 of 324** with an eight-frame request. No periodic native-overflow warning was observed before the receiver snapshot. These six local runs do not establish a loss rate or prove which queue caused a gap; the larger request did not consistently eliminate it. The sender's asynchronous RTP snapshots were unchanged after a 300 ms qualification-only pause, but their totals include accepted preroll and idle frames and cannot be attributed to individual source frames. The [queue-study report](../benchmarks/reports/p06-claire-native-queue-study.json) records the exact counters and source identities.
+
+The final queue-comparison trial used:
+
+```sh
+HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 v2/runtimes/session-api/.venv/bin/python \
+  v2/scripts/qualify_claire_session_worker.py --live-qwen --trace-source-captures \
+  --native-video-queue-frames 8 --config v2/var/p04/test-runtime.json \
+  --engine v2/var/p03/claire-engine-fp32-n1-final \
+  --scene v2/var/p03/claire-render-scene \
+  --directory v2/var/p03/claire-nativequeue-8-rep-3-20261028 \
+  --report v2/var/p03/claire-nativequeue-8-rep-3-20261028.json
+```
+
+An additional input boundary remains open: the installed Python SDK requests native audio queue size `0`, which the separately inspected Rust source interprets as unbounded. The application's checked 25-frame Python queue does not bound that earlier queue. A bounded SDK queue that evicts old audio silently would violate the speech-continuity contract; a fail-closed native-audio prototype is being qualified separately and is not used by the previews.
+
+The current untraced **19-case** native worker/fault cohort passed its existing functional checks, with **83/84** recorded-Qwen source frames observed and one missing intermediate frame. It remains evidence of a receiver gap, not a full-delivery pass. Isolated API/PostgreSQL tests passed **32**; the descriptor was repinned to the latest live observation with explicit receiver-gap opt-in. See the current [worker](../benchmarks/reports/p03-claire-session-worker.json) and [live report](../benchmarks/reports/p03-claire-live-preroll.json).
