@@ -1,0 +1,4 @@
+{
+  global: tha_claire_*;
+  local: *;
+};
