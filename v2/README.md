@@ -4,6 +4,8 @@ P00 supplies an isolated Python package, strict local TOML config and read-only 
 
 The [P04 local browser](docs/p04.md) runs actual cached ASR/LLM/Qwen speech with LiveKit and Firefox/Chromium recovery. The [P05 library](docs/p05.md) adds a bounded canonical mesh import, consent, review, selection and active revocation path. These use a separate session runtime and PostgreSQL; they preserve the zero-dependency core below. The visual path is explicitly static until the real Claire/authorized-avatar gates pass.
 
+The [P06 native checkpoint](docs/p06.md) qualifies a separate synthetic CUDA/NVENC/C++ encoded publisher with browser frame metadata and recovery. Product integration, local packaging, virtual devices and the GPU memory gate remain unfinished; the preview retains the raw reference.
+
 From the repository root, with `uv` and Python 3.12 already installed:
 
 ```sh

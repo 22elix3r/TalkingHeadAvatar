@@ -1,0 +1,212 @@
+{
+  "schema_version": 1,
+  "phase": "P06",
+  "phase_status": "in_progress",
+  "scope": "synthetic standalone native publisher; not the product Qwen/session/mesh adapter",
+  "browser_report_sha256": "5c63d1577714241ad31c1d57c2e94b87280c2bc25c2a85d11e5bcace5e9549d2",
+  "browser_checks_pass": true,
+  "source_sha256": {
+    "native/media/CMakeLists.txt": "5e7a8100fb00915f6d82dd91ec68eea839243d5f46c9868a4cdd44c5ec0599e4",
+    "native/media/encoder_contract.cpp": "935018ff6f18a1d6fbf83966a88a2461ec3f04c9e643ce6734122ac68c973fed",
+    "native/media/encoder_probe.cpp": "5f0946cbcd1e54d19d324e3965598e84ef0f992aaca5057504ac58e89a8deef5",
+    "native/media/gpu_encoder.cpp": "a8b6c89b499d04880dfdfdb1f9bba23d2ae2326a7161e31fd35a44c0b37f44f3",
+    "native/media/gpu_encoder.h": "6e8603ff223310ff2d1a0d952235b66f34421704571925a98b9bc08f36c86240",
+    "native/media/kernels.cu": "2c3989df5d16a5c15b11da4483dd52e4565f9f41e03f3f5177698ae5dad7689d",
+    "native/media/publisher_probe.cpp": "a2dc32437a70eddf12eb36f7b839d6aaf0f3f26bb7755f896e1c5f8cc7b0157b",
+    "scripts/qualify_p06.py": "cdf0069364c2313a728fa6aa1320c40423e371776d49a82a73539d6449e936c1",
+    "scripts/build_livekit_cpp.py": "30acac2230c89df834cfb8363e0aece97cc6eee5499027a21d5e65c371b6783c",
+    "web/tests/native-media.spec.ts": "3163c779a3edfad8ea3a8c96945d88754dab48aae43daac922fb47a4e767404c",
+    "web/playwright.native.config.ts": "c98a057cfd5cfd5a52f76ea867f5f3d69a8b0bcd2e2f72508b54d53b9f8ecf5d"
+  },
+  "sdk_build": {
+    "schema_version": 1,
+    "sdk_tag": "v1.11.0",
+    "sdk_revision": "df8319db2f459d194ae0bb7a5d04920ce5641f81",
+    "rust_revision": "bae4df2f3d6c8f0f6ce81a7370c445779f1948d2",
+    "rust_version": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "cargo_lock_sha256": "f3dbfe24ec94cb2f37eede9962cf50c93673fa44c9c501fcd8c5d820bd93e5a7",
+    "artifacts": {
+      "lib/liblivekit.so": "5f7a0e95d3046f3c004ec69289ee42fcefc9580170f718d96dd5c8fa3308c175",
+      "lib/liblivekit_ffi.so": "851f26d27a83b342eb53e54be3cf27805880d6887a90b6266627ad26f9e471e6"
+    },
+    "model_weights_downloaded": false,
+    "global_toolchain_changed_by_this_build": false,
+    "toolchain_probe_correction": {
+      "recorded_at": "2026-10-26T23:13:41.501815+00:00",
+      "event": "An initial rustup which lookup automatically installed the versioned 1.99.0 alias; that new duplicate was removed. Existing stable toolchain remains active/default.",
+      "initial_auto_install_reverted": true,
+      "remaining_toolchain": "stable-x86_64-unknown-linux-gnu"
+    },
+    "nested_submodules": {
+      "yuv-sys/libyuv": "917276084a49be726c90292ff0a6b0a3d571a6af",
+      "livekit-protocol/protocol": "9a7c5cf96bbbcbc30a8ce76bca16815ba5b7bb33"
+    },
+    "cmake_version": "cmake version 3.31.11",
+    "cxx_version": "g++-14 (GCC) 14.3.1 20250808 (Red Hat 14.3.1-1)"
+  },
+  "gpu_contract": {
+    "gpu_contract": "passed",
+    "owner_lifetimes": 3,
+    "failed_initializations": 3,
+    "frames": 270,
+    "physical_av_qualified": false
+  },
+  "webrtc": {
+    "tag": "webrtc-89d790b",
+    "static_library_sha256": "daa499c9769ac884380dff248a533b8d1adb9a6c33e1a04f8e605dc0012bcb21",
+    "license_notice_sha256": "d9bec96179757b639f1db9bf8b607b66ab27756b3827e03eaec87c6dc5958723"
+  },
+  "probe": {
+    "frames": 300,
+    "keyframes": 11,
+    "coded_bytes": 1499180,
+    "render_gpu_total_ms": 3.23619,
+    "convert_gpu_total_ms": 2.12042,
+    "ready_wall_total_ms": 10.2595,
+    "ready_wall_max_ms": 0.329439,
+    "encode_wall_total_ms": 68.4283,
+    "wall_ms": 81.4154,
+    "gpu_surface_slots": 3,
+    "synthetic_pattern": true,
+    "raw_readback_trace_qualified": false
+  },
+  "decoded_file": [
+    {
+      "codec_name": "h264",
+      "profile": "Constrained Baseline",
+      "width": 512,
+      "height": 512,
+      "pix_fmt": "yuv420p",
+      "level": 31,
+      "color_range": "tv",
+      "color_space": "bt709",
+      "color_transfer": "bt709",
+      "color_primaries": "bt709",
+      "nb_read_frames": "300"
+    }
+  ],
+  "browser": {
+    "baseline": {
+      "evidence_sha256": "fbaa42f000bd5545e0ec738c521174a11175ba38a0ab5e4fc46b4ca266fbc77a",
+      "sender": {
+        "kind": "complete",
+        "audio_valid_samples": 384000,
+        "video_frames": 240,
+        "preparation_frames": 30,
+        "preparation_samples": 48000,
+        "keyframes": 12,
+        "feedback_keyframe_requests": 1,
+        "rate_updates": 10,
+        "encoder_framerate_updates": 0,
+        "encoder_rate_framerate": 30,
+        "renderer_framerate": 30,
+        "audio_sender_queue_ms": 0,
+        "maximum_schedule_lateness_ms": 0.121537,
+        "coded_bytes": 1321862,
+        "render_gpu_total_ms": 1.371712,
+        "convert_gpu_total_ms": 1.352864,
+        "encode_wall_total_ms": 86.980483,
+        "physical_presentation_qualified": false
+      },
+      "decoded_audio_observed": true,
+      "presented_valid_frame_ids": 240,
+      "valid_frames_sent": 240,
+      "presented_valid_fraction": 1.0,
+      "inbound_video": [
+        {
+          "packetsLost": 0,
+          "framesDecoded": 268,
+          "framesDropped": 0,
+          "freezeCount": 0,
+          "keyFramesDecoded": 11,
+          "totalDecodeTime": 0.118945
+        }
+      ],
+      "process_memory": {
+        "samples": 59,
+        "sampled_peak_mib": 857,
+        "poll_ms": 200,
+        "loading_peak_qualified": false,
+        "qwen_motion_coload_qualified": false
+      },
+      "encoder_512_mib_budget_pass": false,
+      "presentation_cadence_diagnostic_pass": true
+    },
+    "recovery": {
+      "evidence_sha256": "eb92a77efff083db16701df5129f4d47b0e8b6ddd85f078cc70774e1f08cfa93",
+      "sender": {
+        "kind": "complete",
+        "audio_valid_samples": 384000,
+        "video_frames": 240,
+        "preparation_frames": 30,
+        "preparation_samples": 48000,
+        "keyframes": 13,
+        "feedback_keyframe_requests": 2,
+        "rate_updates": 10,
+        "encoder_framerate_updates": 0,
+        "encoder_rate_framerate": 30,
+        "renderer_framerate": 30,
+        "audio_sender_queue_ms": 0,
+        "maximum_schedule_lateness_ms": 0.760466,
+        "coded_bytes": 1326595,
+        "render_gpu_total_ms": 1.347264,
+        "convert_gpu_total_ms": 1.364416,
+        "encode_wall_total_ms": 87.288547,
+        "physical_presentation_qualified": false
+      },
+      "decoded_audio_observed": true,
+      "presented_valid_frame_ids": 202,
+      "valid_frames_sent": 240,
+      "presented_valid_fraction": 0.8416666666666667,
+      "inbound_video": [
+        {
+          "packetsLost": 0,
+          "framesDecoded": 200,
+          "framesDropped": 0,
+          "freezeCount": 0,
+          "keyFramesDecoded": 7,
+          "totalDecodeTime": 0.09929099999999999
+        }
+      ],
+      "process_memory": {
+        "samples": 57,
+        "sampled_peak_mib": 857,
+        "poll_ms": 200,
+        "loading_peak_qualified": false,
+        "qwen_motion_coload_qualified": false
+      },
+      "encoder_512_mib_budget_pass": false,
+      "presentation_cadence_diagnostic_pass": null
+    }
+  },
+  "cuda_trace": {
+    "sha256": "0f5937e77a8b3e4c3e31dab18e512a7c2e4bb6b5edd709029364c038ded1e5ac",
+    "kernels": {
+      "Convert_PL2BL": 600,
+      "render_pattern": 300,
+      "rgba_to_nv12": 300
+    },
+    "allocation_api_calls": {
+      "cuMemAllocPitch_v2": 1,
+      "cuMemAlloc_v2": 3
+    },
+    "allocation_calls_after_first_kernel": 0,
+    "memcpy_api_calls": {},
+    "memcpy_activity_count": 0,
+    "no_raw_readback_observed": true,
+    "boundary": "CUDA-visible activity in this isolated 300-frame encoder process only; CPU encoded-payload copies remain"
+  },
+  "acceptance": {
+    "product_native_integration": false,
+    "physical_audio_video_skew": false,
+    "qwen_motion_render_coload": false,
+    "loading_memory_peak": false,
+    "cancel_epoch_churn": false,
+    "fresh_local_provision": false,
+    "conference_virtual_devices": false,
+    "release": false
+  },
+  "weights": "no model provisioning performed for P06; software SDK/dependencies fetched",
+  "cold_start_finding": "earlier unprepared baseline decoded 236/240 with zero packet loss; retained private separated-cohort report",
+  "preparation": "30 black frames and 48000 zero samples precede 240 valid pattern frames/384000 valid tone samples; never response latency credit"
+}
