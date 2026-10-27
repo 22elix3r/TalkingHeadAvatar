@@ -14,6 +14,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="tha", description="TalkingHeadAvatar V2 foundation")
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     commands = parser.add_subparsers(dest="command", required=True)
+    local = commands.add_parser('local', help='owned loopback profiles; software provisioning is offline-only')
+    local.add_argument('local_action', choices=('init', 'doctor', 'provision', 'up', 'down'))
+    local.add_argument('--name', required=True)
+    local.add_argument('--root', type=Path, required=True, help='V2 checkout root containing scripts and runtimes')
+    local.add_argument('--from-config', type=Path, help='init: existing operator-owned local runtime with verified cached models')
+    for name, port in [('api', 18710), ('postgres', 15442), ('signal', 17890), ('tcp', 17891), ('udp', 17892)]:
+        local.add_argument('--' + name + '-port', type=int, default=port)
     doctor = commands.add_parser("doctor", help="read-only environment diagnostics; no model loading")
     doctor.add_argument("--profile", choices=("local",), default="local")
     doctor.add_argument("--config", type=Path, help="TOML config; relative paths use its directory")
@@ -60,6 +67,27 @@ def main(argv: Sequence[str] | None = None) -> int:
     visual.add_argument("--tts-report", type=Path)
     visual.add_argument("--case", default="short")
     args = parser.parse_args(argv)
+    if args.command == 'local':
+        from talkinghead_v2 import local as profiles
+        try:
+            root = args.root.resolve()
+            if not (root/'scripts/serve_p04.py').is_file() or not (root/'runtimes/session-api/uv.lock').is_file():
+                raise ValueError('root must be the V2 checkout containing the qualified runtime')
+            if args.local_action == 'init':
+                if args.from_config is None:
+                    raise ValueError('local init requires --from-config; no model provisioning is inferred')
+                ports = {name: getattr(args, name + '_port') for name in ('api', 'postgres', 'signal', 'tcp', 'udp')}
+                result = profiles.initialize(root, args.name, args.from_config.resolve(), ports)
+            else:
+                result = getattr(profiles, args.local_action)(root, args.name)
+        except (OSError, ValueError, RuntimeError) as error:
+            # Native/HTTP errors can include URLs with credentials. Keep the
+            # detailed subprocess output in the private profile log instead.
+            if isinstance(error, OSError):
+                parser.error('local file/service operation unavailable; inspect the private profile and doctor checks')
+            parser.error(str(error))
+        print(json.dumps(result, indent=2))
+        return 0 if result['status'] not in {'incomplete'} else 1
     if args.command == "avatar":
         from talkinghead_v2.contracts import ContractError
         try:
