@@ -1,0 +1,667 @@
+{
+  "schema_version": 1,
+  "phase": "P03",
+  "phase_status": "in_progress",
+  "evidence_category": "local_source_and_numeric_parity_observation",
+  "scope": "official research-authorized vendor sample geometry matched to pinned Claire neutral arrays; no neural execution/quality inference",
+  "source_sha256": {
+    "scripts/qualify_claire_assets.py": "b3b5812e4e3bd49c2a5f347029dbf8882fa1e57bbefd2aabb8d051a7a5c0e4d9",
+    "src/talkinghead_v2/assets/maya_geometry.py": "a937d790612fd371397508e99ddcc8950c37f49b48ac4362e56dfbab2e9df359",
+    "src/talkinghead_v2/assets/pinned.py": "9901dc85e8b3c03cc657fda630437a1e1966963d3224f811925e5723032251db",
+    "configs/motion/claire-artifacts.json": "f45f43f5174360c1f8980ebce902a10d127cbeb108f40b8e3cffb643dc4bb91a",
+    "configs/motion/claire-maya-source.json": "8e07f63895ef35e963b121e8f5e748eee885872ba3694a82052e49ce7a2fff8a"
+  },
+  "cases": {
+    "skin": {
+      "node": "neutralShapeOrig",
+      "vertices": 61520,
+      "source_polygons": 61518,
+      "derived_triangles": 123036,
+      "neutral_max_absolute_error_cm": 5.000003966415534e-09,
+      "source_model_units": "centimeter",
+      "conversion_to_meters": 0.01,
+      "triangulation": "fixed source-quad diagonal preserving vertex order and triangle-to-source-polygon identity; no decimation",
+      "derived_artifact_sha256": "80e46c29c39c49db51785ee7037da33e7c0a94daf81e7cf4655784f0b028af4f",
+      "basis_archive_sha256": "cc94a937af9438f007b811b3f686015d7e96fc0ce964974905e130724ff1c4db"
+    },
+    "tongue": {
+      "node": "polySurfaceShape1_rest",
+      "vertices": 5602,
+      "source_polygons": 5600,
+      "derived_triangles": 11200,
+      "neutral_max_absolute_error_cm": 5.000003966415534e-09,
+      "source_model_units": "centimeter",
+      "conversion_to_meters": 0.01,
+      "triangulation": "fixed source-quad diagonal preserving vertex order and triangle-to-source-polygon identity; no decimation",
+      "derived_artifact_sha256": "6e04e7492b1657dea80d2026b85c8cfe0e215792f094058b4dd0976a079f69c9",
+      "basis_archive_sha256": "82032cb3a4f08d1f6e543ce80e8d9587aca8394b8cc009384ef21db19a90450e"
+    }
+  },
+  "negative_same_dimension_case": {
+    "node": "c_tongue_hiShapeOrig",
+    "max_absolute_error_cm": 0.2999305769329834,
+    "accepted": false
+  },
+  "numeric_archive_headers_and_finiteness": {
+    "bs_skin.npz": {
+      "eyeBlinkLeft": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "eyeLookDownLeft": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "eyeLookInLeft": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "eyeLookOutLeft": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "eyeLookUpLeft": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "eyeSquintLeft": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "eyeWideLeft": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "eyeBlinkRight": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "eyeLookDownRight": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "eyeLookInRight": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "eyeLookOutRight": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "eyeLookUpRight": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "eyeSquintRight": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "eyeWideRight": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "jawForward": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "jawLeft": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "jawRight": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "jawOpen": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "mouthClose": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "mouthFunnel": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "mouthPucker": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "mouthLeft": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "mouthRight": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "mouthSmileLeft": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "mouthSmileRight": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "mouthFrownLeft": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "mouthFrownRight": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "mouthDimpleLeft": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "mouthDimpleRight": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "mouthStretchLeft": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "mouthStretchRight": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "mouthRollLower": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "mouthRollUpper": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "mouthShrugLower": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "mouthShrugUpper": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "mouthPressLeft": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "mouthPressRight": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "mouthLowerDownLeft": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "mouthLowerDownRight": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "mouthUpperUpLeft": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "mouthUpperUpRight": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "browDownLeft": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "browDownRight": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "browInnerUp": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "browOuterUpLeft": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "browOuterUpRight": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "cheekPuff": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "cheekSquintLeft": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "cheekSquintRight": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "noseSneerLeft": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "noseSneerRight": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "tongueOut": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "neutral": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "poseNames": {
+        "dtype": "|S19",
+        "shape": [
+          53
+        ]
+      },
+      "frontalMask": {
+        "dtype": "int32",
+        "shape": [
+          10085
+        ]
+      }
+    },
+    "bs_tongue.npz": {
+      "neutral": {
+        "dtype": "float32",
+        "shape": [
+          5602,
+          3
+        ]
+      },
+      "tongueTipUp": {
+        "dtype": "float32",
+        "shape": [
+          5602,
+          3
+        ]
+      },
+      "tongueTipDown": {
+        "dtype": "float32",
+        "shape": [
+          5602,
+          3
+        ]
+      },
+      "tongueTipLeft": {
+        "dtype": "float32",
+        "shape": [
+          5602,
+          3
+        ]
+      },
+      "tongueTipRight": {
+        "dtype": "float32",
+        "shape": [
+          5602,
+          3
+        ]
+      },
+      "tongueRollUp": {
+        "dtype": "float32",
+        "shape": [
+          5602,
+          3
+        ]
+      },
+      "tongueRollDown": {
+        "dtype": "float32",
+        "shape": [
+          5602,
+          3
+        ]
+      },
+      "tongueRollLeft": {
+        "dtype": "float32",
+        "shape": [
+          5602,
+          3
+        ]
+      },
+      "tongueRollRight": {
+        "dtype": "float32",
+        "shape": [
+          5602,
+          3
+        ]
+      },
+      "tongueUp": {
+        "dtype": "float32",
+        "shape": [
+          5602,
+          3
+        ]
+      },
+      "tongueDown": {
+        "dtype": "float32",
+        "shape": [
+          5602,
+          3
+        ]
+      },
+      "tongueLeft": {
+        "dtype": "float32",
+        "shape": [
+          5602,
+          3
+        ]
+      },
+      "tongueRight": {
+        "dtype": "float32",
+        "shape": [
+          5602,
+          3
+        ]
+      },
+      "tongueIn": {
+        "dtype": "float32",
+        "shape": [
+          5602,
+          3
+        ]
+      },
+      "tongueStretch": {
+        "dtype": "float32",
+        "shape": [
+          5602,
+          3
+        ]
+      },
+      "tongueWide": {
+        "dtype": "float32",
+        "shape": [
+          5602,
+          3
+        ]
+      },
+      "tongueNarrow": {
+        "dtype": "float32",
+        "shape": [
+          5602,
+          3
+        ]
+      },
+      "poseNames": {
+        "dtype": "|S15",
+        "shape": [
+          17
+        ]
+      }
+    },
+    "implicit_emo_db.npz": {
+      "emo_db": {
+        "dtype": "float32",
+        "shape": [
+          26726,
+          16
+        ]
+      },
+      "emo_spec_names": {
+        "dtype": "|S20",
+        "shape": [
+          84
+        ]
+      },
+      "emo_spec_start": {
+        "dtype": "int32",
+        "shape": [
+          84
+        ]
+      },
+      "emo_spec_size": {
+        "dtype": "int32",
+        "shape": [
+          84
+        ]
+      }
+    },
+    "model_data.npz": {
+      "neutral_jaw": {
+        "dtype": "float32",
+        "shape": [
+          5,
+          3
+        ]
+      },
+      "shapes_matrix_skin": {
+        "dtype": "float32",
+        "shape": [
+          140,
+          61520,
+          3
+        ]
+      },
+      "shapes_mean_skin": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "shapes_matrix_tongue": {
+        "dtype": "float32",
+        "shape": [
+          10,
+          5602,
+          3
+        ]
+      },
+      "shapes_mean_tongue": {
+        "dtype": "float32",
+        "shape": [
+          5602,
+          3
+        ]
+      },
+      "lip_open_pose_delta": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "eye_close_pose_delta": {
+        "dtype": "float32",
+        "shape": [
+          61520,
+          3
+        ]
+      },
+      "saccade_rot_matrix": {
+        "dtype": "float32",
+        "shape": [
+          5000,
+          2
+        ]
+      }
+    }
+  },
+  "rights": {
+    "model": "NVIDIA Open Model License, retained pinned model card; specific user download authorization 2026-10-27",
+    "vendor_sample": "NVIDIA/Maya-ACE sample-project README + repository MIT license retained; local research authorization",
+    "human_consent_record": "not supplied; vendor sample is not user human-enrollment evidence",
+    "training_dataset": "not fetched; separate evaluation-only license does not govern this sample-project import by implication",
+    "commercial_distribution_clearance": false
+  },
+  "safety": {
+    "pickle_loaded": false,
+    "maya_or_mel_executed": false,
+    "external_scene_references_executed": false,
+    "source_assets_modified": false
+  },
+  "acceptance": {
+    "vertex_identity_parity": true,
+    "neural_execution": false,
+    "rig_gaussian_retarget": false,
+    "real_avatar_quality": false,
+    "physical_av": false,
+    "release": false
+  }
+}
