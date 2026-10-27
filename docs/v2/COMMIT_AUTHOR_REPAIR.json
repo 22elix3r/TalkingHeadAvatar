@@ -1,0 +1,350 @@
+{
+  "schema_version": 1,
+  "repository": "22elix3r/TalkingHeadAvatar",
+  "range_base_unchanged": "54b4f171a9bb193a6b648b8015fba6ba295368f0",
+  "legacy_tree_unchanged": "797507800e8276224c32c2f7179ce8b21d5618e4",
+  "commits_preserved": 17,
+  "identity_corrections": 5,
+  "commits": [
+    {
+      "old": "480928a3d09f552b6377d2bb418df9b78d535094",
+      "new": "4c848b04e1a0709967b0cf3667552e42c65c1d5b",
+      "tree": "f62df7f3c62f266edc5e8e0608f2679594d9a0dd",
+      "subject": "Add isolated V2 foundation and validated clock replay contracts",
+      "identity_fields_corrected": [
+        "author",
+        "committer"
+      ],
+      "tree_message_dates_preserved": true,
+      "resigned": true,
+      "signature_verified_locally": true
+    },
+    {
+      "old": "2bd1c82751a921043a89b1a22ae1cc11b66df755",
+      "new": "a819cccfb638eef8828ff27713a71850bd511788",
+      "tree": "93a061bb17a7b1249fd72a68bffa0b799f9ce4cb",
+      "subject": "Add verified Qwen provisioning and isolated reference runtime",
+      "identity_fields_corrected": [
+        "author",
+        "committer"
+      ],
+      "tree_message_dates_preserved": true,
+      "resigned": true,
+      "signature_verified_locally": true
+    },
+    {
+      "old": "a97cb549cca36fa39e5eef14af7cb81317216704",
+      "new": "acc5994775b3f780708cc8c9875997f2cf4f03ca",
+      "tree": "4cc396eaac418a5426aacdeafb31e4c1f4170b7c",
+      "subject": "Add native Qwen streaming and local playback qualification",
+      "identity_fields_corrected": [
+        "author",
+        "committer"
+      ],
+      "tree_message_dates_preserved": true,
+      "resigned": true,
+      "signature_verified_locally": true
+    },
+    {
+      "old": "ac8c9c8f3cf7e09e2502345111a859a6a8a9c162",
+      "new": "47df701a9ee065eab1699f2cefeec33bcde503ea",
+      "tree": "6fc6d7d919d089c457e2f60bf25129b22757f0ac",
+      "subject": "Qualify stable Qwen streaming and real local playback",
+      "identity_fields_corrected": [
+        "author",
+        "committer"
+      ],
+      "tree_message_dates_preserved": true,
+      "resigned": true,
+      "signature_verified_locally": true
+    },
+    {
+      "old": "1c7ec029f258ad8e0f419799d545cd9776c06bc1",
+      "new": "f7d9187ba6227855508b0e2d0d4127a999870616",
+      "tree": "ebf484c7485b41a8da4ec7196a28d86f9e06c7bc",
+      "subject": "Add P03 avatar compatibility and offline timing path",
+      "identity_fields_corrected": [
+        "author",
+        "committer"
+      ],
+      "tree_message_dates_preserved": true,
+      "resigned": true,
+      "signature_verified_locally": true
+    },
+    {
+      "old": "e66e3a1bb5ef981b52e3782d0de02b06cde752e6",
+      "new": "81656dd08c47c3b57296cf5fadf322f38531495c",
+      "tree": "5372b470233eff6f0bcb9d59479f3a881e6176c1",
+      "subject": "Add local P04 browser audio reference and measured recovery evidence",
+      "identity_fields_corrected": [],
+      "tree_message_dates_preserved": true,
+      "resigned": true,
+      "signature_verified_locally": true
+    },
+    {
+      "old": "e57c5382df6d82795f727a427b24c5f6a416959b",
+      "new": "fee370327d8365da75fd2c92a1d6e4083dce34b3",
+      "tree": "b9d84a2dda61a1d0dfb524ecf8bde2bf07b65f5a",
+      "subject": "Fix local Firefox media connection and verify recovery",
+      "identity_fields_corrected": [],
+      "tree_message_dates_preserved": true,
+      "resigned": true,
+      "signature_verified_locally": true
+    },
+    {
+      "old": "e98af25bbb5bca9c25332a0f49e8b7c8dde4171e",
+      "new": "2e46ed5a404c246fa754f3660e204cba058a6a08",
+      "tree": "bf868b98d7c50b534de6d4dd838028c46646dd3e",
+      "subject": "Add local asset import review and active revocation",
+      "identity_fields_corrected": [],
+      "tree_message_dates_preserved": true,
+      "resigned": true,
+      "signature_verified_locally": true
+    },
+    {
+      "old": "b00c945c68736d3ba8bcee48f9d34008e97629b7",
+      "new": "9b1bd25b370ea2d32c616d61e1c77323e8be70be",
+      "tree": "c6252c794d5681e9b41720d43093d96f28e3cbdd",
+      "subject": "Qualify native CUDA NVENC LiveKit media clock and recovery",
+      "identity_fields_corrected": [],
+      "tree_message_dates_preserved": true,
+      "resigned": true,
+      "signature_verified_locally": true
+    },
+    {
+      "old": "a8eeee039f349501b5ee28bab23d22f666dccae3",
+      "new": "2a9015bc10a140925eb8bc710e0161b06e540854",
+      "tree": "0f08aeab9c8fe48309b98bbce03a2c3102132363",
+      "subject": "Add offline isolated local profiles and owned API lifecycle",
+      "identity_fields_corrected": [],
+      "tree_message_dates_preserved": true,
+      "resigned": true,
+      "signature_verified_locally": true
+    },
+    {
+      "old": "75c96cda9b40e9aa591aa53d214c6277ef49a169",
+      "new": "d373b8a1f04974f6d8d54a3a6e81d404c9b07652",
+      "tree": "982cc4407a0266efc7c467fdab24362c5d1deb19",
+      "subject": "Qualify real Firefox virtual camera and microphone delivery",
+      "identity_fields_corrected": [],
+      "tree_message_dates_preserved": true,
+      "resigned": true,
+      "signature_verified_locally": true
+    },
+    {
+      "old": "0743c6bea5738d93f522ec1811aa8ed0d99e1de0",
+      "new": "731382ae810522ee9f9db00e6066f4861b167967",
+      "tree": "da4a9cf2e2cd6024c83f7fa1c70e7c577ba0c7c8",
+      "subject": "Fence managed GPU admission across profiles and worker lifetimes",
+      "identity_fields_corrected": [],
+      "tree_message_dates_preserved": true,
+      "resigned": true,
+      "signature_verified_locally": true
+    },
+    {
+      "old": "ff8a8740c150d606a6b98ffe4da063eac5ab2c12",
+      "new": "0571c61b4826487468624732f3070e287291e2f1",
+      "tree": "91cfd6e3a481dbf32bb8e30c9b60def7fc00be6f",
+      "subject": "Add qualified canonical CUDA mesh rasterization and immutable geometry",
+      "identity_fields_corrected": [],
+      "tree_message_dates_preserved": true,
+      "resigned": true,
+      "signature_verified_locally": true
+    },
+    {
+      "old": "0dc42ca3919f51984e044009357b08d380b7be84",
+      "new": "a850f5f39e9ee232945bab556953b94139d7d877",
+      "tree": "b78a20c7126b67686585cb06a8392411959a9604",
+      "subject": "Integrate Qwen sessions with native CUDA NVENC media workers",
+      "identity_fields_corrected": [],
+      "tree_message_dates_preserved": true,
+      "resigned": true,
+      "signature_verified_locally": true
+    },
+    {
+      "old": "1d5a845ce4938f4dc391e189b8fb3e0e34a01132",
+      "new": "31a2d5a0988c92dd9050d782adbe86e037b146c5",
+      "tree": "1cf2fe812f63899c74a5218f02765f9b7a928cbe",
+      "subject": "Qualify authorized Claire GPU inference and matching vendor geometry",
+      "identity_fields_corrected": [],
+      "tree_message_dates_preserved": true,
+      "resigned": true,
+      "signature_verified_locally": true
+    },
+    {
+      "old": "c95d010f1d6f566975a29314ae93257c41268d07",
+      "new": "13cdcc1886c0f5095af8b7808acc257554abdf22",
+      "tree": "ce9f388bd0b484146e5d4260d977a01e8125a0ba",
+      "subject": "Qualify full-size Claire GPU rendering and direct encoder ownership",
+      "identity_fields_corrected": [],
+      "tree_message_dates_preserved": true,
+      "resigned": true,
+      "signature_verified_locally": true
+    },
+    {
+      "old": "0f9ef44f9425a95bad224a9320b28d6e26d7df1e",
+      "new": "97eacd79086ced4c0d4954f9161f13e0e3d6eeca",
+      "tree": "9a0ac676a6c23c84174fa2935860c552c149aef7",
+      "subject": "Correct geometry service total to the captured render evidence",
+      "identity_fields_corrected": [],
+      "tree_message_dates_preserved": true,
+      "resigned": true,
+      "signature_verified_locally": true
+    }
+  ],
+  "branches": {
+    "refs/heads/v2/p02-qwen-streaming": {
+      "old": "ac8c9c8f3cf7e09e2502345111a859a6a8a9c162",
+      "new": "47df701a9ee065eab1699f2cefeec33bcde503ea"
+    },
+    "refs/heads/v2/p03-avatar-timing": {
+      "old": "1c7ec029f258ad8e0f419799d545cd9776c06bc1",
+      "new": "f7d9187ba6227855508b0e2d0d4127a999870616"
+    },
+    "refs/heads/v2/p04-browser-reference": {
+      "old": "e57c5382df6d82795f727a427b24c5f6a416959b",
+      "new": "fee370327d8365da75fd2c92a1d6e4083dce34b3"
+    },
+    "refs/heads/v2/p05-asset-lifecycle": {
+      "old": "e98af25bbb5bca9c25332a0f49e8b7c8dde4171e",
+      "new": "2e46ed5a404c246fa754f3660e204cba058a6a08"
+    },
+    "refs/heads/v2/p06-native-media": {
+      "old": "0f9ef44f9425a95bad224a9320b28d6e26d7df1e",
+      "new": "97eacd79086ced4c0d4954f9161f13e0e3d6eeca"
+    }
+  },
+  "legacy_history_rewritten": false,
+  "squashed_or_dropped_commits": false,
+  "backup_bundle_sha256": "3e26f1b739ae918b2a2446825bc7077095dbf81db645ac700226644ddbe9c1d0",
+  "github_verified_commits": [
+    {
+      "author": "22elix3r",
+      "committer": "22elix3r",
+      "reason": "valid",
+      "sha": "4c848b04e1a0709967b0cf3667552e42c65c1d5b",
+      "verified": true
+    },
+    {
+      "author": "22elix3r",
+      "committer": "22elix3r",
+      "reason": "valid",
+      "sha": "a819cccfb638eef8828ff27713a71850bd511788",
+      "verified": true
+    },
+    {
+      "author": "22elix3r",
+      "committer": "22elix3r",
+      "reason": "valid",
+      "sha": "acc5994775b3f780708cc8c9875997f2cf4f03ca",
+      "verified": true
+    },
+    {
+      "author": "22elix3r",
+      "committer": "22elix3r",
+      "reason": "valid",
+      "sha": "47df701a9ee065eab1699f2cefeec33bcde503ea",
+      "verified": true
+    },
+    {
+      "author": "22elix3r",
+      "committer": "22elix3r",
+      "reason": "valid",
+      "sha": "f7d9187ba6227855508b0e2d0d4127a999870616",
+      "verified": true
+    },
+    {
+      "author": "22elix3r",
+      "committer": "22elix3r",
+      "reason": "valid",
+      "sha": "81656dd08c47c3b57296cf5fadf322f38531495c",
+      "verified": true
+    },
+    {
+      "author": "22elix3r",
+      "committer": "22elix3r",
+      "reason": "valid",
+      "sha": "fee370327d8365da75fd2c92a1d6e4083dce34b3",
+      "verified": true
+    },
+    {
+      "author": "22elix3r",
+      "committer": "22elix3r",
+      "reason": "valid",
+      "sha": "2e46ed5a404c246fa754f3660e204cba058a6a08",
+      "verified": true
+    },
+    {
+      "author": "22elix3r",
+      "committer": "22elix3r",
+      "reason": "valid",
+      "sha": "9b1bd25b370ea2d32c616d61e1c77323e8be70be",
+      "verified": true
+    },
+    {
+      "author": "22elix3r",
+      "committer": "22elix3r",
+      "reason": "valid",
+      "sha": "2a9015bc10a140925eb8bc710e0161b06e540854",
+      "verified": true
+    },
+    {
+      "author": "22elix3r",
+      "committer": "22elix3r",
+      "reason": "valid",
+      "sha": "d373b8a1f04974f6d8d54a3a6e81d404c9b07652",
+      "verified": true
+    },
+    {
+      "author": "22elix3r",
+      "committer": "22elix3r",
+      "reason": "valid",
+      "sha": "731382ae810522ee9f9db00e6066f4861b167967",
+      "verified": true
+    },
+    {
+      "author": "22elix3r",
+      "committer": "22elix3r",
+      "reason": "valid",
+      "sha": "0571c61b4826487468624732f3070e287291e2f1",
+      "verified": true
+    },
+    {
+      "author": "22elix3r",
+      "committer": "22elix3r",
+      "reason": "valid",
+      "sha": "a850f5f39e9ee232945bab556953b94139d7d877",
+      "verified": true
+    },
+    {
+      "author": "22elix3r",
+      "committer": "22elix3r",
+      "reason": "valid",
+      "sha": "31a2d5a0988c92dd9050d782adbe86e037b146c5",
+      "verified": true
+    },
+    {
+      "author": "22elix3r",
+      "committer": "22elix3r",
+      "reason": "valid",
+      "sha": "13cdcc1886c0f5095af8b7808acc257554abdf22",
+      "verified": true
+    },
+    {
+      "author": "22elix3r",
+      "committer": "22elix3r",
+      "reason": "valid",
+      "sha": "97eacd79086ced4c0d4954f9161f13e0e3d6eeca",
+      "verified": true
+    }
+  ],
+  "merge_commit": "2d4a3d8ea18166a7d52250e5f1feed5dc4b97bf0",
+  "default_branch": "main",
+  "v1_branch": "v1/legacy",
+  "v1_branch_tip": "54b4f171a9bb193a6b648b8015fba6ba295368f0",
+  "legacy_runtime_files_removed_from_main": 1723,
+  "local_readme_deletions_not_staged": [
+    "data/README.md",
+    "output/README.md"
+  ]
+}

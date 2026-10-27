@@ -65,3 +65,24 @@ events.out.tfevents.*
 *.zip
 *.gif
 *.mp4
+
+# Archived V1 workspaces may retain local source/cache files after switching to main.
+/ARTIFACTS.md
+/GaussianAvatars/
+/VHAP/
+/activate_env.sh
+/audio_driver/
+/avatar_renderer.py
+/configs/
+/implementation_plan.md
+/models/
+/orchestrator/
+/run_demo.py
+/runtime_animation.py
+/runtime_app.py
+/scratch/
+/scripts/
+/test_render.png
+/tests/
+/tts_engine/
+/virtual_camera/

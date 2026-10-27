@@ -1,5 +1,7 @@
 # V1 implementation audit
 
+Historical source paths in this audit refer to [V1 on `v1/legacy`](https://github.com/22elix3r/TalkingHeadAvatar/tree/v1/legacy), preserved at `54b4f171a9bb193a6b648b8015fba6ba295368f0`. The default `main` runtime is V2.
+
 Audit date: **2026-10-25**. Repository baseline: `54b4f171a9bb193a6b648b8015fba6ba295368f0`.
 Companion to [the authoritative V2 plan](../../V2_RESEARCH_AND_BUILD_PLAN.md).
 

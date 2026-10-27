@@ -1,0 +1,11 @@
+# V2 attribution repair and branch layout
+
+Updated 2026-10-27 at the user's request. `main` is the default V2 branch. The original V1 runtime and its complete existing ancestry are preserved, unchanged, on [`v1/legacy`](https://github.com/22elix3r/TalkingHeadAvatar/tree/v1/legacy), at `54b4f171a9bb193a6b648b8015fba6ba295368f0`.
+
+Five early V2 commits used the `Elix3r` account's noreply attribution and an unknown signing key. Corrected their author and committer to `22elix3r <157088510+22elix3r@users.noreply.github.com>`. Recreated only the 17-commit V2 range after the unchanged V1 base, preserving every tree, message, author date and committer date. Descendant IDs necessarily changed with their parent IDs. All 17 were signed using the configured registered key and verified through GitHub's API as **valid**, with author and committer `22elix3r`. No V2 commits were squashed/dropped and no legacy commits were rewritten.
+
+All five P02–P06 branch refs were updated in one atomic push, each protected by its explicit previous-SHA force-with-lease. A verified private Git bundle retains every original ref/object for recovery; its checksum and the exact old/new commit map are in [structured history evidence](COMMIT_AUTHOR_REPAIR.json). Historical implementation notes retain the IDs used when their evidence was recorded; use that map for the corresponding current IDs. Source and benchmark file hashes are unchanged by the metadata repair.
+
+The signed merge includes the complete active phase-branch ancestry. The V1 runtime paths were then removed from the default tree, with the root README pointing to V2. The small tracked `data/README.md` and `output/README.md` placeholders are retained unchanged so pre-existing local deletions remain unstaged. Ignored legacy caches and `.git-empty-master-backup/` are preserved. V2 runtime sources and locks are unchanged by this branch split.
+
+Use a separate V1 checkout/worktree when working on legacy code. This archive is preservation, not a new V1 test or deployment pass; the historical dependency/collection limitations still apply. The root guidance and V1 audit identify the branch boundary. Missing V2 quality, live avatar, A/V, deployment and release gates remain visible in [implementation status](IMPLEMENTATION_STATUS.md).

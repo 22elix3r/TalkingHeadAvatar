@@ -2,6 +2,8 @@
 
 ## Project authority and scope
 
+`main` contains V2. The V1 runtime and original history are preserved on `v1/legacy`; run the V1-only checks below from a separate V1 worktree. Preserve ignored legacy caches and unrelated local changes when switching branches.
+
 For new V2 work, read `V2_RESEARCH_AND_BUILD_PLAN.md` and the relevant references in `docs/v2/`. The plan is a gated architecture, not proof of latency, quality or model fit. `docs/v2/V1_AUDIT.md` describes the actual legacy implementation and known failures. Preserve V1 unless the current task explicitly changes it; keep V2 dependencies and runtime separate.
 
 **Implementation entry point:** read `docs/v2/IMPLEMENTATION_PHASES.md` and `IMPLEMENTATION_STATUS.md`. Start P00 when implementation is requested; resume the current phase on “continue.” Implement the requested phase, fix relevant failures, and update status with actual commands/evidence and the next task. Do not repeat the broad research survey or fabricate a completed gate. Planned paths/CLI names are not implemented features.
