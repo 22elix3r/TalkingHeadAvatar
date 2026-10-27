@@ -27,6 +27,20 @@ from talkinghead_v2.session.device import DeviceLease
 ROOT=Path(__file__).resolve().parents[1]
 
 
+def receiver_video_stats(stats):
+    """Export only bounded counters, never track, transport or candidate IDs."""
+    rows=[]
+    for stat in stats:
+        if stat.WhichOneof('stats')!='inbound_rtp' or stat.inbound_rtp.stream.kind!='video':continue
+        inbound=stat.inbound_rtp.inbound;received=stat.inbound_rtp.received
+        rows.append({'frames_received':inbound.frames_received,'frames_decoded':inbound.frames_decoded,
+            'frames_dropped':inbound.frames_dropped,'packets_received':received.packets_received,
+            'packets_lost':received.packets_lost,'packets_discarded':inbound.packets_discarded,
+            'retransmitted_packets_received':inbound.retransmitted_packets_received,
+            'nack_count':inbound.nack_count,'pli_count':inbound.pli_count,'fir_count':inbound.fir_count})
+    return rows
+
+
 async def main(args):
     if args.directory.exists():raise ValueError('preserve previous worker evidence')
     bridge=json.loads((ROOT/'benchmarks/reports/p03-claire-bridge.json').read_text())
@@ -77,7 +91,7 @@ async def main(args):
         for name,count,fault in selected_cases:
             directory=args.directory/name;directory.mkdir(mode=0o700);sid='claire-worker-'+name;room_name='claire-worker-'+name
             tts=None;live_metrics=None
-            receive_room=None;tasks=[];streams=[];receiver={'audio_frames':0,'audio_samples':0,'maximum_rms':0.,'video':[],'idle_frames':0,'preroll_frames':0};subscribed=asyncio.Event();kinds=set()
+            receive_room=None;tasks=[];streams=[];tracks={};queues={};receiver={'audio_frames':0,'audio_samples':0,'maximum_rms':0.,'video':[],'idle_frames':0,'preroll_frames':0};subscribed=asyncio.Event();kinds=set()
             if name.startswith('qwen_'):
                 receive_room=rtc.Room();owned_rooms.append(receive_room)
                 @receive_room.on('track_subscribed')
@@ -87,7 +101,7 @@ async def main(args):
                         stream=rtc.VideoStream(track) if video else rtc.AudioStream(track,sample_rate=48000,num_channels=1,frame_size_ms=10)
                         if type(stream._queue).__name__!='RingQueue':raise ValueError('unqualified receiver queue implementation')
                         stream._queue=CheckedReceiveQueue(30);streams.append(stream)
-                        kinds.add('video' if video else 'audio')
+                        kind='video' if video else 'audio';tracks[kind]=track;queues[kind]=stream._queue;kinds.add(kind)
                         if len(kinds)==2:subscribed.set()
                         async for item in stream:
                             if video:
@@ -102,7 +116,10 @@ async def main(args):
                                 if identity.get('idle_after_eof'):
                                     receiver['idle_frames']+=1
                                     continue
+                                arrival_ns=time.monotonic_ns()
+                                first_ns=receiver.setdefault('_first_source_arrival_ns',arrival_ns)
                                 receiver['video'].append({'source_sample':identity['source_sample'],'source_pts_us':item.metadata.user_timestamp,
+                                    'frame_id':item.metadata.frame_id,'arrival_offset_us':(arrival_ns-first_ns)//1000,
                                     'decoded_sha256':hashlib.sha256(item.frame.data).hexdigest(),'width':item.frame.width,'height':item.frame.height})
                             else:
                                 values=item.frame.data;receiver['audio_frames']+=1;receiver['audio_samples']+=len(values)
@@ -196,6 +213,16 @@ async def main(args):
                             await asyncio.sleep(.4)
                             for task in tasks:
                                 if task.done():task.result()
+                            try:
+                                stats=await asyncio.wait_for(tracks['video'].get_stats(),5)
+                                receiver['video_rtp_stats']=receiver_video_stats(stats)
+                                receiver['video_rtp_stats_available']=bool(receiver['video_rtp_stats'])
+                            except Exception:
+                                receiver['video_rtp_stats']=[];receiver['video_rtp_stats_available']=False
+                            for task in tasks:
+                                if task.done():task.result()
+                            receiver['checked_queue_peak_frames']={kind:queue.peak for kind,queue in queues.items()}
+                            receiver.pop('_first_source_arrival_ns',None)
                             rows=receiver['video'];positions=[row['source_sample'] for row in rows]
                             if (len(rows)<50 or len(set(row['decoded_sha256'] for row in rows))<10 or receiver['maximum_rms']<100 or
                                 positions!=sorted(set(positions)) or positions[0]!=0 or positions[-1]!=(count-1)//1600*1600 or receiver['preroll_frames']<1 or receiver['idle_frames']<1 or any(row['width']!=512 or row['height']!=512 for row in rows)):

@@ -1,0 +1,220 @@
+{
+  "schema_version": 1,
+  "observation": "Repeated local same-utterance Qwen/Claire/LiveKit Python receiver trials, not a loss-rate, browser or physical A/V qualification.",
+  "cases": [
+    {
+      "name": "integration",
+      "sender_source_frames": 324,
+      "sender_video_skipped": 0,
+      "received_source_frames": 312,
+      "missing_source_frame_indices": [
+        208,
+        211,
+        222,
+        225,
+        230,
+        246,
+        262,
+        266,
+        268,
+        271,
+        276,
+        295
+      ],
+      "first_and_last_source_frame_received": true,
+      "input_and_worker_source_sha256": {
+        "native/media/claire_session_worker.cpp": "29dddf9cae30015c13356f3ca483541d418d9fe50558a1dc7e75e9f780692186",
+        "native/motion/claire_bridge.cpp": "87d03fd75d924b168114f204a3f991c8f42db48725cb68aa91d78e32245ef0f6",
+        "native/motion/claire_bridge.h": "031832df8263c662d40a6e34fa1fd49be6385686216ca8716c2786d1cd385834",
+        "native/media/CMakeLists.txt": "996889da78c33abdf24f26a9f0dd0689706a3424f881fe8462c90755188f0c2a",
+        "src/talkinghead_v2/providers/motion/paired.py": "8cfbfd955361451cfe5f6c1b468e9e86512fed886757c7b63b61902caf816946",
+        "scripts/qualify_claire_session_worker.py": "a3b6007bdf5ea14a08d6165745cc059175b92f009dab85fc7e988988b3c3c4e4",
+        "src/talkinghead_v2/providers/tts/native.py": "b2724a1a6a657ead3021dccf543772862595f8d9aa8f334901533d5342a4e31e"
+      },
+      "binary_sha256": "2f35bbcf18b5d964ffe278c64661723098510830b82b508fcf57439ea468d108"
+    },
+    {
+      "name": "repeat-1",
+      "sender_source_frames": 324,
+      "sender_video_skipped": 0,
+      "received_source_frames": 324,
+      "missing_source_frame_indices": [],
+      "first_and_last_source_frame_received": true,
+      "input_and_worker_source_sha256": {
+        "native/media/claire_session_worker.cpp": "29dddf9cae30015c13356f3ca483541d418d9fe50558a1dc7e75e9f780692186",
+        "native/motion/claire_bridge.cpp": "87d03fd75d924b168114f204a3f991c8f42db48725cb68aa91d78e32245ef0f6",
+        "native/motion/claire_bridge.h": "031832df8263c662d40a6e34fa1fd49be6385686216ca8716c2786d1cd385834",
+        "native/media/CMakeLists.txt": "996889da78c33abdf24f26a9f0dd0689706a3424f881fe8462c90755188f0c2a",
+        "src/talkinghead_v2/providers/motion/paired.py": "8cfbfd955361451cfe5f6c1b468e9e86512fed886757c7b63b61902caf816946",
+        "scripts/qualify_claire_session_worker.py": "a3b6007bdf5ea14a08d6165745cc059175b92f009dab85fc7e988988b3c3c4e4",
+        "src/talkinghead_v2/providers/tts/native.py": "b2724a1a6a657ead3021dccf543772862595f8d9aa8f334901533d5342a4e31e"
+      },
+      "binary_sha256": "2f35bbcf18b5d964ffe278c64661723098510830b82b508fcf57439ea468d108"
+    },
+    {
+      "name": "repeat-2",
+      "sender_source_frames": 324,
+      "sender_video_skipped": 0,
+      "received_source_frames": 324,
+      "missing_source_frame_indices": [],
+      "first_and_last_source_frame_received": true,
+      "input_and_worker_source_sha256": {
+        "native/media/claire_session_worker.cpp": "29dddf9cae30015c13356f3ca483541d418d9fe50558a1dc7e75e9f780692186",
+        "native/motion/claire_bridge.cpp": "87d03fd75d924b168114f204a3f991c8f42db48725cb68aa91d78e32245ef0f6",
+        "native/motion/claire_bridge.h": "031832df8263c662d40a6e34fa1fd49be6385686216ca8716c2786d1cd385834",
+        "native/media/CMakeLists.txt": "996889da78c33abdf24f26a9f0dd0689706a3424f881fe8462c90755188f0c2a",
+        "src/talkinghead_v2/providers/motion/paired.py": "8cfbfd955361451cfe5f6c1b468e9e86512fed886757c7b63b61902caf816946",
+        "scripts/qualify_claire_session_worker.py": "a3b6007bdf5ea14a08d6165745cc059175b92f009dab85fc7e988988b3c3c4e4",
+        "src/talkinghead_v2/providers/tts/native.py": "b2724a1a6a657ead3021dccf543772862595f8d9aa8f334901533d5342a4e31e"
+      },
+      "binary_sha256": "2f35bbcf18b5d964ffe278c64661723098510830b82b508fcf57439ea468d108"
+    },
+    {
+      "name": "repeat-3",
+      "sender_source_frames": 324,
+      "sender_video_skipped": 0,
+      "received_source_frames": 324,
+      "missing_source_frame_indices": [],
+      "first_and_last_source_frame_received": true,
+      "input_and_worker_source_sha256": {
+        "native/media/claire_session_worker.cpp": "29dddf9cae30015c13356f3ca483541d418d9fe50558a1dc7e75e9f780692186",
+        "native/motion/claire_bridge.cpp": "87d03fd75d924b168114f204a3f991c8f42db48725cb68aa91d78e32245ef0f6",
+        "native/motion/claire_bridge.h": "031832df8263c662d40a6e34fa1fd49be6385686216ca8716c2786d1cd385834",
+        "native/media/CMakeLists.txt": "996889da78c33abdf24f26a9f0dd0689706a3424f881fe8462c90755188f0c2a",
+        "src/talkinghead_v2/providers/motion/paired.py": "8cfbfd955361451cfe5f6c1b468e9e86512fed886757c7b63b61902caf816946",
+        "scripts/qualify_claire_session_worker.py": "a3b6007bdf5ea14a08d6165745cc059175b92f009dab85fc7e988988b3c3c4e4",
+        "src/talkinghead_v2/providers/tts/native.py": "b2724a1a6a657ead3021dccf543772862595f8d9aa8f334901533d5342a4e31e"
+      },
+      "binary_sha256": "2f35bbcf18b5d964ffe278c64661723098510830b82b508fcf57439ea468d108"
+    },
+    {
+      "name": "instrumented-1",
+      "sender_source_frames": 324,
+      "sender_video_skipped": 0,
+      "received_source_frames": 322,
+      "missing_source_frame_indices": [
+        296,
+        303
+      ],
+      "first_and_last_source_frame_received": true,
+      "input_and_worker_source_sha256": {
+        "native/media/claire_session_worker.cpp": "29dddf9cae30015c13356f3ca483541d418d9fe50558a1dc7e75e9f780692186",
+        "native/motion/claire_bridge.cpp": "87d03fd75d924b168114f204a3f991c8f42db48725cb68aa91d78e32245ef0f6",
+        "native/motion/claire_bridge.h": "031832df8263c662d40a6e34fa1fd49be6385686216ca8716c2786d1cd385834",
+        "native/media/CMakeLists.txt": "996889da78c33abdf24f26a9f0dd0689706a3424f881fe8462c90755188f0c2a",
+        "src/talkinghead_v2/providers/motion/paired.py": "8cfbfd955361451cfe5f6c1b468e9e86512fed886757c7b63b61902caf816946",
+        "scripts/qualify_claire_session_worker.py": "fd46659fc27252c97d9f7b05dea89e1b95e221093e0df218bc9e33a765fb69bf",
+        "src/talkinghead_v2/providers/tts/native.py": "b2724a1a6a657ead3021dccf543772862595f8d9aa8f334901533d5342a4e31e"
+      },
+      "binary_sha256": "2f35bbcf18b5d964ffe278c64661723098510830b82b508fcf57439ea468d108",
+      "video_rtp_stats_available": true,
+      "video_rtp_stats": [
+        {
+          "frames_received": 352,
+          "frames_decoded": 350,
+          "frames_dropped": 0,
+          "packets_received": 2028,
+          "packets_lost": 0,
+          "packets_discarded": 0,
+          "retransmitted_packets_received": 0,
+          "nack_count": 0,
+          "pli_count": 0,
+          "fir_count": 0
+        }
+      ],
+      "checked_queue_peak_frames": {
+        "video": 1,
+        "audio": 5
+      }
+    },
+    {
+      "name": "instrumented-2",
+      "sender_source_frames": 324,
+      "sender_video_skipped": 0,
+      "received_source_frames": 322,
+      "missing_source_frame_indices": [
+        301,
+        306
+      ],
+      "first_and_last_source_frame_received": true,
+      "input_and_worker_source_sha256": {
+        "native/media/claire_session_worker.cpp": "29dddf9cae30015c13356f3ca483541d418d9fe50558a1dc7e75e9f780692186",
+        "native/motion/claire_bridge.cpp": "87d03fd75d924b168114f204a3f991c8f42db48725cb68aa91d78e32245ef0f6",
+        "native/motion/claire_bridge.h": "031832df8263c662d40a6e34fa1fd49be6385686216ca8716c2786d1cd385834",
+        "native/media/CMakeLists.txt": "996889da78c33abdf24f26a9f0dd0689706a3424f881fe8462c90755188f0c2a",
+        "src/talkinghead_v2/providers/motion/paired.py": "8cfbfd955361451cfe5f6c1b468e9e86512fed886757c7b63b61902caf816946",
+        "scripts/qualify_claire_session_worker.py": "fd46659fc27252c97d9f7b05dea89e1b95e221093e0df218bc9e33a765fb69bf",
+        "src/talkinghead_v2/providers/tts/native.py": "b2724a1a6a657ead3021dccf543772862595f8d9aa8f334901533d5342a4e31e"
+      },
+      "binary_sha256": "2f35bbcf18b5d964ffe278c64661723098510830b82b508fcf57439ea468d108",
+      "video_rtp_stats_available": true,
+      "video_rtp_stats": [
+        {
+          "frames_received": 352,
+          "frames_decoded": 350,
+          "frames_dropped": 0,
+          "packets_received": 2068,
+          "packets_lost": 0,
+          "packets_discarded": 0,
+          "retransmitted_packets_received": 0,
+          "nack_count": 0,
+          "pli_count": 0,
+          "fir_count": 0
+        }
+      ],
+      "checked_queue_peak_frames": {
+        "video": 2,
+        "audio": 5
+      }
+    },
+    {
+      "name": "instrumented-3",
+      "sender_source_frames": 324,
+      "sender_video_skipped": 0,
+      "received_source_frames": 323,
+      "missing_source_frame_indices": [
+        224
+      ],
+      "first_and_last_source_frame_received": true,
+      "input_and_worker_source_sha256": {
+        "native/media/claire_session_worker.cpp": "29dddf9cae30015c13356f3ca483541d418d9fe50558a1dc7e75e9f780692186",
+        "native/motion/claire_bridge.cpp": "87d03fd75d924b168114f204a3f991c8f42db48725cb68aa91d78e32245ef0f6",
+        "native/motion/claire_bridge.h": "031832df8263c662d40a6e34fa1fd49be6385686216ca8716c2786d1cd385834",
+        "native/media/CMakeLists.txt": "996889da78c33abdf24f26a9f0dd0689706a3424f881fe8462c90755188f0c2a",
+        "src/talkinghead_v2/providers/motion/paired.py": "8cfbfd955361451cfe5f6c1b468e9e86512fed886757c7b63b61902caf816946",
+        "scripts/qualify_claire_session_worker.py": "fd46659fc27252c97d9f7b05dea89e1b95e221093e0df218bc9e33a765fb69bf",
+        "src/talkinghead_v2/providers/tts/native.py": "b2724a1a6a657ead3021dccf543772862595f8d9aa8f334901533d5342a4e31e"
+      },
+      "binary_sha256": "2f35bbcf18b5d964ffe278c64661723098510830b82b508fcf57439ea468d108",
+      "video_rtp_stats_available": true,
+      "video_rtp_stats": [
+        {
+          "frames_received": 352,
+          "frames_decoded": 350,
+          "frames_dropped": 0,
+          "packets_received": 2029,
+          "packets_lost": 0,
+          "packets_discarded": 0,
+          "retransmitted_packets_received": 0,
+          "nack_count": 0,
+          "pli_count": 0,
+          "fir_count": 0
+        }
+      ],
+      "checked_queue_peak_frames": {
+        "audio": 5,
+        "video": 1
+      }
+    }
+  ],
+  "counter_scope": "SDK inbound RTP totals include preroll and post-EOF idle; snapshot is asynchronous relative to sender and callback counts.",
+  "limitations": [
+    "Missing source frames do not establish where frames were dropped.",
+    "Zero SDK-reported packet loss does not prove perfect network delivery.",
+    "Runs share one host, model, utterance and local service configuration; no independent sample or concurrency/capacity qualification.",
+    "Arrival offsets are callback observations, not physical screen presentation."
+  ],
+  "physical_av_qualified": false,
+  "visual_quality_qualified": false,
+  "additional_downloads": false
+}
