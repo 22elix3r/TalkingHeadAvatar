@@ -1,0 +1,263 @@
+{
+  "schema_version": 1,
+  "evidence_category": "local_observation",
+  "evaluator": {
+    "schema_version": 1,
+    "role": "offline_quality_evaluator_not_serving_asr",
+    "model_id": "openai/whisper-base.en",
+    "revision": "911407f4214e0e1d82085af863093ec0b66f9cd6",
+    "files": [
+      {
+        "path": "added_tokens.json",
+        "size": 34604,
+        "sha256": "560be47bea388757f8d4cc185c5d82067426cbb6361e38016dd90ddc01ab203a",
+        "url": "https://huggingface.co/openai/whisper-base.en/resolve/911407f4214e0e1d82085af863093ec0b66f9cd6/added_tokens.json"
+      },
+      {
+        "path": "config.json",
+        "size": 1937,
+        "sha256": "160c1df40a60d4ef5a6014d536fd845c33aabfd1f318458ac7f87cfe91ebbe76",
+        "url": "https://huggingface.co/openai/whisper-base.en/resolve/911407f4214e0e1d82085af863093ec0b66f9cd6/config.json"
+      },
+      {
+        "path": "generation_config.json",
+        "size": 1531,
+        "sha256": "c5750f05d94777579e00ce26ef65e5d87c108439f90e3ac519df2587b9d5d41f",
+        "url": "https://huggingface.co/openai/whisper-base.en/resolve/911407f4214e0e1d82085af863093ec0b66f9cd6/generation_config.json"
+      },
+      {
+        "path": "merges.txt",
+        "size": 456318,
+        "sha256": "1ce1664773c50f3e0cc8842619a93edc4624525b728b188a9e0be33b7726adc5",
+        "url": "https://huggingface.co/openai/whisper-base.en/resolve/911407f4214e0e1d82085af863093ec0b66f9cd6/merges.txt"
+      },
+      {
+        "path": "model.safetensors",
+        "size": 290401888,
+        "sha256": "d4dd5542fd6a1d35639e21384238f3bfe6c557c849d392b5905d33ee29e71db5",
+        "url": "https://huggingface.co/openai/whisper-base.en/resolve/911407f4214e0e1d82085af863093ec0b66f9cd6/model.safetensors"
+      },
+      {
+        "path": "normalizer.json",
+        "size": 52666,
+        "sha256": "bf1c507dc8724ca9cf9903640dacfb69dae2f00edee4f21ceba106a7392f26dd",
+        "url": "https://huggingface.co/openai/whisper-base.en/resolve/911407f4214e0e1d82085af863093ec0b66f9cd6/normalizer.json"
+      },
+      {
+        "path": "preprocessor_config.json",
+        "size": 184990,
+        "sha256": "9b5cd03a36fbb8a627c64d98a5b5b126ead95a77720723944487311f0110b666",
+        "url": "https://huggingface.co/openai/whisper-base.en/resolve/911407f4214e0e1d82085af863093ec0b66f9cd6/preprocessor_config.json"
+      },
+      {
+        "path": "special_tokens_map.json",
+        "size": 1830,
+        "sha256": "014f8f802366ed818919550be0ad9e35907327cb9e142e8aaa102420f460bda8",
+        "url": "https://huggingface.co/openai/whisper-base.en/resolve/911407f4214e0e1d82085af863093ec0b66f9cd6/special_tokens_map.json"
+      },
+      {
+        "path": "tokenizer.json",
+        "size": 2405679,
+        "sha256": "5eb60cec1e77aeeb6869a2bb5a8e01a84c3fe5d072d75369343021fe6f5310d0",
+        "url": "https://huggingface.co/openai/whisper-base.en/resolve/911407f4214e0e1d82085af863093ec0b66f9cd6/tokenizer.json"
+      },
+      {
+        "path": "tokenizer_config.json",
+        "size": 805,
+        "sha256": "14f84bdf4b9ecdbd4738ddc81c17a1baedfc02bb93c6e049c951e15a1b40b70d",
+        "url": "https://huggingface.co/openai/whisper-base.en/resolve/911407f4214e0e1d82085af863093ec0b66f9cd6/tokenizer_config.json"
+      },
+      {
+        "path": "vocab.json",
+        "size": 798156,
+        "sha256": "3ba3c3109ff33976c4bd966589c11ee14fcaa1f4c9e5e154c2ed7f99d80709e7",
+        "url": "https://huggingface.co/openai/whisper-base.en/resolve/911407f4214e0e1d82085af863093ec0b66f9cd6/vocab.json"
+      }
+    ],
+    "terms": {
+      "hf_model_card": "Apache-2.0",
+      "original_openai_code": "MIT",
+      "transformers_runtime": "Apache-2.0"
+    },
+    "sources": [
+      "https://huggingface.co/openai/whisper-base.en/blob/911407f4214e0e1d82085af863093ec0b66f9cd6/README.md",
+      "https://github.com/openai/whisper/blob/main/LICENSE"
+    ]
+  },
+  "voice_kind": "synthetic_fixture",
+  "native_worker_environment": {
+    "GGML_CUDA_DISABLE_GRAPHS": "1",
+    "THA_QWEN_ASYNC_DECODE": "0"
+  },
+  "reference_sampling": {
+    "do_sample": true,
+    "temperature": 0.75,
+    "top_k": 16,
+    "top_p": 1.0,
+    "repetition_penalty": 1.02,
+    "subtalker_dosample": true,
+    "subtalker_temperature": 0.75,
+    "subtalker_top_k": 16,
+    "subtalker_top_p": 0.9,
+    "max_new_tokens": 1024,
+    "seed": 17
+  },
+  "reference_report_sha256": "647bea0fa18ea18e6b8e44d8290265aeb813dab7312bb41af8840ef44677cf16",
+  "native_report_sha256": "08bb8239938a878fbd431cd220cb6cd95c727f0f6dd1ba4b962bbb3daa37b882",
+  "device": "cpu",
+  "dtype": "float32",
+  "torch_threads": 2,
+  "requests": [
+    {
+      "provider": "official_bf16",
+      "id": "short",
+      "wave_sha256": "b2931f5640a5270722d87f196a973713d964593a8f0b2280b7043d9b28cfff8a",
+      "transcript": " Hello, this is the first local QN speech test.",
+      "reference_words": 9,
+      "substitutions": 1,
+      "deletions": 0,
+      "insertions": 0,
+      "errors": 1,
+      "wer": 0.1111111111111111
+    },
+    {
+      "provider": "official_bf16",
+      "id": "numbers",
+      "wave_sha256": "913aa97ff39f8fa07fd21b845870efc78ac00ed5307260c105296ae37f6bf7f5",
+      "transcript": " At 3.45 pm, Dr. Green paid $12.50 for 2.5 kg. The meeting is on October 26, 2026.",
+      "reference_words": 21,
+      "substitutions": 2,
+      "deletions": 1,
+      "insertions": 0,
+      "errors": 3,
+      "wer": 0.14285714285714285
+    },
+    {
+      "provider": "official_bf16",
+      "id": "unicode",
+      "wave_sha256": "c309df796cfd99945e33b1294e84a6eb5cb9cd9b0fb5fbda1600d1c64da3c997",
+      "transcript": " The cafe is open, an M-a pause and a question. Are you ready?",
+      "reference_words": 15,
+      "substitutions": 2,
+      "deletions": 1,
+      "insertions": 0,
+      "errors": 3,
+      "wer": 0.2
+    },
+    {
+      "provider": "official_bf16",
+      "id": "very_short",
+      "wave_sha256": "222092a066223ba3255c6357db29b8365a743e3c2e2630593d419058ccb2bb12",
+      "transcript": " Yes.",
+      "reference_words": 1,
+      "substitutions": 0,
+      "deletions": 0,
+      "insertions": 0,
+      "errors": 0,
+      "wer": 0.0
+    },
+    {
+      "provider": "official_bf16",
+      "id": "long",
+      "wave_sha256": "d588491f4d4c80e049d458e46c073cea2940017568f7beee22176945ae8d8918",
+      "transcript": " This longer passage checks whether audio can start while speech generation is still running. The first sound should reach the output device before the whole paragraph has been synthesized. A short pause follows this sentence. We then continue with another sentence, keeping each sample in order and preserving the final sound. Numbers such as 123 should remain understandable. If an interruption occurs, the old generation must stop and a fresh answer should begin with a clean boundary. This is a synthetic reference voice, so the result demonstrates the pipeline and does not establish the quality of cloning a real speaker.",
+      "reference_words": 104,
+      "substitutions": 1,
+      "deletions": 4,
+      "insertions": 0,
+      "errors": 5,
+      "wer": 0.04807692307692308
+    },
+    {
+      "provider": "native_f16_streaming",
+      "id": "short",
+      "wave_sha256": "ceab2462830bf500f1c1fa783061189e451c711c5f85a4220c9aa283cae299e5",
+      "transcript": " Hello, this is the first local QN speech test.",
+      "reference_words": 9,
+      "substitutions": 1,
+      "deletions": 0,
+      "insertions": 0,
+      "errors": 1,
+      "wer": 0.1111111111111111
+    },
+    {
+      "provider": "native_f16_streaming",
+      "id": "numbers",
+      "wave_sha256": "4c82b61d73490da1c96f67bfb482c18c3e0d2a45ac0962dbefd0a28c811b3594",
+      "transcript": " At 3.45pm Dr. Green paid $12.50 for 2.5 kg. The meeting is on October 26th, 2026.",
+      "reference_words": 21,
+      "substitutions": 3,
+      "deletions": 2,
+      "insertions": 0,
+      "errors": 5,
+      "wer": 0.23809523809523808
+    },
+    {
+      "provider": "native_f16_streaming",
+      "id": "unicode",
+      "wave_sha256": "24215eacaf0c45689a9323aba46cf03881132bc444062d428a2f4322cba4cc68",
+      "transcript": " The cafe is open. An M-a pause and a question. Are you ready?",
+      "reference_words": 15,
+      "substitutions": 2,
+      "deletions": 1,
+      "insertions": 0,
+      "errors": 3,
+      "wer": 0.2
+    },
+    {
+      "provider": "native_f16_streaming",
+      "id": "very_short",
+      "wave_sha256": "a83aefecfd7245a34fa4256ceb15a18693520c2ab0c029ff1502ef5e49e125ba",
+      "transcript": " Yes.",
+      "reference_words": 1,
+      "substitutions": 0,
+      "deletions": 0,
+      "insertions": 0,
+      "errors": 0,
+      "wer": 0.0
+    },
+    {
+      "provider": "native_f16_streaming",
+      "id": "long",
+      "wave_sha256": "75bab5323961b89f600be5d350b8ace6a2fbd08ca417830ecdbc92799e6da217",
+      "transcript": " This longer passage checks whether audio can start while speech generation is still running. The first sound should reach the output device before the whole paragraph has been synthesized. A short pause follows this sentence. We then continue with another sentence, keeping each sample in order and preserving the final sound. Numbers such as 123 should remain understandable. If an interruption occurs, the old generation must stop and a fresh answer should begin with a clean boundary. boundary. This is a synthetic reference voice, so the result demonstrates the pipeline and does not establish the quality of cloning a real speaker.",
+      "reference_words": 104,
+      "substitutions": 1,
+      "deletions": 4,
+      "insertions": 1,
+      "errors": 6,
+      "wer": 0.057692307692307696
+    }
+  ],
+  "aggregates": {
+    "official_bf16": {
+      "reference_words": 150,
+      "errors": 12,
+      "wer": 0.08
+    },
+    "native_f16_streaming": {
+      "reference_words": 150,
+      "errors": 15,
+      "wer": 0.1
+    }
+  },
+  "human_listening": "pending",
+  "human_cloning_qualified": false,
+  "normalization": "NFKC, casefold, non-alphanumeric to spaces; no number/abbreviation or accent equivalence",
+  "limitations": [
+    "ASR errors and legitimate verbalizations count in strict WER; inspect rows",
+    "Five synthetic-voice text cases; no independent human or population-quality conclusion"
+  ],
+  "segment_check": {
+    "transcript": " First, I will read three small sentences. Next, I will say the number 12.5. Finally, the last word is complete.",
+    "wave_sha256": "b2e3e0d36fb3d1ae768d5d34cb1a8f8b4678cc7b3f9d62f6e9a226f0ef53d880",
+    "text_fixture_sha256": "07aa967fd8a81950780aa4d3d29a4a359b731eec91e4aa67ec4755fb93ccf3f3",
+    "native_eof_count": 1,
+    "reference_words": 22,
+    "substitutions": 2,
+    "deletions": 1,
+    "insertions": 0,
+    "errors": 3,
+    "wer": 0.13636363636363635
+  }
+}

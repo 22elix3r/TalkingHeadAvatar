@@ -1,0 +1,264 @@
+{
+  "schema_version": 1,
+  "phase": "P05",
+  "evidence_category": "local_observation",
+  "status": "functional_static_import_and_revocation_passed_full_enrollment_and_quality_pending",
+  "git_parent": "e57c5382df6d82795f727a427b24c5f6a416959b",
+  "source_files": {
+    "src/talkinghead_v2/__init__.py": "43be91f7f3e07c61cb5eac58f01db316423940c4a6103617521d855eeeedac29",
+    "src/talkinghead_v2/__main__.py": "9d2e98f4ff33defe0a6338df5b44357d0b0a91b25a650c064f22a0f88185be82",
+    "src/talkinghead_v2/assets/__init__.py": "e6a8b32b242f7f920696c7311273225b2d090c6a5f8658338370b4fb66544803",
+    "src/talkinghead_v2/assets/artifacts.py": "5702a5c324602691f4c4b26e3a496464fcdab8c406655759783ffd45bf9ba71d",
+    "src/talkinghead_v2/assets/avatar.py": "45f2bc5b65cd14f9b69ecbe762aeea7dcd49e42eb82fb762fd99fb0513893036",
+    "src/talkinghead_v2/assets/voices.py": "8304296630d1ae31b4d86bae9b8f76eb1c3704a70c3b6611a7718a74efd5f33c",
+    "src/talkinghead_v2/audio/__init__.py": "1347e1aa07fb3949fb5a2a3df02a3570604e1ef0dcbe9fb0976e9e059e1b7ea6",
+    "src/talkinghead_v2/audio/capture.py": "5419c1bf649d56919a1738331a7b518813165d895dcb2918b9d8b34b10cdd2c8",
+    "src/talkinghead_v2/audio/clock.py": "fe2b44b9cbf1e512d2af99225891749be9214e1588bc23f2ca943ea7f33d63c5",
+    "src/talkinghead_v2/audio/motion.py": "6d416b98a8aba428a61fc5842c0897461e84a4b4fe7eb1fdf6a741ed47c88fa5",
+    "src/talkinghead_v2/audio/playback.py": "4c14e27b642b720996715b11dba7ec45fc563171ac54503d4c18bfbe2881a542",
+    "src/talkinghead_v2/audio/qualify.py": "0c40bbf417337c694354b06522d3a62311deabd7395096819ef8dc1decf0ce4c",
+    "src/talkinghead_v2/audio/queue.py": "ce5235807e8552ae3b4d0f89add947d4ed25bb6ff9f55d9364f8ced382c3fcc3",
+    "src/talkinghead_v2/audio/resample.py": "646b19a26ea4945be5822b1eb3c7948b57f6f2e338063e0d55c0f2f14bdcd8a9",
+    "src/talkinghead_v2/avatar_replay.py": "d50390def5577e19a8260951afe05d660967f58bfa9e33228354c395f8b19617",
+    "src/talkinghead_v2/cli.py": "4620c40617af8e1307456681d1ecb41d38833611def4465dd99f1d70ee0e5bc4",
+    "src/talkinghead_v2/config.py": "8b5722414c26b1cbf174ef9fac2fd542f007030e48684b1de36fbbdc47334048",
+    "src/talkinghead_v2/contracts/__init__.py": "3b6b480c777924727188ba231e170b4b3c4b03605ac0c3fc8acecb82fbf7d4f9",
+    "src/talkinghead_v2/conversation.py": "91e32d116cabc04a3154f83fed577a16b81b784f48fe989f234a7d30ac57b3ff",
+    "src/talkinghead_v2/doctor.py": "e3d622cac1510670570180397d815e2180afb39538b41e545823f68142f8f4ef",
+    "src/talkinghead_v2/fixtures/p01.json": "c2f4011018597185e1ddcd801d018942dea73b5635393e6d3f1c7610ce921d19",
+    "src/talkinghead_v2/fixtures/p03-avatar/avatar.json": "9d3d7729c40dcd1b7ddcf40036f68bf6692aa14dc1ef28aa64a7f5c6c6fd2e89",
+    "src/talkinghead_v2/fixtures/p03-avatar/mesh.json": "b3394654239f8bfb24a0f48ad5f515445de2efca569d0ea3f486729a6e093379",
+    "src/talkinghead_v2/providers/__init__.py": "4c012f5de61efa288b0bbfece2f179ca0b4ee20693ba40c5ac96f0d3dde00139",
+    "src/talkinghead_v2/providers/motion/__init__.py": "e57a00454a6866726c1c42e2a7c7970a2c93188d451a4d14626cedf409a627f5",
+    "src/talkinghead_v2/providers/motion/claire.py": "4b810c11a994ab261e269804254301d49028b02228535f9aab71da28bbe7e4cd",
+    "src/talkinghead_v2/providers/tts/__init__.py": "b0c5f5a13b135b5cba4870a208ec91634203580bc28ce2df871b4f2bd4ca797e",
+    "src/talkinghead_v2/providers/tts/benchmark.py": "86f1a9c42f9c49b1d97ff6f178b1ebe595894c80c695cc7b2ba51e49e245f773",
+    "src/talkinghead_v2/providers/tts/native.py": "deb0c0368fdbbf95eee167d9fb2d5f5998b2c2d13ed85193663aa0a81cf0e4ae",
+    "src/talkinghead_v2/providers/tts/quality.py": "4df680e19444a9b71e811dc7454b872b00310e4dc5209475b3ef34461f94a381",
+    "src/talkinghead_v2/providers/tts/reference.py": "b89ec308e0ae78acc78ba328c46116e5e1acdda886c25edbe42d3ef435d0dfd4",
+    "src/talkinghead_v2/providers/tts/segments.py": "99001467dc063f3596adc3e88ea3234ce4c89942ae273d01245b3c890220d582",
+    "src/talkinghead_v2/providers/tts/speech.py": "c4f7944b1db46fb82d4773500029f671e76727011e7317f54711d8e430853ac5",
+    "src/talkinghead_v2/rendering/__init__.py": "483940a74cbd1b4897f756e3145c9638975eb4cd0c268a85ceafb94a5f923d3c",
+    "src/talkinghead_v2/rendering/mesh.py": "826b20e41e41bd921c00530cd623b8162a70f4933f6ad679ec99cc2309e60eeb",
+    "src/talkinghead_v2/rendering/timeline.py": "29226ed6880a502783c5dfb4ab19e12ca56f1159349d1fd45b167bce02574937",
+    "src/talkinghead_v2/replay.py": "b433323fab7ddccf59e4c98908c7791dc919b2b11364a36113e19f5e160305bc",
+    "src/talkinghead_v2/retarget.py": "ea08c4477d5a8b2a85beae4527c06559a7d3894d6c6b5fd6abe5cc74e0ebdb39",
+    "src/talkinghead_v2/server/__init__.py": "0cdf2b3f638e25c34d7a7a0c9305767f9f4337b170a10b0265ead2e51c2a0514",
+    "src/talkinghead_v2/server/actor.py": "6b25952877f6639e7e5c00628ba04397636d0eef34469d63061bd710fce3876d",
+    "src/talkinghead_v2/server/app.py": "66dbe319380f59fff3dcc9503db5ec218b425c635e9eab31d5e5fce8342212c9",
+    "src/talkinghead_v2/server/config.py": "23aab6383d6f0bf8a8162c7eeaabcc997aa8b65bf718c838ce229897c5c0d0b5",
+    "src/talkinghead_v2/server/db.py": "b3dc666d90eb3d3020cbbd956a2353ee657cb2701263ec1bc720d2667e0a28be",
+    "src/talkinghead_v2/server/importer.py": "a5c17a13ea99e5c6a6b7fbc220c59fa88574b83cb95f98e5dd44e4e8f894334a",
+    "src/talkinghead_v2/server/lifecycle.py": "3d4b3f2c77eb3a26d1eab99f52cf7d24a5d7196461c2546d80cea22dd87cabd3",
+    "src/talkinghead_v2/server/lifecycle_api.py": "9289b2bccb389aa5dcfc98cbaa2e170e499367c9b55f7194eac902d5a2f6f749",
+    "src/talkinghead_v2/server/providers.py": "e054778a30c083d0e7a7e725ea382c7892ca683a71d2a25ebd1f2b22ea12487e",
+    "src/talkinghead_v2/server/transport.py": "726cbdfde372cd4c84d2b582bdf6c6e38c754627c5fb13c20aa740846f355d18",
+    "src/talkinghead_v2/session/__init__.py": "4ea2767a37555aecc8b5b3df910e9a6ba4c0b7af700dabce7f9215a06a8a586c",
+    "src/talkinghead_v2/session/epochs.py": "4f8d92b4f5f781f8b17742a64dae6a81bcd667905d4d8ecdee9972ba092881fb",
+    "src/talkinghead_v2/session/sinks.py": "31debd36018455cdb9cda17e688ce85e1fe85720964ef5096fa38469b413b196",
+    "src/talkinghead_v2/session/synthetic.py": "438b4b2e0ad046bf3aa075cbfab7ec0b9c40fdb191d7488743f9769f2ca7c041",
+    "scripts/build_qwen.py": "206b392e782fff7962150a03036f80af275b02e7637bfecba7a12f4107df67bf",
+    "scripts/check_p04_firefox.py": "d5081ba3e5377fbe2816ff6dcff2a11314c98daabfb314b861056f48f2159af2",
+    "scripts/create_p04_microphone_fixture.py": "aa284dca790be16613cc3f531b0d98ba6cde4d2af02dad1e399ad2530405a85d",
+    "scripts/create_synthetic_reference.py": "b5cb136bc576d778d6d30c4c9fc716c78921adf89bf130188f15127d6d1c4507",
+    "scripts/cuda_header_overlay.py": "60d24427cb364cf74d5cf20dc6fc7314c67e1e5405322fadb23ae31028b45e73",
+    "scripts/p04_local.py": "27d95839bc94f2c97ffc6c195320ebdc7c99f70f55172db27f358460ed2c4733",
+    "scripts/package_mesh_import.py": "8c50c92ec97aac56bf395135a2ab6119b501a7078b73bfe7f1725fac34cbad9f",
+    "scripts/pin_native_runtime.py": "39d07969bbb2acc0b4c5f38f813378c62df42b99c6fa489356aa11ed8d73449e",
+    "scripts/pin_qwen_manifest.py": "46a2819ed748cd65e34b4812a9cf4a5d6a8e5a3e3770f2cbe2b3760bdd9302bd",
+    "scripts/prepare_listening_packet.py": "0f6cbc888cbde50c67642eb09c7c43c80302f90b99114c1b6a960c525bc6a158",
+    "scripts/provision_whisper_evaluator.py": "db30da1ff3db69b7293e3861f49d39fe614413855ea251cd295b9f34d9916139",
+    "scripts/publish_qwen_evidence.py": "186127fcb63075c3e307fa98edd8d93bc82c7b14c052a581ffd9d5ab5804514b",
+    "scripts/qualify_p04.py": "60f360ba592508f55d1d69337067a5aef76dc0fcad6f36e989c567f74fe89b9e",
+    "scripts/qualify_p05.py": "81c181be7818b6a4a14cb07dbac49438dae7be46355fdccef5d9da793c0ab64f",
+    "scripts/serve_p04.py": "4d637b8620ac1117e3acbdf2ae0a0500db6a93e2d7b9fd6112fa69488bb80b16",
+    "scripts/verify_avatar_replay.py": "3d8d13fd693c3c9058974b74b5ccfd6e80f64cc5f11a6059d6284ca44fa73350",
+    "web/src/AssetLibrary.tsx": "235131abcf0fb6e68282fd170ad3c00d1b580bf1caca206d2dd26b996bd1efbc",
+    "web/src/api.ts": "60af318f063717be1d786fc0b980776b187c30de5154e39a315410f7139ba218",
+    "web/src/client.ts": "3ea19eb87dff8d042d96f05d6ffcc9ab79c898f38524a17e08c2f8b609e19c46",
+    "web/src/main.tsx": "84861353eb8f823b6f3d91d5d16d02990ba51615b94ad96b49cb66abcf8a45b7",
+    "web/src/playback.ts": "3c056a17bd895d9a35b20ca107af4171d278d286a9e139a4cd6573c78133c742",
+    "web/src/style.css": "264fb7e49b4fb61bf710f085b7c3083936385a4b9bf1d11222d08f5f8b979220",
+    "web/tests/browser-connection.spec.ts": "709e0edf9cbd55d23795dd50ced8f95f300ab19169018bdf2bf656d32d8e9c27",
+    "web/tests/browser-latency.spec.ts": "42e5bd1feb56f14957c9a3ff8aa480d2fd4dc06f4a4dabd0d18002e9774039e3",
+    "web/tests/browser-permission.spec.ts": "a4f3b62627ef399d7642ffe099815cb53c3cf123d1541306f2fb51274651f852",
+    "web/tests/browser.spec.ts": "c5ae4c64dbbb3cb4a80d980f3ce9be584b19920ecc95e163e5a05801ef22e0f4",
+    "web/tests/firefox.spec.ts": "7c79152ce9ef2a52ef47816c611e324bb1549bb0cbf68fc53779c7869defaa3f",
+    "web/tests/lifecycle.spec.ts": "f468b1a6dd10f6fcf0275bba6d830e3bb81732341b2a6267085ed6f23d1fe144",
+    "web/tests/playback.test.ts": "39b760063c2ab544aa1f1da23e772bb8081ee41976f904c7a301d48331a71da1",
+    "web/tests/ready.ts": "232601a49cec3484606889c9e31d581353c2ee1b0a0f4981ee2d5c2d3132d524",
+    "runtimes/session-api/migrations/env.py": "335dd8fa7fd781bb8640fe8c1de08aa72286975586fca7c3d319ce4de470d621",
+    "runtimes/session-api/migrations/versions/0001_sessions.py": "7771a074bb0920fcc0045bee33e1f940f7950082d1abc37e5d4896064289156d",
+    "runtimes/session-api/migrations/versions/0002_asset_lifecycle.py": "dcfc7100e878e9d02f28b5d98785260dec73059dd1004f12a543ff90d91c3407",
+    "runtimes/session-api/migrations/versions/0003_job_attempts.py": "9f155e0439ba14a44c55b4c432fef9042c6717164e1cc92e2792a233b3c72d81",
+    "runtimes/session-api/tests/test_control_api.py": "44b453412ac2adbe8f5ef85526726bd1baa3e14f9b8eecfc9095a093f7155c53",
+    "runtimes/session-api/tests/test_lifecycle.py": "c5ad356f140c3dc162a716ccd46d2d20e586c681771c006736cd51da782b92e7",
+    "web/playwright.config.ts": "7e6f1f071608ce675d93483fef423c045d0913a608eb47c61bf38e2bf901517a",
+    "web/playwright.firefox.config.ts": "90c7b890d71d4c843a5ca487e9f843fef93f59d052be0f43ebd43cc202ecb910",
+    "web/playwright.lifecycle.config.ts": "5c102782af2b26995490c756887f1f47f122b25d16f6311956d01a911a8b3911"
+  },
+  "core_tests": 213,
+  "runtime_tests": 19,
+  "core_junit_sha256": "561940c4fa121cc75d520ac83d6a81546d95b631ae06097ee70ac1c6712acc2a",
+  "runtime_junit_sha256": "4d52afddffc9da51ec666dac6cccf4633d9a6cab93cfd2347dd40eece8922614",
+  "locks": {
+    "uv.lock": "e392747f1cc84b27da55319c712e6077b7e9f9f53a5af0e8e8e40aa48a27f9d6",
+    "runtimes/session-api/uv.lock": "f3a1a1bd04fc90d782900a982f3da710948a3cf48f8a1aefd22abc31658f8af0",
+    "web/package-lock.json": "d6fe47ee94bc5bb267edd9045b6dacc1ae9f93c664d18429b415cea21c28baf3"
+  },
+  "tts_descriptor_sha256": "a6a33b0821183f0605ed22727e2ea6219139fc9701c91c66cceede188f76c0c4",
+  "p04_source_lock_sha256": "a29a3acbe6784867742a0517ebe23f0b5776b8dfe5555dccb2b91e3b2f8e57a4",
+  "schema_revision": "p05_0003",
+  "schema_matches_models": true,
+  "browser_lifecycle": {
+    "sha256": "3bbaf900281081920a23cd58b7d861902588900fe36b1d1e42c9579dd33be94c",
+    "cases": [
+      "real import, review, select, Qwen conversation and active revocation",
+      "lost enrollment and approval responses retry without duplicate resources"
+    ],
+    "stats": {
+      "startTime": "2026-10-26T22:52:21.943Z",
+      "duration": 24150.608,
+      "expected": 2,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    }
+  },
+  "browser_p04_regression": {
+    "sha256": "769f0b86df0d6d557c67b06e905d61b354c69d79e3abd4536516774741a63d0e",
+    "cases": [
+      "failed media connection releases admission and can be retried",
+      "controlled client graph endpoint to received audio latency",
+      "native microphone denial keeps typed recovery available",
+      "real typed LLM/Qwen/LiveKit audio and replacement-track interruption",
+      "synthetic microphone through real CPU ASR, LLM, Qwen and browser receiver",
+      "autoplay failure has a user recovery and disconnect detaches old output",
+      "changing microphone ends the old session before a fresh connection",
+      "connection can be cancelled while providers prepare"
+    ],
+    "stats": {
+      "startTime": "2026-10-26T22:53:11.267Z",
+      "duration": 50138.744,
+      "expected": 8,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    }
+  },
+  "browser_firefox": {
+    "sha256": "0108e605180322956663a578526310c2e81aeed5f5691570343964dd9fbb2073",
+    "cases": [
+      "Firefox connects and receives real Qwen audio with loopback ICE disabled"
+    ],
+    "stats": {
+      "startTime": "2026-10-26T22:54:23.066Z",
+      "duration": 7190.335,
+      "expected": 1,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    }
+  },
+  "installed_firefox": {
+    "schema_version": 1,
+    "browser": "149.0.2",
+    "driver": "geckodriver 0.37.1 (300705c65d1b 2026-07-17 09:25 +0000)",
+    "driver_sha256": "f831b7e61454804e8a307edd951bf8a5f373efe3f718e75454a6485a51f6e39f",
+    "loopback_ice_enabled": false,
+    "profile": "disposable synthetic microphone; real cached LLM/Qwen/LiveKit",
+    "forced_loopback_failure_reproduced": true,
+    "retry_after_failure_passed": true,
+    "passed": [
+      "typed connection",
+      "received nonzero audio",
+      "interrupt gates output",
+      "fresh epoch and replacement audio",
+      "microphone publication",
+      "end and new session"
+    ],
+    "selected_remote_is_non_loopback": true,
+    "selected_protocols": [
+      "udp"
+    ],
+    "decoded_audio_observations": 2,
+    "physical_output_qualified": false,
+    "human_microphone_quality_qualified": false
+  },
+  "installed_firefox_result_sha256": "d547632b4f55577e419f8ae719c9e995ed82edabb77b17cd078b250e9005460d",
+  "lifecycle": {
+    "fixture": "first-party procedural mesh; existing synthetic Qwen voice",
+    "import_review_select": true,
+    "real_qwen_received": true,
+    "revocation_gated_receiver": true,
+    "deletion_receipt": "complete",
+    "old_join_grant_denied": true,
+    "still_valid_sfu_token": {
+      "connected": true,
+      "remoteTracks": 0
+    },
+    "instantaneous_token_invalidation_claimed": false,
+    "human_quality_qualified": false,
+    "observations": [
+      {
+        "kind": "connected",
+        "clock_id": "browser_performance",
+        "time_ms": 3280.39999999851,
+        "microphone": false
+      },
+      {
+        "kind": "local_output_muted",
+        "clock_id": "browser_performance",
+        "time_ms": 3612.7999999970198,
+        "epoch": 0
+      },
+      {
+        "kind": "playback_binding",
+        "clock_id": "browser_performance",
+        "time_ms": 3682.6999999955297,
+        "epoch": 1,
+        "audio_sid": "TR_AM4yx268ExezZH",
+        "video_sid": "TR_VCD6yS7gDTeeQV"
+      },
+      {
+        "kind": "video_presented_callback",
+        "clock_id": "browser_performance",
+        "time_ms": 9298.39999999851,
+        "epoch": 1,
+        "video_sid": "TR_VCD6yS7gDTeeQV",
+        "visual_mode": "static_reference"
+      },
+      {
+        "kind": "decoded_audio_observed",
+        "clock_id": "browser_performance",
+        "time_ms": 9815.29999999702,
+        "epoch": 1,
+        "audio_sid": "TR_AM4yx268ExezZH",
+        "boundary": "browser WebAudio graph; physical output unqualified"
+      },
+      {
+        "kind": "receiver_recovery_required",
+        "clock_id": "browser_performance",
+        "time_ms": 11463.29999999702
+      },
+      {
+        "kind": "stopped",
+        "clock_id": "browser_performance",
+        "time_ms": 11469.5
+      }
+    ]
+  },
+  "model_weight_downloads": false,
+  "new_dependencies": false,
+  "fixture_manifest_sha256": "9d3d7729c40dcd1b7ddcf40036f68bf6692aa14dc1ef28aa64a7f5c6c6fd2e89",
+  "fixture_mesh_sha256": "b3394654239f8bfb24a0f48ad5f515445de2efca569d0ea3f486729a6e093379",
+  "limitations": [
+    "Static canonical CPU mesh import only; no reconstruction/training or Claire/Gaussian path",
+    "Existing synthetic Qwen conditioning only; human voice enrollment not implemented",
+    "No independent human likeness/lip-sync/voice quality or three-identity qualification",
+    "Receiver graph gating is not a calibrated physical stale-speech timing measurement",
+    "Old SFU token may join an empty room; instantaneous token invalidation is not claimed",
+    "Eight-hour local development identity only; hosted OIDC/roles/account recovery pending",
+    "Backup retention/restore/tombstone replay and distributed native lease enforcement pending"
+  ]
+}

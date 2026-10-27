@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "evidence_category": "local_observation",
+  "phase": "P02",
+  "observed_duration_seconds": 746.946068654,
+  "completed_requests": 245,
+  "failures": [
+    {
+      "id": "long",
+      "epoch": 184,
+      "error": "invalid native protocol frame"
+    }
+  ],
+  "stability_30_minutes_passed": false,
+  "status": "interrupted_after_failure",
+  "worker_sha256": "18cb5927c649d1e10ee665f426fed55565cc1699b4567cc30d1322c3395c7686",
+  "notes": [
+    "Original run had one invalid protocol frame on epoch 184; exact emitting bytes were not retained",
+    "Bridge shared stdout with libraries; replacement uses a dedicated descriptor and redirects library stdout",
+    "Only intermediate aggregate/last-request progress survived this interrupted first run; new runs persist every request"
+  ]
+}

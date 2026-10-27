@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "asset_id": "nvidia-maya-claire-v2-topo1",
+  "source_repository": "NVIDIA/Maya-ACE",
+  "revision": "f0dc13670952c495450dab1655c94e9056c9d7d9",
+  "files": [
+    {
+      "path": "LICENSE.txt",
+      "size": 1098,
+      "sha256": "1b5d1c68f3e42a5a880eb0d6ef1ca6f7479bbf94475234f2caf52efb347cdd55",
+      "url": "https://raw.githubusercontent.com/NVIDIA/Maya-ACE/f0dc13670952c495450dab1655c94e9056c9d7d9/LICENSE.txt"
+    },
+    {
+      "path": "sample_project/README.md",
+      "size": 8314,
+      "sha256": "f7e1bd46d72df05ab081d82a7612a28dc7af61b31a1474c1a83d319f8caf1a0b",
+      "url": "https://raw.githubusercontent.com/NVIDIA/Maya-ACE/f0dc13670952c495450dab1655c94e9056c9d7d9/sample_project/README.md"
+    },
+    {
+      "path": "sample_project/maya_blendshape_v2/claire_arkit_v2_topo1.ma",
+      "size": 78070108,
+      "sha256": "2c041f57fc715c05ed3048df4450b2c202326712364a340c9cef889957145f1c",
+      "url": "https://media.githubusercontent.com/media/NVIDIA/Maya-ACE/f0dc13670952c495450dab1655c94e9056c9d7d9/sample_project/maya_blendshape_v2/claire_arkit_v2_topo1.ma"
+    }
+  ],
+  "provenance_kind": "research_authorized_vendor_sample",
+  "terms": "Repository MIT license and sample-project README retained; sample geometry only; no license inferred for external models or training datasets",
+  "allowed_scope": "local noncommercial research evaluation requested by user 2026-10-27",
+  "human_consent_record": "not supplied; this is a vendor sample, not user-owned human enrollment or consent evidence",
+  "executable_content_policy": "Maya ASCII is treated strictly as untrusted text; never execute MEL, Maya, Python or external references from the scene",
+  "model_weights": false
+}

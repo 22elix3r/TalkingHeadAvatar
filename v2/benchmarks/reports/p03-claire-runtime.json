@@ -1,0 +1,241 @@
+{
+  "schema_version": 1,
+  "phase": "P03",
+  "phase_status": "in_progress",
+  "scope": "pinned SDK/isolated TensorRT software build, not full upstream dataset-dependent unit suite",
+  "sdk_revision": "1ca0f02535ed774f5dbcd724a31cd486368dc783",
+  "source_clean": true,
+  "source_acquisition": "GIT_LFS_SKIP_SMUDGE=1 git clone --filter=blob:none --no-checkout, then detached pinned checkout",
+  "excluded": "upstream sample/test-data package, model/emotion download helpers, install-pip-deps target, bundled compiler/Python provisioning",
+  "dependency_manifest_sha256": "75009e0d9e32885fb022c6c596485db919e7f2c699628abddf4465ac91d4e5c4",
+  "original_dependency_manifest_sha256": "a6dcd44af842a6e092caaa0e3d39dd487c37a2cb95775c8554841add571cad04",
+  "package_trees": {
+    "7zz/24.09": {
+      "files": 6,
+      "tree_sha256": "0d7e3729a08b7ba5519c37abe6daf492ecb8561c0e6ec2f767bfeaadc13749b4"
+    },
+    "audiofile/1.1.1-0": {
+      "files": 7,
+      "tree_sha256": "0dfc87a89fa5d9de3fcd6773c07f9c6c3670829e4a3c056167309d6e039b1f17"
+    },
+    "benchmark/1.9.1-1-linux-x86_64-release": {
+      "files": 10,
+      "tree_sha256": "0f09d9c42b3d846d4d9a99e07bebb1ffeeea883e43d9007197824d3e049330c5"
+    },
+    "cnpy/20180601-0-cci-linux-x86_64-static-release": {
+      "files": 9,
+      "tree_sha256": "b0b9b25c3f94db6e65fa5346f5310cb4d1975cf44997d04620b2104506c1b272"
+    },
+    "cxxopts/3.2.0-1": {
+      "files": 7,
+      "tree_sha256": "b6cdcf9b0f61fcfeb5e2b2f996dccc8d309992f2514215bdd22c2ed2e5abce3c"
+    },
+    "eigen/3.4.0-0": {
+      "files": 542,
+      "tree_sha256": "8664aee09b29ed8a3a819da5771ecbfedc1428c6f9bee64b822c7501ac1a057d"
+    },
+    "gtest/1.13.0-0-linux-x86_64-static-release": {
+      "files": 50,
+      "tree_sha256": "1e3d5faf15f2790abc244d78e3d9b02938fd178183b7cc94cb78a5ac36ef2d31"
+    },
+    "magic_enum/0.9.5-0": {
+      "files": 15,
+      "tree_sha256": "53f6f9a031cfe8197fdbc44e9758df407ecde43d67d115c78446830542c8e0b0"
+    },
+    "nlohmann_json/3.11.2-0": {
+      "files": 54,
+      "tree_sha256": "21a980fb57f1824972d83aa9259ad5ebfe8b3f7ecd32c7b3d9bd014d4c6a0b6c"
+    },
+    "refl-cpp/0.12.4-0": {
+      "files": 7,
+      "tree_sha256": "b8ed719421267a092142b37fff26373cade02be4bb11cbac8b5f21583341528c"
+    },
+    "tbtsvd/0.0-21e06aa-1": {
+      "files": 5,
+      "tree_sha256": "1985877349907bb86795fcd5b50802c5a3912b8634ea40d9ba144556fc89be1c"
+    },
+    "zlib/1.3.1-0-linux-x86_64-static-release": {
+      "files": 9,
+      "tree_sha256": "bcdbff9f6a0cdfb8a3800969b97d3cefa4529920c1a54f08287b7cea940e0501"
+    }
+  },
+  "packman_version": "7.31",
+  "packman_python": "existing /usr/bin/python3.12; tested override, not a claim about upstream Python-helper support",
+  "runtime": {
+    "schema_version": 1,
+    "runtime": "TensorRT CUDA-12 10.13.3.9",
+    "wheel_url": "https://pypi.nvidia.com/tensorrt-cu12-libs/tensorrt_cu12_libs-10.13.3.9-py2.py3-none-manylinux_2_28_x86_64.whl",
+    "wheel_size": 3115257094,
+    "wheel_sha256": "bf2008eca911411aa93b852825ea992de33396451ea11713a6eb97c411d3b2e9",
+    "header_revision": "94e2b9ef6d2cce74c76cdad499cca36cc4949197",
+    "files": [
+      {
+        "path": "include/NvInfer.h",
+        "sha256": "1bfa6bd2e8638f7ad78c40a0eafcd9b34f75b281ee56ee90bd9b14ed0914e388",
+        "size": 369456
+      },
+      {
+        "path": "include/NvInferImpl.h",
+        "sha256": "73cbf708a2f8a57967cb86e97fc38eed096df11c47b6d76090cbd8fcc21993ea",
+        "size": 58441
+      },
+      {
+        "path": "include/NvInferLegacyDims.h",
+        "sha256": "3e10fe5b85545f2e956e6935271badf0b1c72553b698000a61d46d69c5d53030",
+        "size": 4008
+      },
+      {
+        "path": "include/NvInferPlugin.h",
+        "sha256": "b3290404a076f3492dc627ffdfc3b1fa803ea0eccc49f23986d645a2d23a63c7",
+        "size": 1540
+      },
+      {
+        "path": "include/NvInferPluginBase.h",
+        "sha256": "774e457b2e80f27502ea1aed8132949f6e0788251b5374948e1bfdc9de9fb0ee",
+        "size": 8962
+      },
+      {
+        "path": "include/NvInferPluginUtils.h",
+        "sha256": "c1aeed090422a0f214aa3dc334d3e435f3dd3a6cf14caece9fe9ef4daeeb50ec",
+        "size": 10152
+      },
+      {
+        "path": "include/NvInferRuntime.h",
+        "sha256": "c6ef78bbd8d12c8affa22961d136951e87e7b4c2a405fe44aef40b35264e3686",
+        "size": 230079
+      },
+      {
+        "path": "include/NvInferRuntimeBase.h",
+        "sha256": "cf979038f28817ebee3b2899322aadda4566dafcd8a060c18bf2bdff511dfc8a",
+        "size": 26563
+      },
+      {
+        "path": "include/NvInferRuntimeCommon.h",
+        "sha256": "9461c9d07403c5dd1f8a6dea17fa5c3fe5cef7c4290c6768370a1d8139d4ac5d",
+        "size": 13229
+      },
+      {
+        "path": "include/NvInferRuntimePlugin.h",
+        "sha256": "d337b34b7b7efc1c65ba3405a6551389063669cb0c51704f91578b5f817999fc",
+        "size": 44820
+      },
+      {
+        "path": "include/NvInferVersion.h",
+        "sha256": "b80217d27f09a25be0fb753a7aa832834f2def9cd91d2a5562d278b76c5388c2",
+        "size": 1839
+      },
+      {
+        "path": "include/NvOnnxConfig.h",
+        "sha256": "c1476d809a528fc70213b77442e067ce89088d2a89b74cb07b1b72f1b3c8d5fa",
+        "size": 5766
+      },
+      {
+        "path": "lib/libnvinfer.so.10",
+        "sha256": "022bfbf194d47ccea3126add0c0c63c5ed56d3a164d43311e5bd99349465c013",
+        "size": 673033280
+      },
+      {
+        "path": "lib/libnvinfer_builder_resource.so.10.13.3",
+        "sha256": "acac931b446486c7cfc634a9779ee7c37c2f09ec47c174fc6b6f50e080fe0b77",
+        "size": 2122364432
+      },
+      {
+        "path": "lib/libnvinfer_plugin.so.10",
+        "sha256": "68383ab15187b509048cbb580debfafc27accda9cb0bcd13bf6dc8098c760762",
+        "size": 59838160
+      },
+      {
+        "path": "lib/libnvonnxparser.so.10",
+        "sha256": "c6bb75be8b294aca64640e9ec00b3d4c7dae27dae0e575f30a7146265de2bcb2",
+        "size": 4625368
+      },
+      {
+        "path": "include/NvOnnxParser.h",
+        "sha256": "c7ddd8ad6b3cd3c0949f5ceb388851a1f1e23c2e6873196ce77af678cf7935d5",
+        "size": 23775
+      }
+    ],
+    "excluded": "unused Windows builder resource and Python package files; wheel verified in full before Linux-only extraction",
+    "license": "TensorRT-LICENSE.txt retained; binary runtime terms differ from Apache-licensed public headers",
+    "model_downloads": false,
+    "engine_downloads": false,
+    "parser_revision": "9a9f7883dd7b8cb0a718395bac2075fab6f97da8"
+  },
+  "sdk_library_sha256": "fee3b86393785fe6c828d982965a54f75fe4dfae6ed63be4d7c30fac99c4bbd7",
+  "compiler": "g++ 14.3.1 / nvcc 12.8.93, isolated prior CUDA header overlay",
+  "cuda_architectures": [
+    89
+  ],
+  "abi": "_GLIBCXX_USE_CXX11_ABI=0 as upstream requires",
+  "cmake_version_detection": "upstream helpers print TensorRT ? and magic_enum 5.5.5; actual pinned headers/runtime are 10.13.3.9 and package 0.9.5-0",
+  "source_sha256": {
+    "scripts/build_claire_sdk.py": "5175ef4e4ec93f5af60eda9d2e667311707a416d93ea8b6cc80a9ebad482f348"
+  },
+  "global_install": false,
+  "model_downloads_by_build": false,
+  "unknown_external_engine_loaded": false,
+  "full_upstream_tests_passed": false,
+  "release": false,
+  "observed_linked_libraries": {
+    "libcudart.so.12": {
+      "sha256": "c3a75b33af334a3486d197dbd1584a2985183ba4688d237a2be5f2f679329920",
+      "resolved_path": "/usr/local/cuda-12.8/targets/x86_64-linux/lib/libcudart.so.12.8.90"
+    },
+    "libnvinfer.so.10": {
+      "sha256": "022bfbf194d47ccea3126add0c0c63c5ed56d3a164d43311e5bd99349465c013",
+      "resolved_path": "/home/elix3r/projects/TalkingHeadAvatar/v2/var/toolchains/tensorrt-10.13.3.9/lib/libnvinfer.so.10"
+    },
+    "libnvinfer_plugin.so.10": {
+      "sha256": "68383ab15187b509048cbb580debfafc27accda9cb0bcd13bf6dc8098c760762",
+      "resolved_path": "/home/elix3r/projects/TalkingHeadAvatar/v2/var/toolchains/tensorrt-10.13.3.9/lib/libnvinfer_plugin.so.10"
+    },
+    "libnvonnxparser.so.10": {
+      "sha256": "c6bb75be8b294aca64640e9ec00b3d4c7dae27dae0e575f30a7146265de2bcb2",
+      "resolved_path": "/home/elix3r/projects/TalkingHeadAvatar/v2/var/toolchains/tensorrt-10.13.3.9/lib/libnvonnxparser.so.10"
+    },
+    "libz.so.1": {
+      "sha256": "a011b3479376dac44ae9765ab0652e92a57f02b82efc48ee452b08b5bb05f98d",
+      "resolved_path": "/usr/lib64/libz.so.1.3.1.zlib-ng"
+    },
+    "libcublas.so.12": {
+      "sha256": "18a5df540d156e9aff0363776fefab7884b614f122847b51c3eb1da772048e5c",
+      "resolved_path": "/usr/local/cuda-12.8/targets/x86_64-linux/lib/libcublas.so.12.8.5.5"
+    },
+    "libcublasLt.so.12": {
+      "sha256": "974927b9af78cadc0412ea3ab296da791af02c2dd0de5a35b5f0fbb8dc5d0a4d",
+      "resolved_path": "/usr/local/cuda-12.8/targets/x86_64-linux/lib/libcublasLt.so.12.8.5.5"
+    },
+    "libcurand.so.10": {
+      "sha256": "f9bea038a2703b721571fd45a299a898141fd8cb264a5912635c95116f5960fe",
+      "resolved_path": "/usr/local/cuda-12.8/targets/x86_64-linux/lib/libcurand.so.10.3.9.90"
+    },
+    "libstdc++.so.6": {
+      "sha256": "d978bc4c857da2ffd937b03560fad0332052a4fd5f3f51ea10f3274cb599e0d2",
+      "resolved_path": "/usr/lib64/libstdc++.so.6.0.34"
+    },
+    "libm.so.6": {
+      "sha256": "280584130a1cab0d3e86dfe8b27785a8b85b375b9f0c3b6f86f18bb1f3f753f9",
+      "resolved_path": "/usr/lib64/libm.so.6"
+    },
+    "libgcc_s.so.1": {
+      "sha256": "7529c13eb0152c70eeca9b58b0b0a34a784ba60fecb08b1cd4f91c57f449bd62",
+      "resolved_path": "/usr/lib64/libgcc_s-15-20260123.so.1"
+    },
+    "libc.so.6": {
+      "sha256": "7b94d3d451426c1e71be3a0b32ec102ca182fc18a78d84f3aeb52d7397592e03",
+      "resolved_path": "/usr/lib64/libc.so.6"
+    },
+    "libdl.so.2": {
+      "sha256": "57f57edde86cbbeba6ffdeac78167e67f0c29606d236ff0f9760fac0922e6bfa",
+      "resolved_path": "/usr/lib64/libdl.so.2"
+    },
+    "libpthread.so.0": {
+      "sha256": "04cb0d7a40e00c3635b6112c88838c7187f6133720e7e9354254dc0ebd12e05a",
+      "resolved_path": "/usr/lib64/libpthread.so.0"
+    },
+    "librt.so.1": {
+      "sha256": "bbf2c9a478885238c9f348b1a97f85866bfccd8f7011465a10e3fb88bed2a1db",
+      "resolved_path": "/usr/lib64/librt.so.1"
+    }
+  }
+}

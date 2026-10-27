@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "evidence_category": "local_observation",
+  "kind": "offline_container_roundtrip",
+  "source": "recorded_qwen_synthetic_reference",
+  "video_frames": 84,
+  "resolution": [
+    128,
+    128
+  ],
+  "audio_samples": 66645,
+  "audio_pcm_sha256": "2ecfa9f97275e0829f704f6e3ef187fc7aad8a3eb39ab2876e1aaa33ed56cf24",
+  "audio_samples_preserved": true,
+  "rgb_sha256": "9a2f9e63f467c7099ffaa3f15cb18f16a18e955f93dc0ff24c9e720665bdb37a",
+  "rgb_unchanged": true,
+  "actual_device_presentation": false,
+  "container_sha256": "70ce28c31e533edf9b1547bc1447cc3efb65f931c42da1f52053be93668d47bc",
+  "verifier_sha256": "3d8d13fd693c3c9058974b74b5ccfd6e80f64cc5f11a6059d6284ca44fa73350",
+  "ffmpeg_version": "ffmpeg version 7.1.4 Copyright (c) 2000-2026 the FFmpeg developers"
+}

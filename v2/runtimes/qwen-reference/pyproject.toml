@@ -1,0 +1,19 @@
+[project]
+name = "tha-qwen-reference-runtime"
+version = "0.1.0"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "qwen-tts @ git+https://github.com/QwenLM/Qwen3-TTS.git@022e286b98fbec7e1e916cb940cdf532cd9f488e",
+  "torch==2.10.0", "torchaudio==2.10.0", "sounddevice>=0.5,<0.6",
+  "gguf>=0.17,<0.20", "talkinghead-v2",
+]
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu128" }
+torchaudio = { index = "pytorch-cu128" }
+talkinghead-v2 = { path = "../..", editable = true }

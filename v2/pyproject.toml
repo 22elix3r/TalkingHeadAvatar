@@ -1,0 +1,24 @@
+[build-system]
+requires = ["hatchling==1.27.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "talkinghead-v2"
+version = "0.1.0"
+description = "Isolated TalkingHeadAvatar V2 foundation"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = []
+
+[project.scripts]
+tha = "talkinghead_v2.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8.4,<9"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/talkinghead_v2"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--import-mode=importlib"

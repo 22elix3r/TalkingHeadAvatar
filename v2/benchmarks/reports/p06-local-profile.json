@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "phase": "P06",
+  "phase_status": "in_progress",
+  "scope": "fresh loopback profile and offline software environment using existing model/image caches; not a bare-machine or containerized-API release",
+  "source_sha256": {
+    "src/talkinghead_v2/local.py": "90c486b580cd2eea21e2bfa16eec9187895c3909f536bfacae0034ecd79ac02c",
+    "src/talkinghead_v2/local_server.py": "cdc153a1a50db403a6a91fe46f9532ebe6839f18786e54aadceacd86ee900035",
+    "src/talkinghead_v2/cli.py": "5f235f732497ff98960fad2203bda254f3677e62fd494ede038fa02a5fedd5f7",
+    "scripts/serve_p04.py": "e3e8f52a30b7de574027b3a40bdbc33273324a7f25791d30643df7ff9d493e13",
+    "scripts/qualify_local_profile.py": "878d66deab9e4f04066fe9fb283403297e740c4638ed8863c025533f124c3d9e",
+    "tests/test_local_profiles.py": "06090d4ef0d535ec0d536315d691d240b049582f9a3da9134dc72d68ee1b1baa",
+    "web/playwright.local.config.ts": "557325ce4b606cada272dfe2f89f0e999ef9bbc20f2488ccd4a287648eeab5e4",
+    "web/tests/local-profile.spec.ts": "be361220370301f02b66a5fbf8c18f33af016547c598be1a8e4aaaada8603006",
+    "web/tests/ready.ts": "26f6782b721dd36b978332d016afb436743ca60bccb085df04cc0cf1645dd0b4"
+  },
+  "runtime_lock_sha256": "f3a1a1bd04fc90d782900a982f3da710948a3cf48f8a1aefd22abc31658f8af0",
+  "runtime_descriptor_sha256": "a6a33b0821183f0605ed22727e2ea6219139fc9701c91c66cceede188f76c0c4",
+  "profile_config_sha256": {
+    "runtime.json": "f1857b17bd0145b281ed6444af225554bf363cdc7496fb09ea47b91dee733ad4",
+    "compose.json": "51aedaff4f77f42d65c1e2ae6f208986fd9189a03b7ccb4012fb7169b89876ad",
+    "livekit.yaml": "ebc57b441e3383e826a88b7f4522f4b1482408905e655313906efec03cedad9b"
+  },
+  "profile_ports": {
+    "api": 18710,
+    "postgres": 15442,
+    "signal": 17890,
+    "tcp": 17891,
+    "udp": 17892
+  },
+  "asr_files_sha256": {
+    "config.json": "f3bc3821e9fc76a27bae538e11ae5b677dcdd352b4600429ce7951d398569aeb",
+    "tokenizer.json": "929c5252409436dce1b38a75d1abbcb5e132d170d8e324e4e04ed915fa2d22df",
+    "vocabulary.txt": "ff77588746d3a2595d32ab5b69ffd7b95ce2441ac57533cb66fc3eb575a115cf",
+    "model.bin": "2a166925539a16005f14ff328359f9b9adb9dc4fb631bb3b227526862e93e2ef"
+  },
+  "browser_report_sha256": "624e3eed7759b1769f5560bf1797fd41c8e4333fa6e87d3b2ffb7bcfd77c408d",
+  "cpu_tests": {
+    "tests": 227,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "cpu_junit_sha256": "520e0e06bf6d82334f26d9af8fa8df418774f8b0c86373c8cb4829a9f75917d9",
+  "browser": {
+    "expected": 2,
+    "unexpected": 0,
+    "skipped": 0,
+    "flaky": 0,
+    "duration": 26118.605
+  },
+  "database_restart_before": {
+    "migration": "p05_0003",
+    "sessions": {
+      "CLOSED": 4
+    },
+    "principals": 4
+  },
+  "database_restart_after": {
+    "migration": "p05_0003",
+    "sessions": {
+      "CLOSED": 4
+    },
+    "principals": 4
+  },
+  "launcher_fault": {
+    "launcher_terminated_after_child_self_record": true,
+    "api_survived_launcher_exit": true,
+    "api_ready": true,
+    "same_owned_kernel_process": true
+  },
+  "stop": {
+    "status": "stopped",
+    "profile": "p06-check",
+    "database_volume_retained": true,
+    "private_assets_retained": true
+  },
+  "database_volume_verified_retained": true,
+  "native_media_integrated": false,
+  "normal_preview_ready_at_export": true,
+  "provisioning": {
+    "software": "uv sync --locked --offline, separate per-profile environment",
+    "images": "digest-pinned, pull_policy never and --pull never; existing local PG/SFU images",
+    "models": "existing readonly ASR/Qwen inputs shared; no checkpoint fetch or model pull",
+    "bundled_dependency_weight": "offline runtime install reuses the previously cached, unused faster-whisper Silero ONNX file; not a new network download"
+  },
+  "remaining": [
+    "native product adapter",
+    "API runtime image",
+    "bare-machine offline cache bootstrap",
+    "virtual-device conference loop",
+    "cross-profile GPU admission",
+    "real avatar/physical A-V/quality gates"
+  ]
+}

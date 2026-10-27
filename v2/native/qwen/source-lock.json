@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "source_url": "https://github.com/maxhorizons/qwen3-tts-cpp-streaming.git",
+  "source_revision": "74422bab4998ad69e0a67ba105654dadbeec9b3a",
+  "ggml_tree": "b1e00d0467ff3e8a7ade3bc6031b756b4cfe0c13",
+  "code_terms": "Apache-2.0",
+  "ggml_terms": "MIT",
+  "patched_pipeline_sha256": "1dd6706f42370f9737fb7460da1317f1fcc3a060026106ac1f70d40485412f42",
+  "converter_sha256": {
+    "tools/convert_tts_to_gguf.py": "3498a126a8a4524a5ac93926f034ee8707c6d91910268fa82a6544eec16ca835",
+    "tools/convert_tokenizer_to_gguf.py": "3baaf0e54187cda52c09babcd419eae0786745b65c6db2f6d987a6bd9a61420f"
+  }
+}

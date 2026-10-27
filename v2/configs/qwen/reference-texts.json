@@ -1,0 +1,7 @@
+[
+  {"id": "short", "text": "Hello. This is the first local Qwen speech test."},
+  {"id": "numbers", "text": "At 3:45 p.m., Dr. Green paid $12.50 for 2.5 kilograms. The meeting is on October 26, 2026."},
+  {"id": "unicode", "text": "The café is open. An em dash — a pause — and a question: are you ready?"},
+  {"id": "very_short", "text": "Yes."},
+  {"id": "long", "text": "This longer passage checks whether audio can start while speech generation is still running. The first sound should reach the output device before the whole paragraph has been synthesized. A short pause follows this sentence. We then continue with another sentence, keeping each sample in order and preserving the final sound. Numbers such as one hundred and twenty three should remain understandable. If an interruption occurs, the old generation must stop and a fresh answer should begin with a clean boundary. This is a synthetic reference voice, so the result demonstrates the pipeline and does not establish the quality of cloning a real speaker."}
+]

@@ -1,0 +1,581 @@
+{
+  "schema_version": 1,
+  "evidence_category": "local_observation",
+  "boundary": "PortAudio to output-monitor loopback",
+  "microphone_captured": false,
+  "monitor": "alsa_output.usb-GeneralPlus_USB_Audio_Device-00.analog-stereo.monitor",
+  "actual_device_stream": true,
+  "cancel_requested_monotonic_ns": 10049552254323,
+  "software_ack": {
+    "cancelled_key": {
+      "session_id": "device-calibration",
+      "turn_id": "old-tone",
+      "epoch": 0
+    },
+    "fence_epoch": 1,
+    "reason": "calibration interrupt",
+    "discarded_queue_samples": 3840,
+    "discarded_queue_items": 8,
+    "last_scheduled_sample": 16320,
+    "sample_rate": 48000,
+    "scope": "local_device_queue_only"
+  },
+  "device_close_ack": {
+    "software_fenced": true,
+    "stream_aborted_and_closed": true,
+    "closed_monotonic_ns": 10049553066759,
+    "physical_flush_qualified": false
+  },
+  "old": {
+    "sample_rate": 48000,
+    "first_estimated_dac_ns": 10049302020907,
+    "last_estimated_dac_end_ns": 10049641956195,
+    "delivered_valid_samples": 16320,
+    "underrun_callbacks": 0,
+    "portaudio_status_callbacks": 0,
+    "portaudio_status_trace": [],
+    "requested_device_latency_seconds": 0.05,
+    "callback_blocksize": 960,
+    "peak_queued_samples": 14400,
+    "max_buffer_samples": 14400,
+    "device": {
+      "name": "default",
+      "index": 13,
+      "hostapi": 0,
+      "max_input_channels": 64,
+      "max_output_channels": 64,
+      "default_low_input_latency": 0.008707482993197279,
+      "default_low_output_latency": 0.008707482993197279,
+      "default_high_input_latency": 0.034829931972789115,
+      "default_high_output_latency": 0.034829931972789115,
+      "default_samplerate": 44100.0
+    },
+    "callback_trace": [
+      {
+        "key_epoch": 0,
+        "start_sample": 0,
+        "end_sample_exclusive": 960,
+        "estimated_dac_ns": 10049302020907,
+        "portaudio_current_time": 10049.216671,
+        "portaudio_output_dac_time": 10049.3019835,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 1470
+      },
+      {
+        "key_epoch": 0,
+        "start_sample": 960,
+        "end_sample_exclusive": 1920,
+        "estimated_dac_ns": 10049322003323,
+        "portaudio_current_time": 10049.238005,
+        "portaudio_output_dac_time": 10049.321984166665,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 2600
+      },
+      {
+        "key_epoch": 0,
+        "start_sample": 1920,
+        "end_sample_exclusive": 2880,
+        "estimated_dac_ns": 10049341984094,
+        "portaudio_current_time": 10049.25935,
+        "portaudio_output_dac_time": 10049.341975,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 1010
+      },
+      {
+        "key_epoch": 0,
+        "start_sample": 2880,
+        "end_sample_exclusive": 3840,
+        "estimated_dac_ns": 10049362003113,
+        "portaudio_current_time": 10049.280675,
+        "portaudio_output_dac_time": 10049.3619875,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 1420
+      },
+      {
+        "key_epoch": 0,
+        "start_sample": 3840,
+        "end_sample_exclusive": 4800,
+        "estimated_dac_ns": 10049381980084,
+        "portaudio_current_time": 10049.302012,
+        "portaudio_output_dac_time": 10049.381970333334,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 970
+      },
+      {
+        "key_epoch": 0,
+        "start_sample": 4800,
+        "end_sample_exclusive": 5760,
+        "estimated_dac_ns": 10049401982429,
+        "portaudio_current_time": 10049.323344,
+        "portaudio_output_dac_time": 10049.401969,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 1760
+      },
+      {
+        "key_epoch": 0,
+        "start_sample": 5760,
+        "end_sample_exclusive": 6720,
+        "estimated_dac_ns": 10049421990563,
+        "portaudio_current_time": 10049.344669,
+        "portaudio_output_dac_time": 10049.4219815,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 840
+      },
+      {
+        "key_epoch": 0,
+        "start_sample": 6720,
+        "end_sample_exclusive": 7680,
+        "estimated_dac_ns": 10049441986342,
+        "portaudio_current_time": 10049.355335,
+        "portaudio_output_dac_time": 10049.441980833333,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 510
+      },
+      {
+        "key_epoch": 0,
+        "start_sample": 7680,
+        "end_sample_exclusive": 8640,
+        "estimated_dac_ns": 10049461983978,
+        "portaudio_current_time": 10049.376663,
+        "portaudio_output_dac_time": 10049.461975499999,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 820
+      },
+      {
+        "key_epoch": 0,
+        "start_sample": 8640,
+        "end_sample_exclusive": 9600,
+        "estimated_dac_ns": 10049481972219,
+        "portaudio_current_time": 10049.398004,
+        "portaudio_output_dac_time": 10049.481962333333,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 970
+      },
+      {
+        "key_epoch": 0,
+        "start_sample": 9600,
+        "end_sample_exclusive": 10560,
+        "estimated_dac_ns": 10049501985928,
+        "portaudio_current_time": 10049.419332,
+        "portaudio_output_dac_time": 10049.501977833334,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 740
+      },
+      {
+        "key_epoch": 0,
+        "start_sample": 10560,
+        "end_sample_exclusive": 11520,
+        "estimated_dac_ns": 10049521984588,
+        "portaudio_current_time": 10049.440662,
+        "portaudio_output_dac_time": 10049.521974500001,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 1140
+      },
+      {
+        "key_epoch": 0,
+        "start_sample": 11520,
+        "end_sample_exclusive": 12480,
+        "estimated_dac_ns": 10049541975528,
+        "portaudio_current_time": 10049.461989,
+        "portaudio_output_dac_time": 10049.541968166666,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 660
+      },
+      {
+        "key_epoch": 0,
+        "start_sample": 12480,
+        "end_sample_exclusive": 13440,
+        "estimated_dac_ns": 10049561972355,
+        "portaudio_current_time": 10049.483335,
+        "portaudio_output_dac_time": 10049.56196,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 1160
+      },
+      {
+        "key_epoch": 0,
+        "start_sample": 13440,
+        "end_sample_exclusive": 14400,
+        "estimated_dac_ns": 10049581974308,
+        "portaudio_current_time": 10049.504655,
+        "portaudio_output_dac_time": 10049.5819675,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 700
+      },
+      {
+        "key_epoch": 0,
+        "start_sample": 14400,
+        "end_sample_exclusive": 15360,
+        "estimated_dac_ns": 10049601974143,
+        "portaudio_current_time": 10049.515318,
+        "portaudio_output_dac_time": 10049.601963833333,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 1160
+      },
+      {
+        "key_epoch": 0,
+        "start_sample": 15360,
+        "end_sample_exclusive": 16320,
+        "estimated_dac_ns": 10049621956195,
+        "portaudio_current_time": 10049.536654,
+        "portaudio_output_dac_time": 10049.621945666666,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 1170
+      }
+    ],
+    "callback_failure": null,
+    "actual_device_stream": true,
+    "presentation_boundary": "PortAudio DAC timestamps; acoustic validation separate",
+    "timestamp_uncertainty": "pair sampling interval recorded; driver/device timestamp error uncalibrated"
+  },
+  "resumed": {
+    "sample_rate": 48000,
+    "first_estimated_dac_ns": 10049664669497,
+    "last_estimated_dac_end_ns": 10050264688411,
+    "delivered_valid_samples": 28800,
+    "underrun_callbacks": 0,
+    "portaudio_status_callbacks": 0,
+    "portaudio_status_trace": [],
+    "requested_device_latency_seconds": 0.05,
+    "callback_blocksize": 960,
+    "peak_queued_samples": 14400,
+    "max_buffer_samples": 14400,
+    "device": {
+      "name": "default",
+      "index": 13,
+      "hostapi": 0,
+      "max_input_channels": 64,
+      "max_output_channels": 64,
+      "default_low_input_latency": 0.008707482993197279,
+      "default_low_output_latency": 0.008707482993197279,
+      "default_high_input_latency": 0.034829931972789115,
+      "default_high_output_latency": 0.034829931972789115,
+      "default_samplerate": 44100.0
+    },
+    "callback_trace": [
+      {
+        "key_epoch": 2,
+        "start_sample": 0,
+        "end_sample_exclusive": 960,
+        "estimated_dac_ns": 10049664669497,
+        "portaudio_current_time": 10049.579316,
+        "portaudio_output_dac_time": 10049.664607666666,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 1420
+      },
+      {
+        "key_epoch": 2,
+        "start_sample": 960,
+        "end_sample_exclusive": 1920,
+        "estimated_dac_ns": 10049684612575,
+        "portaudio_current_time": 10049.600684,
+        "portaudio_output_dac_time": 10049.684600666666,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 1550
+      },
+      {
+        "key_epoch": 2,
+        "start_sample": 1920,
+        "end_sample_exclusive": 2880,
+        "estimated_dac_ns": 10049704614560,
+        "portaudio_current_time": 10049.62196,
+        "portaudio_output_dac_time": 10049.704605833334,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 900
+      },
+      {
+        "key_epoch": 2,
+        "start_sample": 2880,
+        "end_sample_exclusive": 3840,
+        "estimated_dac_ns": 10049724619197,
+        "portaudio_current_time": 10049.643316,
+        "portaudio_output_dac_time": 10049.724607666667,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 1480
+      },
+      {
+        "key_epoch": 2,
+        "start_sample": 3840,
+        "end_sample_exclusive": 4800,
+        "estimated_dac_ns": 10049744605126,
+        "portaudio_current_time": 10049.664618,
+        "portaudio_output_dac_time": 10049.744597166668,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 970
+      },
+      {
+        "key_epoch": 2,
+        "start_sample": 4800,
+        "end_sample_exclusive": 5760,
+        "estimated_dac_ns": 10049764598832,
+        "portaudio_current_time": 10049.685964,
+        "portaudio_output_dac_time": 10049.764589,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 990
+      },
+      {
+        "key_epoch": 2,
+        "start_sample": 5760,
+        "end_sample_exclusive": 6720,
+        "estimated_dac_ns": 10049784593556,
+        "portaudio_current_time": 10049.707274,
+        "portaudio_output_dac_time": 10049.7845865,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 710
+      },
+      {
+        "key_epoch": 2,
+        "start_sample": 6720,
+        "end_sample_exclusive": 7680,
+        "estimated_dac_ns": 10049804584372,
+        "portaudio_current_time": 10049.717954,
+        "portaudio_output_dac_time": 10049.804579,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 660
+      },
+      {
+        "key_epoch": 2,
+        "start_sample": 7680,
+        "end_sample_exclusive": 8640,
+        "estimated_dac_ns": 10049824583563,
+        "portaudio_current_time": 10049.739283,
+        "portaudio_output_dac_time": 10049.824574666667,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 980
+      },
+      {
+        "key_epoch": 2,
+        "start_sample": 8640,
+        "end_sample_exclusive": 9600,
+        "estimated_dac_ns": 10049844593912,
+        "portaudio_current_time": 10049.760621,
+        "portaudio_output_dac_time": 10049.844579333332,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 2040
+      },
+      {
+        "key_epoch": 2,
+        "start_sample": 9600,
+        "end_sample_exclusive": 10560,
+        "estimated_dac_ns": 10049864599288,
+        "portaudio_current_time": 10049.78195,
+        "portaudio_output_dac_time": 10049.864575,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 2270
+      },
+      {
+        "key_epoch": 2,
+        "start_sample": 10560,
+        "end_sample_exclusive": 11520,
+        "estimated_dac_ns": 10049884604791,
+        "portaudio_current_time": 10049.803278,
+        "portaudio_output_dac_time": 10049.8845905,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 1830
+      },
+      {
+        "key_epoch": 2,
+        "start_sample": 11520,
+        "end_sample_exclusive": 12480,
+        "estimated_dac_ns": 10049904589157,
+        "portaudio_current_time": 10049.824612,
+        "portaudio_output_dac_time": 10049.904570333334,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 1950
+      },
+      {
+        "key_epoch": 2,
+        "start_sample": 12480,
+        "end_sample_exclusive": 13440,
+        "estimated_dac_ns": 10049924596648,
+        "portaudio_current_time": 10049.845959,
+        "portaudio_output_dac_time": 10049.924584,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 1610
+      },
+      {
+        "key_epoch": 2,
+        "start_sample": 13440,
+        "end_sample_exclusive": 14400,
+        "estimated_dac_ns": 10049944612011,
+        "portaudio_current_time": 10049.867283,
+        "portaudio_output_dac_time": 10049.9445955,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 1810
+      },
+      {
+        "key_epoch": 2,
+        "start_sample": 14400,
+        "end_sample_exclusive": 15360,
+        "estimated_dac_ns": 10049964610301,
+        "portaudio_current_time": 10049.877955,
+        "portaudio_output_dac_time": 10049.964600833333,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 1100
+      },
+      {
+        "key_epoch": 2,
+        "start_sample": 15360,
+        "end_sample_exclusive": 16320,
+        "estimated_dac_ns": 10049984603773,
+        "portaudio_current_time": 10049.899297,
+        "portaudio_output_dac_time": 10049.984588666666,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 1610
+      },
+      {
+        "key_epoch": 2,
+        "start_sample": 16320,
+        "end_sample_exclusive": 17280,
+        "estimated_dac_ns": 10050004627307,
+        "portaudio_current_time": 10049.920633,
+        "portaudio_output_dac_time": 10050.004612166666,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 1590
+      },
+      {
+        "key_epoch": 2,
+        "start_sample": 17280,
+        "end_sample_exclusive": 18240,
+        "estimated_dac_ns": 10050024630953,
+        "portaudio_current_time": 10049.941984,
+        "portaudio_output_dac_time": 10050.024608999998,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 2110
+      },
+      {
+        "key_epoch": 2,
+        "start_sample": 18240,
+        "end_sample_exclusive": 19200,
+        "estimated_dac_ns": 10050044628813,
+        "portaudio_current_time": 10049.96332,
+        "portaudio_output_dac_time": 10050.044611666668,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 1610
+      },
+      {
+        "key_epoch": 2,
+        "start_sample": 19200,
+        "end_sample_exclusive": 20160,
+        "estimated_dac_ns": 10050064647023,
+        "portaudio_current_time": 10049.98467,
+        "portaudio_output_dac_time": 10050.064628333334,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 2070
+      },
+      {
+        "key_epoch": 2,
+        "start_sample": 20160,
+        "end_sample_exclusive": 21120,
+        "estimated_dac_ns": 10050084644046,
+        "portaudio_current_time": 10050.005988,
+        "portaudio_output_dac_time": 10050.084633833334,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 1290
+      },
+      {
+        "key_epoch": 2,
+        "start_sample": 21120,
+        "end_sample_exclusive": 22080,
+        "estimated_dac_ns": 10050104653928,
+        "portaudio_current_time": 10050.027345,
+        "portaudio_output_dac_time": 10050.104636666667,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 1600
+      },
+      {
+        "key_epoch": 2,
+        "start_sample": 22080,
+        "end_sample_exclusive": 23040,
+        "estimated_dac_ns": 10050124665661,
+        "portaudio_current_time": 10050.038006,
+        "portaudio_output_dac_time": 10050.124651833334,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 1510
+      },
+      {
+        "key_epoch": 2,
+        "start_sample": 23040,
+        "end_sample_exclusive": 24000,
+        "estimated_dac_ns": 10050144676693,
+        "portaudio_current_time": 10050.059364,
+        "portaudio_output_dac_time": 10050.144655666667,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 2300
+      },
+      {
+        "key_epoch": 2,
+        "start_sample": 24000,
+        "end_sample_exclusive": 24960,
+        "estimated_dac_ns": 10050164673553,
+        "portaudio_current_time": 10050.080696,
+        "portaudio_output_dac_time": 10050.164654333334,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 1780
+      },
+      {
+        "key_epoch": 2,
+        "start_sample": 24960,
+        "end_sample_exclusive": 25920,
+        "estimated_dac_ns": 10050184671933,
+        "portaudio_current_time": 10050.102032,
+        "portaudio_output_dac_time": 10050.184657,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 1620
+      },
+      {
+        "key_epoch": 2,
+        "start_sample": 25920,
+        "end_sample_exclusive": 26880,
+        "estimated_dac_ns": 10050204685087,
+        "portaudio_current_time": 10050.123357,
+        "portaudio_output_dac_time": 10050.2046695,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 2020
+      },
+      {
+        "key_epoch": 2,
+        "start_sample": 26880,
+        "end_sample_exclusive": 27840,
+        "estimated_dac_ns": 10050224677335,
+        "portaudio_current_time": 10050.144722,
+        "portaudio_output_dac_time": 10050.2246595,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 1830
+      },
+      {
+        "key_epoch": 2,
+        "start_sample": 27840,
+        "end_sample_exclusive": 28800,
+        "estimated_dac_ns": 10050244688411,
+        "portaudio_current_time": 10050.16603,
+        "portaudio_output_dac_time": 10050.244675833334,
+        "clock_id": "local_monotonic_mapped_from_portaudio",
+        "mapping_sample_interval_ns": 1210
+      }
+    ],
+    "callback_failure": null,
+    "actual_device_stream": true,
+    "presentation_boundary": "PortAudio DAC timestamps; acoustic validation separate",
+    "timestamp_uncertainty": "pair sampling interval recorded; driver/device timestamp error uncalibrated"
+  },
+  "capture_sha256": "174428008cae7d149aea77f907e1697f99df12e232309a9a61dfe8f7d6c1b476",
+  "analysis": {
+    "old_tone_detected": true,
+    "new_tone_detected": true,
+    "old_tone_reappeared_after_new_plus_50ms": false,
+    "old_tone_max_after_resume": 0.003049988140561862,
+    "old_tone_peak": 0.12000000018442913,
+    "new_tone_peak": 0.1200000001153567,
+    "transition_gap_ms": 75,
+    "window_ms": 25,
+    "threshold": 0.01,
+    "samples": 80640,
+    "passed": true
+  },
+  "passed": true,
+  "limitations": [
+    "Output monitor is not an acoustic recording or human listening",
+    "No exact monitor-to-cancel clock mapping; no wall-clock stale-audio bound claimed",
+    "Device abort/close plus new stream qualified only on this local output profile"
+  ]
+}

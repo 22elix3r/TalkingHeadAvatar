@@ -1,0 +1,49 @@
+# TalkingHeadAvatar V2 foundation
+
+P00 supplies an isolated Python package, strict local TOML config and read-only host diagnostics. P01 adds typed media contracts, exact sample accounting, stateful reference resampling, bounded queues, epoch cancellation and synthetic PCM replay. P02 is in progress: explicit Qwen provisioning, official offline reference, native CUDA/F16 callbacks and a local callback-driven output path. V1 remains separate. See the [phase guide](../docs/v2/IMPLEMENTATION_PHASES.md), [implementation status](../docs/v2/IMPLEMENTATION_STATUS.md) and [P02 setup/evidence](docs/p02.md).
+
+The [P04 local browser](docs/p04.md) runs actual cached ASR/LLM/Qwen speech with LiveKit and Firefox/Chromium recovery. The [P05 library](docs/p05.md) adds a bounded canonical mesh import, consent, review, selection and active revocation path. These use a separate session runtime and PostgreSQL; they preserve the zero-dependency core below. The visual path is explicitly static until the real Claire/authorized-avatar gates pass.
+
+The [P06 native checkpoint](docs/p06.md) qualifies a separate synthetic CUDA/NVENC/C++ encoded publisher with browser frame metadata and recovery. Product integration, local packaging, virtual devices and the GPU memory gate remain unfinished; the preview retains the raw reference.
+
+[P06 local profiles](docs/p06-local.md) provide `tha local init/doctor/provision/up/down` for isolated loopback services and an offline software environment using existing caches. Fresh-profile real-Qwen browser playback, restart persistence and launcher-failure recovery are exercised; full image packaging and live virtual output remain open.
+
+The [P06 virtual-device reference](docs/p06-virtual.md) exercises the existing project camera and a temporary virtual microphone through real Firefox capture and LiveKit, including received speech and camera-clear acknowledgment. Live Qwen/native integration, third-party conferencing and fail-stop privacy remain open.
+
+The [device admission guard](docs/p06-device.md) protects an active Qwen session from competing managed profiles/workers and retains ownership in inherited GPU children. This is N=1 admission, with multi-session sharing/capacity qualification still pending.
+
+[Static native mesh qualification](docs/p06-mesh.md) adds canonical neutral CUDA rasterization with exact CPU parity and scoped upload/readback traces. Real motion/appearance and native conversation integration remain unfinished.
+
+From the repository root, with `uv` and Python 3.12 already installed:
+
+```sh
+cd v2
+uv sync --locked --python /usr/bin/python3.12
+.venv/bin/tha --help
+.venv/bin/tha doctor --profile local --config configs/local/doctor.toml
+.venv/bin/tha doctor --profile local --config configs/local/doctor.toml --json
+.venv/bin/tha replay
+HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 .venv/bin/python -m pytest -q
+```
+
+`uv sync` installs this package editable into **`v2/.venv`**, with no system-site packages. It uses the committed `uv.lock`; first setup may fetch Python build/test packages from PyPI, never model weights. Use an existing Python 3.12 path on other hosts. Python 3.12 is the validated application series; other series are intentionally excluded until qualified. Keep the repository-root V1 `.venv` separate. After setup, help, doctor, imports and tests work offline. `uv sync --locked --offline --python /usr/bin/python3.12` can reconstruct the environment when build/test dependencies are already cached locally.
+
+The core has **zero runtime dependencies**. Only the dev dependency group adds pytest. The build backend is separately pinned in `pyproject.toml`. Model/inference dependencies use P02's separate locked environment with its own compatibility evidence; neither torch nor any inference runtime belongs in the CPU foundation.
+
+`tha` is also available as `.venv/bin/python -m talkinghead_v2`. Use `tha doctor --help` for flags. Doctor exit codes: **0** for a successful preflight, including optional-tool/cache warnings; **1** for diagnostic errors such as insufficient output space; **2** for invalid arguments/config. A zero exit code does not establish model or deployment readiness. Doctor JSON includes `schema_version`, `profile`, `status` and named checks with `status`/`detail`.
+
+The [example config](configs/local/doctor.toml) points to `v2/var/` and requires 1 GiB of free output space. Keys are `profile` (only `local`), `artifact_cache_dir`, `output_dir` and nonnegative integer `min_free_bytes`. Unknown keys, wrong types and malformed TOML fail clearly. Relative paths are based on the config file's directory; `~` expands, but `$VARIABLE` interpolation is not supported. Omitted keys use defaults: artifact cache under `${XDG_CACHE_HOME:-~/.cache}/talkinghead-v2/artifacts`, output under the caller's current directory at `.tha-v2/output`, and 1 GiB minimum free space. Supplying a missing config file fails instead of silently using defaults.
+
+Doctor queries Python/virtual-environment identity, `nvidia-smi` device/driver information, `nvcc --version` and FFmpeg's compiled NVENC encoder list. Each optional subprocess has a three-second timeout. These queries do not allocate CUDA tensors or run kernels/encoding. Missing, failing or hung GPU tools produce warnings. Tool/compiler presence does not establish CUDA runtime compatibility or usable encoding. Native media qualification belongs to later phases.
+
+Doctor inspects only the configured artifact cache's immediate directory entries. A nonempty directory is **presence only**, not a validated Qwen cache; no weight, biometric file, checkpoint or pickle is opened. Existing V1/Hugging Face caches are not searched or migrated. P02's explicit artifact/runtime commands verify model/tokenizer/runtime identities, hashes, rights and reference approval; doctor does not perform that qualification. Qwen3-TTS Base 1.7B remains the selected provider, X-Vector first; it is not provisioned by P00.
+
+Output checks use the nearest existing ancestor, permission bits and filesystem free space. Doctor never creates cache/output directories or writes a test file; ACLs, quotas and actual writes must be qualified when output is introduced. Diagnostics include local paths and device descriptions, so review them before sharing. The [baseline](docs/baseline.md) records P00 setup evidence and inherited V1 limitations.
+
+Run the deterministic P01 fixture with `.venv/bin/tha replay --json`. By default it writes no artifact; `--report /tmp/tha-p01.json` explicitly saves a JSON report and creates its parent directory if needed. Replay returns 0 when all checks pass and a nonzero status on failure. Its procedural PCM includes irregular/empty chunks, silence, 24/44.1 kHz inputs, 48 kHz output, a partial final chunk, blocked-producer cancellation and late callbacks around restart. The sink records a synthetic audio schedule; it never plays audio or acknowledges a device/browser buffer. No conversation-latency, audiovisual-quality or real-time resampler claim follows from this fixture. See the [P01 contract and evidence notes](docs/p01.md).
+
+P02 inference dependencies live in the separately locked `runtimes/qwen-reference/` environment. CPU tests still require no torch or model weights. `tha artifacts provision` explicitly downloads the selected pinned Base/tokenizer files; serving verification does not download. Use cached artifacts under the current no-download constraint. `tha tts benchmark`, `tha tts speak`, `tha tts segments` and `tha audio calibrate` perform deliberate real-model/device actions described in the P02 notes. The conservative native profile passed 430 sequential requests over 30 minutes and real local playback/cancel/resume. Approved human reference/listening and the fresh-request latency shortfall remain open; P02 has not been marked complete.
+
+P03 adds `tha avatar verify --manifest PATH --tenant TENANT` for explicit canonical mesh compatibility/approval checks, and `tha avatar replay --output NEW_DIRECTORY` for a model-free offline mesh timing fixture. The replay writes PCM/RGB and timing reports; it does not play a real avatar or run Claire. Cached Qwen PCM replay is available through the separate inference environment with exact source provenance. P03 remains in progress pending a cached Claire runtime/model and an authorized compatible avatar/calibration, real presented A/V, Gaussian rendering, co-loaded memory and Q0. See [P03 commands, observations and limits](docs/p03.md). No P03 weight download is performed.
+
+P04's [local browser audio reference](docs/p04.md) runs React/Vite, FastAPI, PostgreSQL and self-hosted LiveKit in separate locked environments. It uses cached CPU Whisper/Qwen LLM and the P02 Qwen speech worker, with microphone/typed input and receiver-safe track replacement. Open `http://127.0.0.1:18700` after following the runbook. Static reference video, synthetic voice and development-only identity are explicit; real-avatar/human quality and low-latency acceptance remain open. The runbook records the unused VAD weight bundled by the ASR dependency rather than claiming a zero-weight-download installation.

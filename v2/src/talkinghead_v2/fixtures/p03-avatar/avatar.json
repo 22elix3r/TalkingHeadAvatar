@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "tenant_id": "procedural",
+  "avatar_id": "timing-mesh",
+  "kind": "procedural_fixture",
+  "status": "approved",
+  "allowed_uses": [
+    "timing_fixture_only"
+  ],
+  "rig": {
+    "schema_id": "procedural-timing-v1",
+    "coefficient_names": [
+      "lip_close",
+      "upper_marker"
+    ],
+    "topology_hash": "sha256:2805583a4efe1370d99f9b8d2256197a313d486e04f25f95d9ad970a7f9e2390",
+    "basis_hash": "sha256:a00f870d1d1ea1e8783fcdbeeef7cc5082e3f551bdba04fd8f65deef26bd52a8",
+    "units": "meters",
+    "rotation": "quaternion_xyzw",
+    "coordinates": "right_handed_y_up",
+    "pose_semantics": "absolute_from_canonical"
+  },
+  "appearance": {
+    "representation": "mesh_json",
+    "path": "mesh.json",
+    "sha256": "sha256:b3394654239f8bfb24a0f48ad5f515445de2efca569d0ea3f486729a6e093379"
+  },
+  "camera": {
+    "projection": "orthographic",
+    "coordinates": "opencv_x_right_y_down_z_forward",
+    "world_to_camera_rotation": [
+      [
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        -1,
+        0
+      ],
+      [
+        0,
+        0,
+        -1
+      ]
+    ],
+    "world_to_camera_translation_m": [
+      0,
+      0,
+      1
+    ],
+    "half_extent_m": 0.12
+  },
+  "provenance": {
+    "source": "first-party mathematical rectangle/ring fixture; no human likeness",
+    "geometry_terms": "repository-authored fixture; no unrelated root license assertion",
+    "texture_terms": "no texture",
+    "authorization_record_id": "procedural-fixture-v1"
+  },
+  "channel_authority": {
+    "articulation": [
+      "lip_close"
+    ],
+    "behavior": [
+      "upper_marker"
+    ]
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "model_revision": "a46eafb067adfdd7cc8f5c7941586b309004561c",
+  "sdk_revision": "1ca0f02535ed774f5dbcd724a31cd486368dc783",
+  "files": [
+    {
+      "path": "network_info.json",
+      "sha256": "41b49f603139c2b52f395793480cc830685634cc94955bbad80121787a36fc21",
+      "size": 1017,
+      "url": "https://huggingface.co/nvidia/Audio2Face-3D-v2.3.1-Claire/resolve/a46eafb067adfdd7cc8f5c7941586b309004561c/network_info.json"
+    },
+    {
+      "path": "executor_regression_core.cpp",
+      "sha256": "10232dac132a47a8cf3e59606c9de1c75e804df588f5eec03bdc98ce06df43ae",
+      "size": 9314,
+      "url": "https://raw.githubusercontent.com/NVIDIA/Audio2Face-3D-SDK/1ca0f02535ed774f5dbcd724a31cd486368dc783/audio2face-sdk/source/audio2face-core/executor_regression_core.cpp"
+    },
+    {
+      "path": "sdk-README.md",
+      "sha256": "b6415ea8c479c54ce632103fd0b6b48d7fc4a1db932f478d271d396cfe9cc0bc",
+      "size": 12527,
+      "url": "https://raw.githubusercontent.com/NVIDIA/Audio2Face-3D-SDK/1ca0f02535ed774f5dbcd724a31cd486368dc783/README.md"
+    }
+  ],
+  "schema_version": 1,
+  "evidence_category": "source_inspected",
+  "download_scope": "text metadata and source only; no weights, engines or executable code loaded",
+  "model_id": "nvidia/Audio2Face-3D-v2.3.1-Claire",
+  "audio_frontend": {
+    "sample_rate": 16000,
+    "window_samples": 8320,
+    "target_offset_samples": 4160,
+    "right_context_samples": 4160,
+    "right_context_ms": 260
+  },
+  "terms": {
+    "sdk_code": "MIT",
+    "weights": "NVIDIA Open Model License; no weights obtained in P03",
+    "avatar": "not provided or authorized; no rights inferred from vendor filenames"
+  },
+  "runtime_qualified": false
+}

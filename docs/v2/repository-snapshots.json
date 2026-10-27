@@ -1,0 +1,79 @@
+{
+  "cutoff": "2026-10-25T23:59:59Z",
+  "access_date": "2026-10-25",
+  "note": "Latest commit returned at or before cutoff. Not an assertion that code or weights were released on this date. Verify pins before integration.",
+  "repositories": [
+    {
+      "repo": "TaekyungKi/AvatarForcing",
+      "sha": "507e3046ad539c938e0412ac7a74cf6e3ba2a61c",
+      "date": "2026-06-03T19:16:01Z",
+      "url": "https://github.com/TaekyungKi/AvatarForcing/commit/507e3046ad539c938e0412ac7a74cf6e3ba2a61c"
+    },
+    {
+      "repo": "jamesdemon923/EmoTaG",
+      "sha": "9a295e1b4be2b6da0ed2405203a037a9f34e6530",
+      "date": "2026-07-21T06:31:31Z",
+      "url": "https://github.com/jamesdemon923/EmoTaG/commit/9a295e1b4be2b6da0ed2405203a037a9f34e6530"
+    },
+    {
+      "repo": "Soul-AILab/SoulX-FlashHead",
+      "sha": "9bc03de06bb0de82cd6bc477804512ae06144bf2",
+      "date": "2026-05-28T03:47:21Z",
+      "url": "https://github.com/Soul-AILab/SoulX-FlashHead/commit/9bc03de06bb0de82cd6bc477804512ae06144bf2"
+    },
+    {
+      "repo": "QwenLM/Qwen3-TTS",
+      "sha": "022e286b98fbec7e1e916cb940cdf532cd9f488e",
+      "date": "2026-03-17T06:38:41Z",
+      "url": "https://github.com/QwenLM/Qwen3-TTS/commit/022e286b98fbec7e1e916cb940cdf532cd9f488e"
+    },
+    {
+      "repo": "NVIDIA/Audio2Face-3D-SDK",
+      "sha": "1ca0f02535ed774f5dbcd724a31cd486368dc783",
+      "date": "2025-08-28T14:20:31Z",
+      "url": "https://github.com/NVIDIA/Audio2Face-3D-SDK/commit/1ca0f02535ed774f5dbcd724a31cd486368dc783"
+    },
+    {
+      "repo": "madhav1ag/GaussianHeadTalk",
+      "sha": "de0b61d1207f3ff4e2bf2e8f89f72dcb372a9826",
+      "date": "2025-12-10T17:46:31Z",
+      "url": "https://github.com/madhav1ag/GaussianHeadTalk/commit/de0b61d1207f3ff4e2bf2e8f89f72dcb372a9826"
+    },
+    {
+      "repo": "avaturn-live/avtr-1",
+      "sha": "eb1e5a89ed7bec3debe712b090efd676b3a420bd",
+      "date": "2026-05-26T14:18:49Z",
+      "url": "https://github.com/avaturn-live/avtr-1/commit/eb1e5a89ed7bec3debe712b090efd676b3a420bd"
+    },
+    {
+      "repo": "zju3dv/StreamingTalker",
+      "sha": "1f6452752dbd6c11f4bb1e94982e000e68d8f76d",
+      "date": "2026-09-15T07:35:15Z",
+      "url": "https://github.com/zju3dv/StreamingTalker/commit/1f6452752dbd6c11f4bb1e94982e000e68d8f76d"
+    },
+    {
+      "repo": "nerfstudio-project/gsplat",
+      "sha": "512d366b67073d77ca099ede742683c165dfc23b",
+      "date": "2026-09-19T07:14:27Z",
+      "url": "https://github.com/nerfstudio-project/gsplat/commit/512d366b67073d77ca099ede742683c165dfc23b"
+    },
+    {
+      "repo": "kyutai-labs/pocket-tts",
+      "sha": "44cb63eaa4144f32ff80863968515165a5554353",
+      "date": "2026-10-22T14:13:22Z",
+      "url": "https://github.com/kyutai-labs/pocket-tts/commit/44cb63eaa4144f32ff80863968515165a5554353"
+    },
+    {
+      "repo": "Aoko955/Omni-LiveAvatar",
+      "sha": "cc19c208744da7f2e7b27b9c7206585c607e3710",
+      "date": "2026-08-17T05:19:20Z",
+      "url": "https://github.com/Aoko955/Omni-LiveAvatar/commit/cc19c208744da7f2e7b27b9c7206585c607e3710"
+    },
+    {
+      "repo": "Alibaba-Quark/LiveAvatar",
+      "sha": "c3c47d031d8bf3247428333c1fe610579c71a551",
+      "date": "2026-08-24T15:10:10Z",
+      "url": "https://github.com/Alibaba-Quark/LiveAvatar/commit/c3c47d031d8bf3247428333c1fe610579c71a551"
+    }
+  ]
+}

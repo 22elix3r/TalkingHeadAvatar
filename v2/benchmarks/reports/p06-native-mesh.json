@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "phase": "P06",
+  "phase_status": "in_progress",
+  "scope": "static canonical neutral mesh and first-party synthetic dense raster; no neural motion or real-avatar quality",
+  "source_sha256": {
+    "native/media/CMakeLists.txt": "162d707c0d1a4aea343361e601f5ef5106383b1056bfca01ff9f20e325481bdf",
+    "native/media/encoder_contract.cpp": "9d6b799947ab27c042d3d9e2e2a1d8fb707011423b6f70a920c9494b27f2188a",
+    "native/media/encoder_probe.cpp": "5f0946cbcd1e54d19d324e3965598e84ef0f992aaca5057504ac58e89a8deef5",
+    "native/media/gpu_encoder.cpp": "403e0d86b30cde5258655a857caaf2d0d5af0e4c828a4e70d277eef9f74d82c4",
+    "native/media/gpu_encoder.h": "6c2d3919e6bef2848d216bb547c24714d59b4249c187a5250af23c53da726814",
+    "native/media/kernels.cu": "3d6867ab5c067f97ae42ba77804090e43be437a73202c0f385c27180385440da",
+    "native/media/mesh_probe.cpp": "6e552a459fc56d63975d5da79b088373337ae94f9176c2b968b78d9528c3a787",
+    "native/media/publisher_probe.cpp": "a2dc32437a70eddf12eb36f7b839d6aaf0f3f26bb7755f896e1c5f8cc7b0157b",
+    "src/talkinghead_v2/rendering/projected.py": "fb679b011e27c077db625419b0df5954395054510680d0a7aaf2a9b890ced8df",
+    "tests/test_projected_mesh.py": "df3fec7f61b6e2f928333076c8d42b19561c2230dae59e1ab47f531e486f5b5c",
+    "scripts/qualify_native_mesh.py": "8c6e694044927ad6d2fe564f7016a06726f1f9e15e3fd904998de669b06cefb2"
+  },
+  "binary_sha256": "c5462c5a57b205f2b492c67dade4886a9b4268ba8c1e8664dff8b5dbfbe31e84",
+  "ptx_sha256": "b13fc816868a1cd0a032562713998f9be5ec879edb0bed560c11f597a5bc297e",
+  "canonical_manifest_sha256": "9d3d7729c40dcd1b7ddcf40036f68bf6692aa14dc1ef28aa64a7f5c6c6fd2e89",
+  "basis_hash": "sha256:a00f870d1d1ea1e8783fcdbeeef7cc5082e3f551bdba04fd8f65deef26bd52a8",
+  "topology_hash": "sha256:2805583a4efe1370d99f9b8d2256197a313d486e04f25f95d9ad970a7f9e2390",
+  "cpu_tests": 248,
+  "cpu_junit_sha256": "99359f661eb1e60ba624f1693d883856fe83ee471f6068afbc7b98c778d0fe19",
+  "cases": {
+    "neutral": {
+      "probe": {
+        "mesh_vertices": 8,
+        "mesh_triangles": 8,
+        "frames": 60,
+        "render_gpu_total_ms": 4.50195,
+        "convert_gpu_total_ms": 0.290784,
+        "qualification_raw_readback_bytes": 1048576,
+        "speaking_avatar_qualified": false
+      },
+      "raster_oracle_mismatches": 0,
+      "rgba_sha256": "f9bf1c04fb7bafb63414fc8397b38ce1538307bd9e82b242b2f7fe5ac8769887",
+      "geometry_sha256": "dbfc26cec716d89a22f0932a979b66959be2acebbd7aa1af1f131586fdcea9f7",
+      "coded_sha256": "c743861ccdc04fa9f6a1c882f67383234dd972efffc0fb51e41c18dbb0197e07",
+      "decoded_stream": {
+        "codec_name": "h264",
+        "profile": "Constrained Baseline",
+        "width": 512,
+        "height": 512,
+        "pix_fmt": "yuv420p",
+        "color_range": "tv",
+        "color_space": "bt709",
+        "nb_read_frames": "60"
+      },
+      "render_gpu_average_ms": 0.0750325
+    },
+    "dense": {
+      "probe": {
+        "mesh_vertices": 512,
+        "mesh_triangles": 930,
+        "frames": 60,
+        "render_gpu_total_ms": 21.1171,
+        "convert_gpu_total_ms": 0.290016,
+        "qualification_raw_readback_bytes": 1048576,
+        "speaking_avatar_qualified": false
+      },
+      "raster_oracle_mismatches": 0,
+      "rgba_sha256": "5842e3a3187f38f5ddca21c3fa96a4a76688144d0b418990150b2eab96725d8d",
+      "geometry_sha256": "bae4f698ab8c9ab2ea587c8561c75540018166f5ec00e6bda46badf3235c3588",
+      "coded_sha256": "f01e2c8344490ff53acced9f367785712c61b2d399608937ced05d04378d5e57",
+      "decoded_stream": {
+        "codec_name": "h264",
+        "profile": "Constrained Baseline",
+        "width": 512,
+        "height": 512,
+        "pix_fmt": "yuv420p",
+        "color_range": "tv",
+        "color_space": "bt709",
+        "nb_read_frames": "60"
+      },
+      "render_gpu_average_ms": 0.35195166666666666
+    }
+  },
+  "gpu_contract": {
+    "gpu_contract": "passed",
+    "owner_lifetimes": 3,
+    "failed_initializations": 3,
+    "frames": 270,
+    "immutable_mesh_owner": true,
+    "physical_av_qualified": false
+  },
+  "trace": {
+    "sha256": "09d780a47f496b8487b05578ab3b6e4fde4a6be46934eece61cfb064ea2f85f9",
+    "kernels": {
+      "Convert_PL2BL": 120,
+      "render_mesh": 60,
+      "rgba_to_nv12": 60
+    },
+    "copies": [
+      [
+        "Host-to-Device",
+        11160,
+        1
+      ],
+      [
+        "Host-to-Device",
+        12288,
+        1
+      ],
+      [
+        "Host-to-Device",
+        14880,
+        1
+      ]
+    ],
+    "copies_after_first_kernel": 0,
+    "no_raw_readback_observed": true,
+    "boundary": "isolated no-readback dense mesh encoder trace; three init H2D uploads, encoded CPU copies remain"
+  },
+  "timing": {
+    "unpaced_isolated_gpu_service": true,
+    "cold_init_included": false,
+    "quantiles_qualified": false,
+    "qwen_coload_qualified": false
+  },
+  "hardware_constraint": "128x128 NVENC initialization rejected on this device/profile; explicitly qualified 512x512 output instead",
+  "parity_readback": "one explicit 1 MiB RGBA device-to-host copy per parity case, outside the no-readback trace",
+  "acceptance": {
+    "native_product_integration": false,
+    "real_speaking_avatar": false,
+    "physical_av_skew": false,
+    "quality_gate": false,
+    "release": false
+  },
+  "model_impact": "no weights/reference/model/dependency downloads or changes; generated geometry is a timing fixture"
+}

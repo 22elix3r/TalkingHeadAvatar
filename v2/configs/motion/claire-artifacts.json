@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "model_id": "nvidia/Audio2Face-3D-v2.3.1-Claire",
+  "revision": "a46eafb067adfdd7cc8f5c7941586b309004561c",
+  "files": [
+    {
+      "path": "README.md",
+      "size": 11162,
+      "url": "https://huggingface.co/nvidia/Audio2Face-3D-v2.3.1-Claire/resolve/a46eafb067adfdd7cc8f5c7941586b309004561c/README.md",
+      "sha256": "17385721f7940e3e4d4d2e266a54ace3aff5dadea8518334135d05a716cb3518"
+    },
+    {
+      "path": "a2f_ms_config.json",
+      "size": 7413,
+      "url": "https://huggingface.co/nvidia/Audio2Face-3D-v2.3.1-Claire/resolve/a46eafb067adfdd7cc8f5c7941586b309004561c/a2f_ms_config.json",
+      "sha256": "380f87208cd683bc0fa8d03387b9b8b0c30706c07e5e878fbfc18f21e9858336"
+    },
+    {
+      "path": "bs_skin.npz",
+      "size": 39182291,
+      "url": "https://huggingface.co/nvidia/Audio2Face-3D-v2.3.1-Claire/resolve/a46eafb067adfdd7cc8f5c7941586b309004561c/bs_skin.npz",
+      "sha256": "cc94a937af9438f007b811b3f686015d7e96fc0ce964974905e130724ff1c4db"
+    },
+    {
+      "path": "bs_skin_config.json",
+      "size": 4944,
+      "url": "https://huggingface.co/nvidia/Audio2Face-3D-v2.3.1-Claire/resolve/a46eafb067adfdd7cc8f5c7941586b309004561c/bs_skin_config.json",
+      "sha256": "8580023e66336320e3802efe5c9be8a72fd5aa6162561d27225a056565345e4c"
+    },
+    {
+      "path": "bs_tongue.npz",
+      "size": 1147669,
+      "url": "https://huggingface.co/nvidia/Audio2Face-3D-v2.3.1-Claire/resolve/a46eafb067adfdd7cc8f5c7941586b309004561c/bs_tongue.npz",
+      "sha256": "82032cb3a4f08d1f6e543ce80e8d9587aca8394b8cc009384ef21db19a90450e"
+    },
+    {
+      "path": "bs_tongue_config.json",
+      "size": 1871,
+      "url": "https://huggingface.co/nvidia/Audio2Face-3D-v2.3.1-Claire/resolve/a46eafb067adfdd7cc8f5c7941586b309004561c/bs_tongue_config.json",
+      "sha256": "9ef4d5ee664cb0975624de11b689b374c69d74b99126297ac4bdd58b9470a750"
+    },
+    {
+      "path": "config.json",
+      "size": 0,
+      "url": "https://huggingface.co/nvidia/Audio2Face-3D-v2.3.1-Claire/resolve/a46eafb067adfdd7cc8f5c7941586b309004561c/config.json",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "implicit_emo_db.npz",
+      "size": 1713860,
+      "url": "https://huggingface.co/nvidia/Audio2Face-3D-v2.3.1-Claire/resolve/a46eafb067adfdd7cc8f5c7941586b309004561c/implicit_emo_db.npz",
+      "sha256": "562ee9fac5eded20753eb40230519a7304156c177f52d9aa44580d5cf57c0447"
+    },
+    {
+      "path": "model.json",
+      "size": 484,
+      "url": "https://huggingface.co/nvidia/Audio2Face-3D-v2.3.1-Claire/resolve/a46eafb067adfdd7cc8f5c7941586b309004561c/model.json",
+      "sha256": "1a03fc1c3b1978e9c73c197c4fe5af90da63f1c7d65cb85750035f60608fe1fd"
+    },
+    {
+      "path": "model_config.json",
+      "size": 980,
+      "url": "https://huggingface.co/nvidia/Audio2Face-3D-v2.3.1-Claire/resolve/a46eafb067adfdd7cc8f5c7941586b309004561c/model_config.json",
+      "sha256": "8d0da080d3960177f920b5aa1734da86715d9ed2c307e6245c12525f2066b800"
+    },
+    {
+      "path": "model_data.npz",
+      "size": 106350002,
+      "url": "https://huggingface.co/nvidia/Audio2Face-3D-v2.3.1-Claire/resolve/a46eafb067adfdd7cc8f5c7941586b309004561c/model_data.npz",
+      "sha256": "4c2205365533790add8219170b9505960e31d2fca82708f2e3db31c5ccf092a4"
+    },
+    {
+      "path": "network.onnx",
+      "size": 159044772,
+      "url": "https://huggingface.co/nvidia/Audio2Face-3D-v2.3.1-Claire/resolve/a46eafb067adfdd7cc8f5c7941586b309004561c/network.onnx",
+      "sha256": "6bb7a3a3c22491960e71a14742891e0d7205d7c80414aebe326cad82fd6867c3"
+    },
+    {
+      "path": "network_info.json",
+      "size": 1017,
+      "url": "https://huggingface.co/nvidia/Audio2Face-3D-v2.3.1-Claire/resolve/a46eafb067adfdd7cc8f5c7941586b309004561c/network_info.json",
+      "sha256": "41b49f603139c2b52f395793480cc830685634cc94955bbad80121787a36fc21"
+    },
+    {
+      "path": "trt_info.json",
+      "size": 506,
+      "url": "https://huggingface.co/nvidia/Audio2Face-3D-v2.3.1-Claire/resolve/a46eafb067adfdd7cc8f5c7941586b309004561c/trt_info.json",
+      "sha256": "b288b5bba1e9eb0a1c49db0d3e182203d303c3ff26b8a6a284a3879b01758d0a"
+    }
+  ],
+  "authorization": "2026-10-27 user explicitly allowed this Claire package and isolated runtime; other weight downloads remain prohibited",
+  "terms": "NVIDIA Open Model License, model card must be retained; no claim of commercial distribution clearance"
+}

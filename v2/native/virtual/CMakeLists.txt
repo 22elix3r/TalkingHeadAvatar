@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.25)
+project(tha_virtual_reference LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 17)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(PULSE REQUIRED IMPORTED_TARGET libpulse-simple)
+add_executable(tha_virtual_reference reference.cpp)
+target_link_libraries(tha_virtual_reference PRIVATE PkgConfig::PULSE)
+target_compile_options(tha_virtual_reference PRIVATE -Wall -Wextra -Werror)

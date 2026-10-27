@@ -1,0 +1,46 @@
+{
+  "access_date": "2026-10-26",
+  "research_cutoff": "2026-10-25T23:59:59Z",
+  "note": "Read-only source anchors; not a tested dependency lock. Live documentation is separately dated in DEPLOYMENT_RESEARCH.md.",
+  "repositories": [
+    {
+      "repo": "HumanAIGC-Engineering/OpenAvatarChat",
+      "sha": "8b7b3b45bca28ae9ab5fa72ee31bc03c5a99b08b",
+      "date": "2026-07-31T00:28:29Z",
+      "url": "https://github.com/HumanAIGC-Engineering/OpenAvatarChat/commit/8b7b3b45bca28ae9ab5fa72ee31bc03c5a99b08b"
+    },
+    {
+      "repo": "aigc3d/LAM",
+      "sha": "339573649dd93df4cba8093a964e85a80d1b61f3",
+      "date": "2026-06-10T12:12:22Z",
+      "url": "https://github.com/aigc3d/LAM/commit/339573649dd93df4cba8093a964e85a80d1b61f3"
+    },
+    {
+      "repo": "aigc3d/LAM_Audio2Expression",
+      "sha": "02a703c3ea7d8e360eb43098eca85ee98a083529",
+      "date": "2025-10-24T05:53:58Z",
+      "url": "https://github.com/aigc3d/LAM_Audio2Expression/commit/02a703c3ea7d8e360eb43098eca85ee98a083529"
+    },
+    {
+      "repo": "livekit/python-sdks",
+      "sha": "d6d165501669fefd80253f26283affc2dbded448",
+      "date": "2026-10-24T00:05:09Z",
+      "url": "https://github.com/livekit/python-sdks/commit/d6d165501669fefd80253f26283affc2dbded448"
+    },
+    {
+      "repo": "pipecat-ai/pipecat",
+      "sha": "68b0687d96be110f1e3ab41fce2b708457d122c5",
+      "date": "2026-10-25T19:41:55Z",
+      "url": "https://github.com/pipecat-ai/pipecat/commit/68b0687d96be110f1e3ab41fce2b708457d122c5"
+    }
+  ],
+  "verified_releases": [
+    {
+      "repo": "livekit/client-sdk-cpp",
+      "tag": "v1.11.0",
+      "published_at": "2026-09-11T17:18:12Z",
+      "url": "https://github.com/livekit/client-sdk-cpp/releases/tag/v1.11.0",
+      "inspected_file": "include/livekit/encoded_video_source.h"
+    }
+  ]
+}

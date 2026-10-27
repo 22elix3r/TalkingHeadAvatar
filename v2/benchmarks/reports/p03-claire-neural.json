@@ -1,0 +1,186 @@
+{
+  "schema_version": 1,
+  "phase": "P03",
+  "phase_status": "in_progress",
+  "evidence_category": "local_gpu_observation",
+  "scope": "actual pinned Claire regression SDK with recorded synthetic Qwen; whole-input vs incremental execution/EOF/cancel; explicit full geometry readback",
+  "source_sha256": {
+    "scripts/qualify_claire_neural.py": "4d50fb556f65acfbfdd148053af0d1f18919a610bfcf3d44b1895c6551b16504",
+    "native/motion/geometry_probe.cpp": "ceb06cdc494970fbd6fb3ad1a1a0a7a2e9fc44b61dbaacbc3c32cc560dbf7702",
+    "native/motion/engine_builder.cpp": "748ed6e85152e583b5cb85c32672cd6e0c17bf288b56734fb5d5dcf43cf074dc",
+    "native/motion/CMakeLists.txt": "8812804a14a76cf7e0a26c108974b87bb17b183537a6fe8b8e8f6b69e8201d3f"
+  },
+  "model_revision": "a46eafb067adfdd7cc8f5c7941586b309004561c",
+  "engine_sha256": "69b7d0951ded6bae1a5b12e02c582cafc37fa221b098e0c2364849881167ab9b",
+  "sdk_revision": "1ca0f02535ed774f5dbcd724a31cd486368dc783",
+  "source_geometry_parity_report_sha256": "55b4fcba71085af6e5a768d2fb9cee3b3851d6419e76c57bc0ccbe3094414589",
+  "sdk_library_sha256": "fee3b86393785fe6c828d982965a54f75fe4dfae6ed63be4d7c30fac99c4bbd7",
+  "geometry_probe_sha256": "ab85c7ada23df5f824d60fbf7ab692ffb10ae0e200716394fb0aa1129b79030e",
+  "runtime_manifest_sha256": "f45a245eaccfa4a5d7b732bbb204860d139d4a1bd5f11dc7ffac97cd37c7d385",
+  "engine_build": {
+    "engine_bytes": 160615948,
+    "fixed_batch": 1,
+    "tf32": false,
+    "workspace_limit_mib": 256,
+    "tactic_shared_memory_bytes": 49152,
+    "elapsed_ms": 28020.9
+  },
+  "gpu": "NVIDIA GeForce RTX 4070 Ti SUPER",
+  "driver": "580.178.04",
+  "recorded_input": {
+    "source": "existing synthetic-reference Qwen Base 1.7B X-vector P02 short case",
+    "source_rate": 24000,
+    "source_samples": 66645,
+    "source_pcm_f32_sha256": "2ecfa9f97275e0829f704f6e3ef187fc7aad8a3eb39ab2876e1aaa33ed56cf24",
+    "source_wave_sha256": "ceab2462830bf500f1c1fa783061189e451c711c5f85a4220c9aa283cae299e5",
+    "p02_report_sha256": "08bb8239938a878fbd431cd220cb6cd95c727f0f6dd1ba4b962bbb3daa37b882",
+    "resampler": "stateful core RationalResampler radius32, exact EOF",
+    "target_rate": 16000,
+    "target_samples": 44430,
+    "target_pcm_f32_sha256": "97140c297b1a4eae2a6ddb6e826de73f0bfd2ecea2e97f60085f2cdd573e2871",
+    "human_recording": false,
+    "new_tts_model_execution": false
+  },
+  "geometry_dimensions": {
+    "skin_vertices": 61520,
+    "tongue_vertices": 5602,
+    "jaw_transform_floats": 16,
+    "eyes_rotation_floats": 6
+  },
+  "cases": {
+    "whole_input_reference": {
+      "probe": {
+        "frames": 167,
+        "frames_before_eof": 152,
+        "first_result_after_samples": 44430,
+        "peak_retained_audio_samples": 44430,
+        "last_frame_sample": 44266,
+        "cancelled": false,
+        "source_samples": 44430,
+        "offered_samples": 44430,
+        "elapsed_ms": 916.499,
+        "qualification_geometry_readback": true
+      },
+      "geometry_sha256": "d56206fec0d23af4b75d39910997631691e9a50026ebc6910f2d2e29d7243d06",
+      "gpu_process_retired": true
+    },
+    "stream_20ms": {
+      "probe": {
+        "frames": 167,
+        "frames_before_eof": 152,
+        "first_result_after_samples": 4160,
+        "peak_retained_audio_samples": 24320,
+        "last_frame_sample": 44266,
+        "cancelled": false,
+        "source_samples": 44430,
+        "offered_samples": 44430,
+        "elapsed_ms": 893.505,
+        "qualification_geometry_readback": true
+      },
+      "geometry_sha256": "d56206fec0d23af4b75d39910997631691e9a50026ebc6910f2d2e29d7243d06",
+      "gpu_process_retired": true
+    },
+    "irregular_grid_32ms": {
+      "probe": {
+        "frames": 167,
+        "frames_before_eof": 152,
+        "first_result_after_samples": 4608,
+        "peak_retained_audio_samples": 24576,
+        "last_frame_sample": 44266,
+        "cancelled": false,
+        "source_samples": 44430,
+        "offered_samples": 44430,
+        "elapsed_ms": 867.164,
+        "qualification_geometry_readback": true
+      },
+      "geometry_sha256": "d56206fec0d23af4b75d39910997631691e9a50026ebc6910f2d2e29d7243d06",
+      "gpu_process_retired": true
+    },
+    "cancel_at_one_second": {
+      "probe": {
+        "frames": 45,
+        "frames_before_eof": 45,
+        "first_result_after_samples": 4160,
+        "peak_retained_audio_samples": 16000,
+        "last_frame_sample": 11733,
+        "cancelled": true,
+        "source_samples": 44430,
+        "offered_samples": 16000,
+        "elapsed_ms": 622.738,
+        "qualification_geometry_readback": true
+      },
+      "geometry_sha256": "7d8e6ed7fae0a5c0b81fa2b42c16aeba106860c753838e6f3be8c15a6859f3b8",
+      "gpu_process_retired": true
+    },
+    "fresh_after_cancel": {
+      "probe": {
+        "frames": 167,
+        "frames_before_eof": 152,
+        "first_result_after_samples": 4160,
+        "peak_retained_audio_samples": 24320,
+        "last_frame_sample": 44266,
+        "cancelled": false,
+        "source_samples": 44430,
+        "offered_samples": 44430,
+        "elapsed_ms": 1167.6,
+        "qualification_geometry_readback": true
+      },
+      "geometry_sha256": "d56206fec0d23af4b75d39910997631691e9a50026ebc6910f2d2e29d7243d06",
+      "gpu_process_retired": true
+    }
+  },
+  "parity": {
+    "stream_20ms": {
+      "maximum_absolute_difference_in_native_units": 0.0,
+      "rms_in_native_units": 0.0,
+      "same_frame_sample_ranges": true,
+      "tolerance": 1e-05
+    },
+    "irregular_grid_32ms": {
+      "maximum_absolute_difference_in_native_units": 0.0,
+      "rms_in_native_units": 0.0,
+      "same_frame_sample_ranges": true,
+      "tolerance": 1e-05
+    },
+    "fresh_after_cancel": {
+      "maximum_absolute_difference_in_native_units": 0.0,
+      "rms_in_native_units": 0.0,
+      "same_frame_sample_ranges": true,
+      "tolerance": 1e-05
+    }
+  },
+  "skin_first_last_max_absolute_change_cm": 0.5508270263671875,
+  "clock": {
+    "input_rate": 16000,
+    "target_fps_numerator": 60,
+    "target_fps_denominator": 1,
+    "frame_pts": "floor(frame_index*16000/60) integer source samples",
+    "total_context_samples": 8320,
+    "future_context_samples": 4160,
+    "future_context_ms": 260,
+    "eof_model_context_is_playable_audio": false
+  },
+  "memory": {
+    "samples": 51,
+    "query_failures": 0,
+    "sampled_total_device_used_max_mib": 990,
+    "scope": "sequential device NVML samples include other processes; sampled maximum is not guaranteed peak",
+    "qwen_coload": false,
+    "render_encode_coload": false
+  },
+  "cancellation": "executor/accumulator reset at 16000 offered samples; process retired; fresh process reproduces reference. Live priority interruption and receiver suppression remain unqualified.",
+  "measurement": "unpaced offline source partition check; elapsed includes init, numeric-data load, explicit geometry readback and private file writes; no streaming latency/FPS/SLO claim",
+  "model_impact": "specific user-authorized Claire package/runtime and vendor sample provisioned; no additional TTS/ASR/LLM/emotion model or unknown engine downloaded",
+  "acceptance": {
+    "actual_neural_motion": true,
+    "numeric_partition_parity": true,
+    "source_vertex_identity": true,
+    "live_motion_provider": false,
+    "rendered_quality": false,
+    "gaussian_retarget": false,
+    "physical_av": false,
+    "capacity": false,
+    "quality_gate": false,
+    "release": false
+  }
+}
