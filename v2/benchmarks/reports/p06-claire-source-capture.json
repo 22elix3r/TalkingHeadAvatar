@@ -1,0 +1,175 @@
+{
+  "schema_version": 1,
+  "observation": "Opt-in source capture trace, synthetic Qwen and vendor avatar, local SFU/Python receiver; not a browser or physical presentation measurement.",
+  "cohorts": [
+    {
+      "name": "trace-1",
+      "source_frames_accepted": 324,
+      "source_video_skipped": 0,
+      "received_source_frames": 323,
+      "missing_source_indices": [
+        228
+      ],
+      "received_ids_match_capture_trace": true,
+      "capture_call_median_us": 25.0,
+      "capture_call_max_us": 86,
+      "capture_start_minus_nominal_pts_median_us": 4017.0,
+      "capture_start_minus_nominal_pts_max_us": 27567,
+      "missing_frame_captures": [
+        {
+          "source_index": 228,
+          "capture_call_us": 18,
+          "capture_start_minus_nominal_pts_us": -1130,
+          "encoded_bytes": 1482,
+          "keyframe": false
+        }
+      ],
+      "source_sha256": {
+        "native/media/claire_session_worker.cpp": "0121f33f44e66eb628fb3e5183c8ea9df8e33cec97a9f79a1a0a26926f0e73bd",
+        "native/motion/claire_bridge.cpp": "87d03fd75d924b168114f204a3f991c8f42db48725cb68aa91d78e32245ef0f6",
+        "native/motion/claire_bridge.h": "031832df8263c662d40a6e34fa1fd49be6385686216ca8716c2786d1cd385834",
+        "native/media/CMakeLists.txt": "996889da78c33abdf24f26a9f0dd0689706a3424f881fe8462c90755188f0c2a",
+        "src/talkinghead_v2/providers/motion/paired.py": "8cfbfd955361451cfe5f6c1b468e9e86512fed886757c7b63b61902caf816946",
+        "scripts/qualify_claire_session_worker.py": "408a2a73edce30665c91f2f6d8ff471af7d48248a2d7d237cb3edc57adff89ca",
+        "src/talkinghead_v2/providers/tts/native.py": "b2724a1a6a657ead3021dccf543772862595f8d9aa8f334901533d5342a4e31e"
+      },
+      "binary_sha256": "ec830646983b055fe8340ca3464d88ee474ae0429f19477aa30df9b9989946ed",
+      "receiver_queue_peak_frames": {
+        "video": 1,
+        "audio": 7
+      },
+      "video_rtp_stats": [
+        {
+          "frames_received": 351,
+          "frames_decoded": 349,
+          "frames_dropped": 0,
+          "packets_received": 2055,
+          "packets_lost": 0,
+          "packets_discarded": 0,
+          "retransmitted_packets_received": 0,
+          "nack_count": 0,
+          "pli_count": 0,
+          "fir_count": 0
+        }
+      ]
+    },
+    {
+      "name": "trace-2",
+      "source_frames_accepted": 324,
+      "source_video_skipped": 0,
+      "received_source_frames": 324,
+      "missing_source_indices": [],
+      "received_ids_match_capture_trace": true,
+      "capture_call_median_us": 27.0,
+      "capture_call_max_us": 79,
+      "capture_start_minus_nominal_pts_median_us": 4399.0,
+      "capture_start_minus_nominal_pts_max_us": 28658,
+      "missing_frame_captures": [],
+      "source_sha256": {
+        "native/media/claire_session_worker.cpp": "0121f33f44e66eb628fb3e5183c8ea9df8e33cec97a9f79a1a0a26926f0e73bd",
+        "native/motion/claire_bridge.cpp": "87d03fd75d924b168114f204a3f991c8f42db48725cb68aa91d78e32245ef0f6",
+        "native/motion/claire_bridge.h": "031832df8263c662d40a6e34fa1fd49be6385686216ca8716c2786d1cd385834",
+        "native/media/CMakeLists.txt": "996889da78c33abdf24f26a9f0dd0689706a3424f881fe8462c90755188f0c2a",
+        "src/talkinghead_v2/providers/motion/paired.py": "8cfbfd955361451cfe5f6c1b468e9e86512fed886757c7b63b61902caf816946",
+        "scripts/qualify_claire_session_worker.py": "a797ef37f9f9b0c9769cd1b26e8920227ca0b7f06d1e53509af4f3e0266f81b7",
+        "src/talkinghead_v2/providers/tts/native.py": "b2724a1a6a657ead3021dccf543772862595f8d9aa8f334901533d5342a4e31e"
+      },
+      "binary_sha256": "ec830646983b055fe8340ca3464d88ee474ae0429f19477aa30df9b9989946ed",
+      "receiver_queue_peak_frames": {
+        "audio": 8,
+        "video": 2
+      },
+      "video_rtp_stats": [
+        {
+          "frames_received": 352,
+          "frames_decoded": 350,
+          "frames_dropped": 0,
+          "packets_received": 2069,
+          "packets_lost": 0,
+          "packets_discarded": 0,
+          "retransmitted_packets_received": 0,
+          "nack_count": 0,
+          "pli_count": 0,
+          "fir_count": 0
+        }
+      ]
+    },
+    {
+      "name": "trace-3",
+      "source_frames_accepted": 324,
+      "source_video_skipped": 0,
+      "received_source_frames": 321,
+      "missing_source_indices": [
+        215,
+        222,
+        224
+      ],
+      "received_ids_match_capture_trace": true,
+      "capture_call_median_us": 25.0,
+      "capture_call_max_us": 103,
+      "capture_start_minus_nominal_pts_median_us": 4488.0,
+      "capture_start_minus_nominal_pts_max_us": 27251,
+      "missing_frame_captures": [
+        {
+          "source_index": 215,
+          "capture_call_us": 27,
+          "capture_start_minus_nominal_pts_us": 3628,
+          "encoded_bytes": 6190,
+          "keyframe": false
+        },
+        {
+          "source_index": 222,
+          "capture_call_us": 19,
+          "capture_start_minus_nominal_pts_us": -1375,
+          "encoded_bytes": 7814,
+          "keyframe": false
+        },
+        {
+          "source_index": 224,
+          "capture_call_us": 24,
+          "capture_start_minus_nominal_pts_us": 2201,
+          "encoded_bytes": 7877,
+          "keyframe": false
+        }
+      ],
+      "source_sha256": {
+        "native/media/claire_session_worker.cpp": "0121f33f44e66eb628fb3e5183c8ea9df8e33cec97a9f79a1a0a26926f0e73bd",
+        "native/motion/claire_bridge.cpp": "87d03fd75d924b168114f204a3f991c8f42db48725cb68aa91d78e32245ef0f6",
+        "native/motion/claire_bridge.h": "031832df8263c662d40a6e34fa1fd49be6385686216ca8716c2786d1cd385834",
+        "native/media/CMakeLists.txt": "996889da78c33abdf24f26a9f0dd0689706a3424f881fe8462c90755188f0c2a",
+        "src/talkinghead_v2/providers/motion/paired.py": "8cfbfd955361451cfe5f6c1b468e9e86512fed886757c7b63b61902caf816946",
+        "scripts/qualify_claire_session_worker.py": "a797ef37f9f9b0c9769cd1b26e8920227ca0b7f06d1e53509af4f3e0266f81b7",
+        "src/talkinghead_v2/providers/tts/native.py": "b2724a1a6a657ead3021dccf543772862595f8d9aa8f334901533d5342a4e31e"
+      },
+      "binary_sha256": "ec830646983b055fe8340ca3464d88ee474ae0429f19477aa30df9b9989946ed",
+      "receiver_queue_peak_frames": {
+        "video": 1,
+        "audio": 6
+      },
+      "video_rtp_stats": [
+        {
+          "frames_received": 350,
+          "frames_decoded": 349,
+          "frames_dropped": 0,
+          "packets_received": 2057,
+          "packets_lost": 0,
+          "packets_discarded": 0,
+          "retransmitted_packets_received": 0,
+          "nack_count": 0,
+          "pli_count": 0,
+          "fir_count": 0
+        }
+      ]
+    }
+  ],
+  "clock_scope": "Capture start/end and nominal video PTS are from the native process steady clock; capture acceptance is not transport or presentation acknowledgment.",
+  "limitations": [
+    "Single host and utterance; trace instrumentation may alter scheduling.",
+    "Accepted access units can still disappear downstream; no drop location or causal fix established.",
+    "RTP snapshots include preroll/idle and are asynchronous relative to source and receiver observations.",
+    "Trace 1 used the preceding parser; traces 2 and 3 additionally enforced exact receiver-to-capture identity."
+  ],
+  "physical_av_qualified": false,
+  "delivery_qualified": false,
+  "additional_downloads": false
+}

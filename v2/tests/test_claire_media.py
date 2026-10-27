@@ -158,11 +158,14 @@ def test_imported_identity_is_rejected_and_child_environment_does_not_mutate_par
         instance.device_lease = SimpleNamespace(fileno=7)
         instance.config = SimpleNamespace(paths={'runtime_manifest': tmp_path / 'runtime/runtime.json','bridge_library': tmp_path / 'native/libbridge.so'})
         monkeypatch.setenv('LD_PRELOAD', 'unqualified.so')
+        monkeypatch.setenv('THA_CLAIRE_CAPTURE_TRACE', '1')
         environment = instance._environment()
         assert 'LD_PRELOAD' not in environment and environment['THA_DEVICE_LEASE_FD'] == '7'
+        assert 'THA_CLAIRE_CAPTURE_TRACE' not in environment
         assert environment['HF_HUB_OFFLINE'] == '1'
         import os
         assert os.environ['LD_PRELOAD'] == 'unqualified.so'
+        assert os.environ['THA_CLAIRE_CAPTURE_TRACE'] == '1'
     asyncio.run(run())
 
 

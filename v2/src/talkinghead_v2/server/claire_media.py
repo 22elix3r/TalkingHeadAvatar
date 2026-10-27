@@ -167,6 +167,7 @@ class ClaireMedia(NativeMedia):
                            str(self.config.paths['runtime_manifest'].parent / 'lib') + ':/usr/local/cuda-12.8/lib64')
         environment.pop('LD_PRELOAD', None)
         environment.pop('LD_AUDIT', None)
+        environment.pop('THA_CLAIRE_CAPTURE_TRACE', None)
         return environment
 
     def _visual_mode(self): return 'claire_vendor_research'

@@ -41,7 +41,36 @@ def receiver_video_stats(stats):
     return rows
 
 
+def source_capture_trace(lines,expected):
+    """Parse only the worker's bounded, non-biometric capture observations."""
+    if type(expected) is not int or not 0<expected<=3600:raise ValueError('invalid source capture trace count')
+    rows=[]
+    for line in lines:
+        if not line.startswith('THA_CAPTURE_TRACE '):continue
+        fields=line.split()
+        if len(fields)!=8:raise ValueError('invalid source capture trace')
+        try:frame,source,pts,start,end,size,key=map(int,fields[1:])
+        except ValueError:raise ValueError('invalid source capture trace') from None
+        if (frame<0 or source<0 or source%1600 or pts<0 or start<0 or end<start or
+            not 1<=size<=64*1024*1024 or key not in (0,1)):
+            raise ValueError('invalid source capture trace bounds')
+        if rows and (frame<=rows[-1]['frame_id'] or source<=rows[-1]['source_sample']):
+            raise ValueError('unordered source capture trace')
+        rows.append({'frame_id':frame,'source_sample':source,'source_pts_us':pts,'capture_start_us':start,
+                     'capture_end_us':end,'encoded_bytes':size,'keyframe':bool(key)})
+    if len(rows)!=expected or len(rows)>3600:raise ValueError('incomplete source capture trace')
+    return rows
+
+
+def read_source_capture_trace(path,expected):
+    with open(path,'rb',opener=lambda name,flags:os.open(name,flags|os.O_NOFOLLOW)) as source:
+        data=source.read(4*1024*1024+1)
+    if len(data)>4*1024*1024:raise ValueError('source capture log exceeded bound')
+    return source_capture_trace(data.decode('utf-8',errors='replace').splitlines(),expected)
+
+
 async def main(args):
+    if args.trace_source_captures and not args.live_qwen:raise ValueError('source capture tracing requires the live-Qwen case')
     if args.directory.exists():raise ValueError('preserve previous worker evidence')
     bridge=json.loads((ROOT/'benchmarks/reports/p03-claire-bridge.json').read_text())
     build=ROOT/'var/build/native-media';library=build/'libtha_claire_bridge.so';binary=build/'tha_claire_session_media';ptx=build/'media_kernels.ptx'
@@ -134,6 +163,8 @@ async def main(args):
                 grant(settings,room_name,'media-'+sid,'media'),sid,'test','7',str(args.prebuffer_ms)))+'\n').encode())
             env=dict(os.environ,THA_DEVICE_LEASE_FD=str(lease.fileno),HF_HUB_OFFLINE='1',TRANSFORMERS_OFFLINE='1',CUDA_VISIBLE_DEVICES='0',
                 LD_LIBRARY_PATH=str(runtime/'lib')+':/usr/local/cuda-12.8/lib64',CUDA_CACHE_PATH=str(ROOT/'var/cache/claire-cuda'))
+            env.pop('THA_CLAIRE_CAPTURE_TRACE',None)
+            if args.trace_source_captures:env['THA_CLAIRE_CAPTURE_TRACE']='1'
             log=open(directory/'stderr.log','xb',opener=lambda path,flags:os.open(path,flags,0o600))
             process=await asyncio.create_subprocess_exec(str(binary),str(directory/'bootstrap.txt'),str(ptx),str((args.scene/'research-scene.bin').resolve()),
                 str((args.engine/'model.json').resolve()),env=env,stdin=asyncio.subprocess.PIPE,stdout=asyncio.subprocess.PIPE,stderr=log,pass_fds=(lease.fileno,),limit=16384)
@@ -231,6 +262,12 @@ async def main(args):
                             record['receiver']=receiver
                         cases.append(record);process.send_signal(signal.SIGTERM);await asyncio.wait_for(process.wait(),5)
                         if process.returncode:raise ValueError('post-EOF owner retirement failed')
+                        if args.trace_source_captures:
+                            trace=read_source_capture_trace(directory/'stderr.log',result['source_video_frames'])
+                            sent={row['frame_id']:row['source_sample'] for row in trace}
+                            if any(sent.get(row['frame_id'])!=row['source_sample'] for row in receiver['video']):
+                                raise ValueError('receiver source identity differs from capture trace')
+                            record['source_capture_trace']=trace
                 private_write(directory/'result.json',(json.dumps(cases[-1],indent=2)+'\n').encode())
             finally:
                 if process.returncode is None:process.kill();await process.wait()
@@ -262,6 +299,7 @@ async def main(args):
         'admission_reacquired':True,'audio_queue_bound_samples':48000,'host_motion_queue_bound_packets':50,'motion_input_lead_bound_ms':800,
         'eligible_motion_start_buffer_ms':args.prebuffer_ms,'protocol':'THA_CLAIRE_MEDIA_2',
         'live_qwen_streaming':args.live_qwen,'browser_receiver':False,'physical_av_qualified':False,'qwen_coload_qualified':False,'quality_qualified':False,'additional_downloads':False}
+    report['source_capture_trace_enabled']=args.trace_source_captures
     def usage(sample,pids):return sum(process['mib'] for process in sample['processes'] if process['pid'] in pids)
     coload=[sample for sample in memory if usage(sample,qwen_pids)>0 and usage(sample,worker_pids)>0]
     if args.live_qwen and not coload:raise ValueError('no actual Qwen/Claire co-residency memory observation')
@@ -284,6 +322,7 @@ async def main(args):
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--live-qwen',action='store_true',help='execute one pinned cached-Qwen/SFU/Claire co-load case instead of recorded/fault cohort')
+    parser.add_argument('--trace-source-captures',action='store_true',help='live qualification only: privately trace source capture timing and payload sizes')
     parser.add_argument('--prebuffer-ms',type=int,choices=(300,500),default=500)
     for name in ('config','engine','scene','directory','report'):parser.add_argument('--'+name,type=Path,required=True)
     asyncio.run(main(parser.parse_args()))

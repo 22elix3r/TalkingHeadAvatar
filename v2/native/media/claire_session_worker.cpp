@@ -18,6 +18,7 @@
 #include <cmath>
 #include <condition_variable>
 #include <csignal>
+#include <cstdlib>
 #include <cstring>
 #include <deque>
 #include <fstream>
@@ -26,9 +27,11 @@
 #include <limits>
 #include <mutex>
 #include <poll.h>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <thread>
+#include <vector>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -87,6 +90,10 @@ void render(State& state,const char* ptx,const char* scene,const char* model,con
   bool announced=false;
   try {
     ClaireOwner owner(ptx,scene,model);ready.set_value();announced=true;
+    struct CaptureTrace {uint64_t frame_id,source,pts_us,start_us,end_us,bytes,key;};
+    const char* trace_setting=std::getenv("THA_CLAIRE_CAPTURE_TRACE");
+    const bool trace_enabled=trace_setting&&std::strcmp(trace_setting,"1")==0;
+    std::vector<CaptureTrace> trace;if(trace_enabled)trace.reserve(3600);
     uint64_t offered=0,next=0,preroll_next=0,last_key=0;int frame_id=0;bool motion_eof=false,pending_key=false;double encoder_fps=30;
     while(!stopped.load()){
       Motion chunk;bool feed=false,input_eof=false;uint64_t total=0;
@@ -142,10 +149,22 @@ void render(State& state,const char* ptx,const char* scene,const char* model,con
       const auto source_identity=preroll?",\"idle_before_audio\":true":",\"source_sample\":"+std::to_string(packet.source_sample_48k)+",\"neural_sample_16k\":"+std::to_string(packet.neural_sample_16k);
       const auto identity="{\"session_id\":\""+session+"\",\"turn_id\":\""+turn+"\",\"epoch\":"+std::to_string(epoch)+source_identity+",\"presentation_sample\":"+std::to_string(target)+",\"idle_after_eof\":"+(idle?"true":"false")+"}";
       metadata.user_data=std::vector<uint8_t>(identity.begin(),identity.end());frame.metadata=metadata;
+      uint64_t trace_start=0;
+      if(trace_enabled&&!preroll&&!idle)trace_start=std::chrono::duration_cast<std::chrono::microseconds>(Clock::now().time_since_epoch()).count();
       require(source->captureFrame(frame),"Claire encoded frame rejected");state.video_frames.fetch_add(1);
+      if(trace_enabled&&!preroll&&!idle){
+        require(trace.size()<3600,"Claire capture trace bound exceeded");
+        const auto trace_end=std::chrono::duration_cast<std::chrono::microseconds>(Clock::now().time_since_epoch()).count();
+        trace.push_back({static_cast<uint64_t>(metadata.frame_id.value()),packet.source_sample_48k,static_cast<uint64_t>(packet.pts_us),trace_start,static_cast<uint64_t>(trace_end),frame.data.size(),packet.keyframe?1ULL:0ULL});
+      }
       if(preroll)state.preroll_frames.fetch_add(1);
       if(!idle&&!preroll)state.source_frames.fetch_add(1);
       if(preroll)preroll_next=target+1600;else next=target+1600;
+    }
+    if(trace_enabled){
+      std::ostringstream output;
+      for(const auto& row:trace)output<<"THA_CAPTURE_TRACE "<<row.frame_id<<' '<<row.source<<' '<<row.pts_us<<' '<<row.start_us<<' '<<row.end_us<<' '<<row.bytes<<' '<<row.key<<'\n';
+      std::cerr<<output.str();
     }
   }catch(const std::exception& error){std::cerr<<"Claire GPU owner: "<<error.what()<<'\n';if(!announced){try{ready.set_exception(std::current_exception());}catch(...){}}state.fail("claire_gpu_media_failure");}
 }
