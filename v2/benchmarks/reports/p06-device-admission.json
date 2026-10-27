@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "phase": "P06",
+  "phase_status": "in_progress",
+  "scope": "cooperating processes using the same operator-owned runtime descriptor directory / device-0 lease",
+  "source_sha256": {
+    "src/talkinghead_v2/session/device.py": "828b38965650b3d1fbf17de66496b82806122d5ad9f290509e0007b366b7a7a3",
+    "src/talkinghead_v2/providers/tts/native.py": "b2724a1a6a657ead3021dccf543772862595f8d9aa8f334901533d5342a4e31e",
+    "src/talkinghead_v2/server/actor.py": "065052a147454967c5802e5c0c0a7009f54faa82d4ef655c6f4bbd370bb40d9f",
+    "web/src/client.ts": "83cc48f13f1e93678f638a4fa3a41158716d59d3b63d172e320327640ebcbc3d",
+    "web/tests/device-admission.spec.ts": "3b0458f43b63b2392e64e20f40b900b0977b1713d14fda32ac3d6d632a6e902b",
+    "web/playwright.device.config.ts": "824656193226107b02d716e7a5e58e2fdf3e42ff42a59db0d9e10ca9c1ca9541",
+    "tests/test_device_lease.py": "d1b7e35bf5336846df9af6144511815ae3cfd1d1261f5b05ce62b64d996a5a3d",
+    "tests/test_native_provider.py": "4362dd4302da3038158079ba72c6ba46e9c2cef36585da80a68058b1c5bea898",
+    "runtimes/session-api/tests/test_control_api.py": "7757c7a14ffd80352aef312a41f90309281d7f868338c0cbb3b3cbb592be69bd",
+    "scripts/check_device_admission.py": "5e7f94c22b1b226f92b79190fdc31d767ac69d484aaa29ff4ca4e3159219dd33",
+    "scripts/qualify_device_lease.py": "9c917739c779f566b8efad2414913249d8fd1dd8f39f9697949f77c86434cc8a"
+  },
+  "loaded_preview_source_sha256": {
+    "src/talkinghead_v2/session/device.py": "828b38965650b3d1fbf17de66496b82806122d5ad9f290509e0007b366b7a7a3",
+    "src/talkinghead_v2/providers/tts/native.py": "b2724a1a6a657ead3021dccf543772862595f8d9aa8f334901533d5342a4e31e",
+    "src/talkinghead_v2/server/actor.py": "065052a147454967c5802e5c0c0a7009f54faa82d4ef655c6f4bbd370bb40d9f"
+  },
+  "tests": {
+    "device-core-tests-final.xml": {
+      "tests": 241,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "664c9effd4c236da41e3e71637654f9f6fcbaa37666c4e95488ab4f5113773ae"
+    },
+    "device-api-tests-final.xml": {
+      "tests": 20,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "578003ac78c40fbfb3692b075721454ba6bdc3dee8e1db2761e68fe974bdeff3"
+    }
+  },
+  "browser": {
+    "playwright-device-admission-final.json": {
+      "expected": 1,
+      "unexpected": 0,
+      "skipped": 0,
+      "flaky": 0,
+      "duration": 22742.785
+    },
+    "playwright-device-chromium-regression.json": {
+      "expected": 8,
+      "unexpected": 0,
+      "skipped": 0,
+      "flaky": 0,
+      "duration": 56697.394
+    },
+    "playwright-device-firefox-regression.json": {
+      "expected": 1,
+      "unexpected": 0,
+      "skipped": 0,
+      "flaky": 0,
+      "duration": 8198.965
+    }
+  },
+  "competitor": {
+    "standalone_provider_rejected": true,
+    "competing_spawn_attempted": false,
+    "real_qwen_child_lease_holders": 1,
+    "config_model_revision": "fd4b254389122332181a7c3db7f27e918eec64e3",
+    "scope": "cooperating processes using the same operator-owned runtime descriptor directory / device-0 lease"
+  },
+  "cross_profile_busy_visible": true,
+  "real_primary_playback_after_rejection": true,
+  "real_secondary_playback_after_handoff": true,
+  "device_lease_available_after_sessions": true,
+  "preview_ready": true,
+  "lifetime": "parent and native child share one inherited flock description; no LOCK_UN or lock-inode replacement on release",
+  "limits": {
+    "admitted_sessions": 1,
+    "shared_model_weights_qualified": false,
+    "unmanaged_cuda_process_isolation": false,
+    "multiple_runtime_directory_or_gpu_uuid_qualification": false,
+    "native_media_coload_qualified": false,
+    "real_avatar_quality_qualified": false,
+    "capacity_sweep_or_soak_qualified": false,
+    "release": false
+  },
+  "impact": "first-party admission/startup/cleanup only; no model/config/checkpoint/dependency changes or downloads"
+}

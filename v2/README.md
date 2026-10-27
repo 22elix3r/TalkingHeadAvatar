@@ -10,6 +10,8 @@ The [P06 native checkpoint](docs/p06.md) qualifies a separate synthetic CUDA/NVE
 
 The [P06 virtual-device reference](docs/p06-virtual.md) exercises the existing project camera and a temporary virtual microphone through real Firefox capture and LiveKit, including received speech and camera-clear acknowledgment. Live Qwen/native integration, third-party conferencing and fail-stop privacy remain open.
 
+The [device admission guard](docs/p06-device.md) protects an active Qwen session from competing managed profiles/workers and retains ownership in inherited GPU children. This is N=1 admission, with multi-session sharing/capacity qualification still pending.
+
 From the repository root, with `uv` and Python 3.12 already installed:
 
 ```sh

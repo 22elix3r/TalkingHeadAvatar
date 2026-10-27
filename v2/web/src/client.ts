@@ -16,6 +16,7 @@ function observation(kind: string, data: Record<string, unknown> = {}) {
 
 const friendly: Record<string, string> = {
   capacity_exhausted: 'Another local conversation is active. End it before starting a new one.',
+  gpu_capacity_busy: 'Another local profile or voice task is using the GPU. End it before starting a new conversation.',
   providers_not_ready: 'The voice service is starting. Please try again shortly.',
   session_closed: 'This conversation ended. Start a new one to reconnect.',
   preparation_failed: 'The voice could not start. Please retry.',

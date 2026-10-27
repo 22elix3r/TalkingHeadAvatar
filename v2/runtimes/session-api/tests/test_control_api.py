@@ -145,6 +145,7 @@ async def test_concurrent_close_stops_sources_once_even_when_database_fails():
     actor.preparation=actor.input_task=actor.partial=actor.final_task=actor.heartbeat=None
     actor.epoch=0;actor.row=SimpleNamespace(id='fault-fixture')
     actor.tts=SimpleNamespace(close=AsyncMock());actor.media=SimpleNamespace(close=AsyncMock())
+    actor.device_lease=SimpleNamespace(release=Mock())
     actor.controller=SimpleNamespace(disconnect=AsyncMock());actor.events=Events()
     actor.store=SimpleNamespace(update=Mock(side_effect=RuntimeError('database unavailable')))
     async def interrupt(*args): await asyncio.sleep(.01)
@@ -153,3 +154,26 @@ async def test_concurrent_close_stops_sources_once_even_when_database_fails():
     assert outcomes==[False,False] and actor.closed and actor.close_done.is_set()
     actor.tts.close.assert_awaited_once();actor.media.close.assert_awaited_once()
     actor.controller.disconnect.assert_awaited_once();actor.interrupt.assert_awaited_once()
+    actor.device_lease.release.assert_called_once()
+
+
+async def test_busy_device_fails_preparation_before_loading_any_voice_worker(tmp_path):
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock,Mock
+    from talkinghead_v2.server.actor import Actor
+    from talkinghead_v2.providers.tts.native import NativeConfig
+    from talkinghead_v2.session.device import DeviceBusy,DeviceLease
+    lock=tmp_path/'gpu-device-0.lock'
+    existing=DeviceLease(lock);existing.acquire('active-profile')
+    config=NativeConfig(('never-executed',),'a'*40,'protocol-fixture','tenant','voice','synthetic_fixture',device_lease_path=lock)
+    actor=Actor(SimpleNamespace(private_dir=tmp_path),SimpleNamespace(update=Mock()),
+        SimpleNamespace(id='new-profile',room='never-connected'),None,None,config)
+    actor.tts.open_session=AsyncMock(side_effect=AssertionError('must not load competing weights'))
+    try:
+        await actor.prepare()
+        actor.tts.open_session.assert_not_awaited()
+        assert actor.closed and not actor.ready
+        assert any(event['kind']=='error' and event['code']=='gpu_capacity_busy' for event in actor.events.rows)
+        with pytest.raises(DeviceBusy): DeviceLease(lock).acquire('third-profile')
+    finally:
+        await actor.close();existing.release()

@@ -15,6 +15,7 @@ from talkinghead_v2.assets.artifacts import ArtifactError, MODEL_ID, read_manife
 from talkinghead_v2.assets.voices import read_voice
 from talkinghead_v2.audio.queue import EpochCancelled, MediaQueue
 from talkinghead_v2.contracts import AudioChunk, AudioEOF, ContractError, Envelope, GenerationKey, ProviderCapabilities, TextSegment
+from talkinghead_v2.session.device import DeviceLease
 
 HEADER = struct.Struct("<cIIQQ")
 
@@ -32,6 +33,7 @@ class NativeConfig:
     voice_id: str
     voice_kind: str
     environment: tuple[tuple[str, str | None], ...] = ()
+    device_lease_path: Path | None = None
 
 
 def load_native_config(path: Path) -> NativeConfig:
@@ -72,7 +74,8 @@ def load_native_config(path: Path) -> NativeConfig:
     environment = (("GGML_CUDA_DISABLE_GRAPHS", "1" if disable_graphs else None),
                    ("THA_QWEN_ASYNC_DECODE", "1" if async_decode else "0"))
     return NativeConfig((str(worker), str(models), str(embedding)), manifest["revision"],
-                        data["runtime_revision"], data["tenant_id"], voice["voice_id"], voice["kind"], environment)
+                        data["runtime_revision"], data["tenant_id"], voice["voice_id"], voice["kind"], environment,
+                        path.parent.resolve() / 'gpu-device-0.lock')
 
 
 @dataclass
@@ -99,9 +102,15 @@ class QwenNativeProvider:
     cancel immediately fences PCM, then acknowledges actual compute stop or worker exit.
     """
 
-    def __init__(self, config: NativeConfig, *, diagnostic_log: Path, generation_timeout: float = 180):
+    def __init__(self, config: NativeConfig, *, diagnostic_log: Path, generation_timeout: float = 180,
+                 device_lease: DeviceLease | None = None):
         self.config = config
         self.diagnostic_log = diagnostic_log
+        if device_lease is not None and device_lease.path != config.device_lease_path:
+            raise ContractError('provider and session must share the same device lease')
+        self.device_lease = device_lease or (DeviceLease(config.device_lease_path) if config.device_lease_path else None)
+        self._owns_device_lease = device_lease is None
+        self._opening = False
         if generation_timeout <= 0:
             raise ContractError("generation timeout must be positive")
         self.generation_timeout = generation_timeout
@@ -133,11 +142,25 @@ class QwenNativeProvider:
         await self._process.stdin.drain()
 
     async def open_session(self, key: GenerationKey):
+        if self._opening:
+            raise ContractError('provider startup is already in progress')
+        self._opening = True
+        try:
+            await self._open_session(key)
+        finally:
+            self._opening = False
+
+    async def _open_session(self, key: GenerationKey):
         if self._key is not None and (not self._flushed or not self._eof_consumed or self._lock.locked()):
             raise ContractError("flush and consume EOF, or cancel, before provider restart")
         if key.session_id != self.queue._session_id and self.queue._session_id is not None:
             raise ContractError("one provider instance belongs to one session")
         if self._process is None:
+            inherited = ()
+            if self.device_lease is not None:
+                if self._owns_device_lease:
+                    self.device_lease.acquire(key.session_id)
+                inherited = (self.device_lease.fileno,)
             self.diagnostic_log.parent.mkdir(parents=True, exist_ok=True)
             self._ready = asyncio.get_running_loop().create_future()
             environment = dict(os.environ)
@@ -147,9 +170,17 @@ class QwenNativeProvider:
                 else:
                     environment[name] = value
             with self.diagnostic_log.open("ab") as log:
-                self._process = await asyncio.create_subprocess_exec(*self.config.command,
+                pending = asyncio.create_task(asyncio.create_subprocess_exec(*self.config.command,
                     stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE, stderr=log,
-                    limit=256*1024, env=environment)
+                    limit=256*1024, env=environment, pass_fds=inherited))
+                try:
+                    self._process = await asyncio.shield(pending)
+                except asyncio.CancelledError:
+                    # Retain the actual child handle even if cancellation races
+                    # process creation; never strand an unrecorded GPU worker.
+                    self._process = await pending
+                    await self._stop()
+                    raise
             self._reader_task = asyncio.create_task(self._read())
             try:
                 await asyncio.wait_for(self._ready, 60)
@@ -342,11 +373,13 @@ class QwenNativeProvider:
         process, reader = self._process, self._reader_task
         self._process = self._reader_task = None
         if process is not None and process.returncode is None:
-            process.terminate()
+            try: process.terminate()
+            except ProcessLookupError: pass
             try:
                 await asyncio.wait_for(process.wait(), 2)
             except TimeoutError:
-                process.kill()
+                try: process.kill()
+                except ProcessLookupError: pass
                 await process.wait()
         if reader is not None and reader is not asyncio.current_task():
             reader.cancel()
@@ -357,11 +390,15 @@ class QwenNativeProvider:
         self._failure = None
 
     async def close(self):
-        await self.cancel()
-        if self._process is not None and self._process.returncode is None:
-            await self._send(b"X")
-            try:
-                await asyncio.wait_for(self._process.wait(), 5)
-            except TimeoutError:
-                pass
-        await self._stop()
+        try:
+            await self.cancel()
+            if self._process is not None and self._process.returncode is None:
+                await self._send(b"X")
+                try:
+                    await asyncio.wait_for(self._process.wait(), 5)
+                except TimeoutError:
+                    pass
+        finally:
+            await self._stop()
+            if self._owns_device_lease and self.device_lease is not None:
+                self.device_lease.release()

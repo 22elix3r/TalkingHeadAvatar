@@ -14,6 +14,7 @@ from talkinghead_v2.conversation import TurnDetector,StableSegmenter
 from talkinghead_v2.contracts import Envelope,GenerationKey,TextSegment
 from talkinghead_v2.providers.tts.native import QwenNativeProvider
 from talkinghead_v2.server.transport import Media,checked_audio_stream,grant
+from talkinghead_v2.session.device import DeviceBusy,DeviceLease
 
 
 class Events:
@@ -47,7 +48,9 @@ class Actor:
     def __init__(self,settings,store,row,asr,llm,native_config):
         self.settings,self.store,self.row=settings,store,row
         self.asr,self.llm=asr,llm
-        self.tts=QwenNativeProvider(native_config,diagnostic_log=settings.private_dir/'native-diagnostics.log')
+        lease_path=getattr(native_config,'device_lease_path',None)
+        self.device_lease=DeviceLease(lease_path) if lease_path else None
+        self.tts=QwenNativeProvider(native_config,diagnostic_log=settings.private_dir/'native-diagnostics.log',device_lease=self.device_lease)
         self.media=Media(settings,row.room,row.id);self.controller=rtc.Room()
         self.events=Events();self.detector=TurnDetector();self.vad=webrtcvad.Vad(2)
         self.epoch=0;self.closed=False;self.ready=False;self.responding=False
@@ -60,6 +63,7 @@ class Actor:
         self.closing=False;self.preparation=None;self.close_done=asyncio.Event();self.closed_persisted=False
     async def prepare(self):
         try:
+            if self.device_lease: self.device_lease.acquire(self.row.id)
             await self.tts.open_session(GenerationKey(self.row.id,'warmup',0));await self.tts.cancel()
             await self.media.connect()
             @self.controller.on('track_published')
@@ -83,6 +87,8 @@ class Actor:
             await asyncio.to_thread(self.store.update,self.row.id,status='READY')
             self.ready=True;self.ready_at=time.monotonic();self.heartbeat=asyncio.create_task(self.lease())
             await self.events.emit('ready',self.epoch,visual_mode='static_procedural_reference')
+        except DeviceBusy:
+            await self.fail('gpu_capacity_busy')
         except Exception:
             await self.fail('preparation_failed')
     async def lease(self):
@@ -243,4 +249,5 @@ class Actor:
             await self.events.emit('closed',self.epoch,code=error)
             return self.closed_persisted
         finally:
+            if getattr(self,'device_lease',None): self.device_lease.release()
             self.closed=True;self.ready=False;self.close_done.set()
