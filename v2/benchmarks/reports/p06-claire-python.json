@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "observation": "actual Python pinned Claire process wrapper / local SFU sender, recorded synthetic Qwen",
+  "source_sha256": {
+    "src/talkinghead_v2/server/claire_media.py": "3415da62553d916835fa7cbb63e53d2d7a4a7712adc248272f18bab181d802b4",
+    "src/talkinghead_v2/server/native_media.py": "3bed661f1ca8c33a9faf871a0359c2f5ac493df292438fbb05965e19bba6b22b",
+    "src/talkinghead_v2/providers/motion/paired.py": "8cfbfd955361451cfe5f6c1b468e9e86512fed886757c7b63b61902caf816946",
+    "scripts/describe_claire_media.py": "53bfd5dd136c525d2b873d738c451b3e8521852def498c09f1176f0c7061aacd",
+    "scripts/qualify_claire_media.py": "b49ad478639921dab5c4711765bdb48f51f622df873cc76a266da534b6f4cac8"
+  },
+  "runtime_descriptor_sha256": "a62ed9a9cce3d0c711588282c5df3526faaa79c1991c9be64b5b9a5b31a88a29",
+  "pinned_file_count": 183,
+  "native_executable_sha256": "37145f16d273fc72311a75f3ed79f1c6f2768fece466f5edee6feddd33ee70e5",
+  "cases": [
+    {
+      "epoch": 1,
+      "valid_samples": 133290,
+      "padding_samples": 1110,
+      "sender_metrics": {
+        "first_pcm_stream_sample": 9120,
+        "source_clock_late_max_ms": 0.059786,
+        "queue_peak_samples": 48000,
+        "video_frames": 89,
+        "video_skipped": 0,
+        "source_video_frames": 84,
+        "preroll_video_frames": 5,
+        "motion_queue_peak_packets": 25,
+        "pose_queue_peak_frames": 16
+      },
+      "presentation_ack": false
+    },
+    {
+      "epoch": 2,
+      "blocked_producer": true,
+      "owned_process_exit_ms": 533.3754540006339,
+      "private_epoch_purged": true,
+      "receiver_flush_claimed": false
+    },
+    {
+      "epoch": 3,
+      "valid_samples": 133290,
+      "padding_samples": 1110,
+      "sender_metrics": {
+        "first_pcm_stream_sample": 8640,
+        "source_clock_late_max_ms": 0.058669,
+        "queue_peak_samples": 48000,
+        "video_frames": 88,
+        "video_skipped": 0,
+        "source_video_frames": 84,
+        "preroll_video_frames": 4,
+        "motion_queue_peak_packets": 25,
+        "pose_queue_peak_frames": 16
+      },
+      "presentation_ack": false
+    }
+  ],
+  "fresh_publications_after_cancel": true,
+  "post_retirement_admission_reacquired": true,
+  "browser_receiver": false,
+  "physical_av_qualified": false,
+  "additional_downloads": false
+}

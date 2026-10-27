@@ -60,6 +60,9 @@ class NativeMediaConfig:
 
 
 class NativeMedia:
+    runtime_type = NativeMediaConfig
+    bootstrap_version = 'THA_NATIVE_MEDIA_1'
+
     def __init__(self, settings, room_name, sid, device_lease):
         self.settings, self.room_name, self.sid = settings, room_name, sid
         self.device_lease = device_lease
@@ -77,14 +80,32 @@ class NativeMedia:
     async def connect(self):
         if self.device_lease is None: raise ContractError('native media requires managed device admission')
         _ = self.device_lease.fileno
-        self.config = await asyncio.to_thread(NativeMediaConfig.load, self.settings.native_media_runtime)
+        self.config = await asyncio.to_thread(self.runtime_type.load, self.settings.native_media_runtime)
+
+    def _input_state(self, key):
+        return {'ledger': SampleLedger(key, 24000), 'resampler': RationalResampler(24000, 48000)}
+
+    async def _stage_geometry(self, directory):
+        geometry = await asyncio.to_thread(project_neutral, self.asset, 512)
+        if self.cancelled: raise asyncio.CancelledError
+        private_write(directory / 'mesh.bin', geometry.packed())
+
+    def _command(self, directory):
+        return (str(self.config.executable), str(directory / 'bootstrap.txt'), str(self.config.ptx), str(directory / 'mesh.bin'))
+
+    def _environment(self):
+        return None
+
+    def _visual_mode(self):
+        return 'static_procedural_reference' if self.asset.kind == 'procedural_fixture' else 'static_mesh_reference'
 
     async def start(self, key):
-        from talkinghead_v2.server.transport import grant
-        await self.cancel()
-        if self.blocked: raise PermissionError('media_authorization_revoked')
+        if key.session_id != self.sid: raise ContractError('native media session identity mismatch')
         if not all(IDENTIFIER.fullmatch(value) for value in (key.session_id, key.turn_id)):
             raise ContractError('bounded native session/turn identifiers required')
+        await self.cancel()
+        if self.blocked: raise PermissionError('media_authorization_revoked')
+        from talkinghead_v2.server.transport import grant
         self.key, self.cancelled = key, False
         self.cursor = self.padding = 0
         self.sender_metrics = None
@@ -92,24 +113,22 @@ class NativeMedia:
         loop = asyncio.get_running_loop()
         state = {'directory': directory, 'process': None, 'reader': None, 'ready': loop.create_future(),
                  'eof': loop.create_future(), 'key': key, 'sequence': 0, 'sent': 0, 'pending': (),
-                 'ledger': SampleLedger(key, 24000), 'resampler': RationalResampler(24000, 48000)}
+                 **self._input_state(key)}
         # Observe failures even when cancellation prevents a waiter from reaching a future.
         for name in ('ready', 'eof'):
             state[name].add_done_callback(lambda future: None if future.cancelled() else future.exception())
         self.state = state
         try:
-            geometry = await asyncio.to_thread(project_neutral, self.asset, 512)
+            await self._stage_geometry(directory)
             if self.cancelled: raise asyncio.CancelledError
-            private_write(directory / 'mesh.bin', geometry.packed())
             token = grant(self.settings, self.room_name, 'media-' + self.sid, 'media')
-            private_write(directory / 'bootstrap.txt', ('\n'.join(('THA_NATIVE_MEDIA_1', self.settings.livekit_url,
+            private_write(directory / 'bootstrap.txt', ('\n'.join((self.bootstrap_version, self.settings.livekit_url,
                 token, key.session_id, key.turn_id, str(key.epoch), str(self.config.prebuffer_ms))) + '\n').encode())
             log = open(directory / 'diagnostics.log', 'xb', opener=lambda name, flags: os.open(name, flags, 0o600))
             try:
-                opening = state['opening'] = asyncio.create_task(asyncio.create_subprocess_exec(str(self.config.executable),
-                    str(directory / 'bootstrap.txt'), str(self.config.ptx), str(directory / 'mesh.bin'),
+                opening = state['opening'] = asyncio.create_task(asyncio.create_subprocess_exec(*self._command(directory),
                     stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE, stderr=log,
-                    pass_fds=(self.device_lease.fileno,), limit=16384))
+                    pass_fds=(self.device_lease.fileno,), env=self._environment(), limit=16384))
                 try: state['process'] = await asyncio.shield(opening)
                 except asyncio.CancelledError:
                     state['process'] = await opening
@@ -122,7 +141,7 @@ class NativeMedia:
             binding = await asyncio.wait_for(asyncio.shield(state['ready']), 20)
             if self.cancelled or self.state is not state: raise asyncio.CancelledError
             return {**{name: binding[name] for name in ('audio_sid', 'video_sid', 'publisher', 'epoch')},
-                    'visual_mode': 'static_procedural_reference' if self.asset.kind == 'procedural_fixture' else 'static_mesh_reference',
+                    'visual_mode': self._visual_mode(),
                     'clock_mapping': 'new_track_per_epoch', 'source_sample_rate': 48000,
                     'transport': 'livekit_cpp_preencoded', 'source_clock': 'cpp_monotonic',
                     'prebuffer_ms': self.config.prebuffer_ms}
