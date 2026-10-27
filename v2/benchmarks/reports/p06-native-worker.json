@@ -1,0 +1,157 @@
+{
+  "schema_version": 1,
+  "phase": "P06",
+  "phase_status": "in_progress",
+  "scope": "actual CUDA/NVENC/LiveKit worker sender protocol with synthetic sine PCM; no receiver/quality inference",
+  "source_sha256": {
+    "native/media/session_worker.cpp": "5819ac31a3ba21ff63eadb4c43d05afc79d46046a8edc54a5802290d317af094",
+    "native/media/projected_file.h": "1b48cc798118b33ba3f760be25b28d92b648f24b2976a4c081c882cb6fc88e03",
+    "src/talkinghead_v2/server/native_media.py": "9d9bd2ad77eb95f2344c31fbd9dba7c5c0348a0919d61076ab493efcbfb0beb0",
+    "scripts/qualify_native_worker.py": "8ce99ccfcc73a7ae09c7e2bf986f8638ec9de9ad74896db2d248612fdeac35b9"
+  },
+  "executable_sha256": "042f20f9a835bf4dff0295d6e7214889014665e25d4bf8a208b0b7d1b2536f71",
+  "ptx_sha256": "b13fc816868a1cd0a032562713998f9be5ec879edb0bed560c11f597a5bc297e",
+  "cases": [
+    {
+      "name": "empty",
+      "sender": {
+        "kind": "eof",
+        "epoch": 7,
+        "valid_samples": 0,
+        "padding_samples": 960,
+        "first_pcm_stream_sample": 480,
+        "source_clock_late_max_ms": 0.056854,
+        "queue_peak_samples": 0,
+        "video_frames": 1,
+        "video_skipped": 0,
+        "presentation_ack": false
+      },
+      "process_exit": 0
+    },
+    {
+      "name": "one",
+      "sender": {
+        "kind": "eof",
+        "epoch": 7,
+        "valid_samples": 1,
+        "padding_samples": 1439,
+        "first_pcm_stream_sample": 480,
+        "source_clock_late_max_ms": 0.057135,
+        "queue_peak_samples": 1,
+        "video_frames": 1,
+        "video_skipped": 0,
+        "presentation_ack": false
+      },
+      "process_exit": 0
+    },
+    {
+      "name": "short",
+      "sender": {
+        "kind": "eof",
+        "epoch": 7,
+        "valid_samples": 479,
+        "padding_samples": 961,
+        "first_pcm_stream_sample": 480,
+        "source_clock_late_max_ms": 0.055401,
+        "queue_peak_samples": 479,
+        "video_frames": 1,
+        "video_skipped": 0,
+        "presentation_ack": false
+      },
+      "process_exit": 0
+    },
+    {
+      "name": "aligned",
+      "sender": {
+        "kind": "eof",
+        "epoch": 7,
+        "valid_samples": 480,
+        "padding_samples": 960,
+        "first_pcm_stream_sample": 480,
+        "source_clock_late_max_ms": 0.056611,
+        "queue_peak_samples": 480,
+        "video_frames": 1,
+        "video_skipped": 0,
+        "presentation_ack": false
+      },
+      "process_exit": 0
+    },
+    {
+      "name": "partial",
+      "sender": {
+        "kind": "eof",
+        "epoch": 7,
+        "valid_samples": 481,
+        "padding_samples": 1439,
+        "first_pcm_stream_sample": 480,
+        "source_clock_late_max_ms": 0.057425,
+        "queue_peak_samples": 481,
+        "video_frames": 2,
+        "video_skipped": 0,
+        "presentation_ack": false
+      },
+      "process_exit": 0
+    },
+    {
+      "name": "quantum",
+      "sender": {
+        "kind": "eof",
+        "epoch": 7,
+        "valid_samples": 960,
+        "padding_samples": 960,
+        "first_pcm_stream_sample": 480,
+        "source_clock_late_max_ms": 0.055787,
+        "queue_peak_samples": 960,
+        "video_frames": 2,
+        "video_skipped": 0,
+        "presentation_ack": false
+      },
+      "process_exit": 0
+    },
+    {
+      "name": "tail",
+      "sender": {
+        "kind": "eof",
+        "epoch": 7,
+        "valid_samples": 961,
+        "padding_samples": 1439,
+        "first_pcm_stream_sample": 480,
+        "source_clock_late_max_ms": 0.055518,
+        "queue_peak_samples": 961,
+        "video_frames": 2,
+        "video_skipped": 0,
+        "presentation_ack": false
+      },
+      "process_exit": 0
+    },
+    {
+      "name": "wrong_epoch",
+      "rejected": true,
+      "process_exit": 1
+    },
+    {
+      "name": "gap",
+      "rejected": true,
+      "process_exit": 1
+    },
+    {
+      "name": "sequence",
+      "rejected": true,
+      "process_exit": 1
+    },
+    {
+      "name": "backpressure_cancel",
+      "blocked_producer": true,
+      "owned_process_exit_ms": 462.0643049999842,
+      "receiver_flush_claimed": false
+    }
+  ],
+  "post_retirement_admission_reacquired": true,
+  "model_downloads": false,
+  "acceptance": {
+    "receiver_presentation": false,
+    "physical_av": false,
+    "real_avatar": false,
+    "release": false
+  }
+}

@@ -51,7 +51,11 @@ class Actor:
         lease_path=getattr(native_config,'device_lease_path',None)
         self.device_lease=DeviceLease(lease_path) if lease_path else None
         self.tts=QwenNativeProvider(native_config,diagnostic_log=settings.private_dir/'native-diagnostics.log',device_lease=self.device_lease)
-        self.media=Media(settings,row.room,row.id);self.controller=rtc.Room()
+        if getattr(settings,'media_backend','raw_reference')=='native_static':
+            from talkinghead_v2.server.native_media import NativeMedia
+            self.media=NativeMedia(settings,row.room,row.id,self.device_lease)
+        else: self.media=Media(settings,row.room,row.id)
+        self.controller=rtc.Room()
         self.events=Events();self.detector=TurnDetector();self.vad=webrtcvad.Vad(2)
         self.epoch=0;self.closed=False;self.ready=False;self.responding=False
         self.control_lock=asyncio.Lock();self.generation_lock=asyncio.Lock()
@@ -212,7 +216,8 @@ class Actor:
             if key.epoch==self.epoch and not self.closed:
                 self.responding=False
                 await self.events.emit('sender_complete',self.epoch,valid_audio_samples=self.media.cursor,
-                    codec_padding_samples=self.media.padding,presentation_ack=False)
+                    codec_padding_samples=self.media.padding,presentation_ack=False,
+                    native_source_metrics=getattr(self.media,'sender_metrics',None))
                 await asyncio.to_thread(self.store.update,self.row.id,status='READY')
         except asyncio.CancelledError: raise
         except Exception:

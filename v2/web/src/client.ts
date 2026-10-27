@@ -157,12 +157,14 @@ export class ConversationClient {
       if (!this.gate.bind(binding)) return;
       this.updateSubscriptions();
       this.attach(binding.audio_sid); this.attach(binding.video_sid);
-      observation('playback_binding', { epoch: event.epoch, audio_sid: binding.audio_sid, video_sid: binding.video_sid });
+      observation('playback_binding', { epoch: event.epoch, audio_sid: binding.audio_sid, video_sid: binding.video_sid,
+        transport: event.transport ?? 'livekit_python_raw', source_sample_rate: event.source_sample_rate });
     }
     if (event.kind === 'caption' && event.speaker === 'user' && event.final) this.hooks.status('Thinking');
     if (event.kind === 'sender_complete') {
       this.hooks.status('Listening');
-      observation('sender_complete', { epoch: event.epoch, valid_audio_samples: event.valid_audio_samples, presentation_ack: false });
+      observation('sender_complete', { epoch: event.epoch, valid_audio_samples: event.valid_audio_samples,
+        codec_padding_samples: event.codec_padding_samples, native_source_metrics: event.native_source_metrics, presentation_ack: false });
     }
     if (event.kind === 'error') this.hooks.error(friendly[event.code ?? ''] ?? 'The answer was interrupted. Please retry.');
     if (event.kind === 'closed') {

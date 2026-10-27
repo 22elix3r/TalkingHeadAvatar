@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "phase": "P06",
+  "phase_status": "in_progress",
+  "scope": "actual cached Qwen/CPU ASR+LLM/browser conversation with CUDA static mesh, NVENC and LiveKit C++ pre-encoded publications",
+  "source_sha256": {
+    "src/talkinghead_v2/server/native_media.py": "9d9bd2ad77eb95f2344c31fbd9dba7c5c0348a0919d61076ab493efcbfb0beb0",
+    "src/talkinghead_v2/server/actor.py": "071aef379e27dec1c8785c1636c38cba65e8a5763fdc3cd21fdee6ef6dfe151e",
+    "native/media/session_worker.cpp": "5819ac31a3ba21ff63eadb4c43d05afc79d46046a8edc54a5802290d317af094",
+    "web/tests/native-session.spec.ts": "7d8808d1731f74abe6c4b4df86d798ba110d54e85657eaebdeca8cef38d72d19",
+    "web/src/client.ts": "39a623b4f8268ec93eedd1ef7ca00ae3204ba5da537d7d1f593a0b90b9181cda"
+  },
+  "native_executable_sha256": "042f20f9a835bf4dff0295d6e7214889014665e25d4bf8a208b0b7d1b2536f71",
+  "ptx_sha256": "b13fc816868a1cd0a032562713998f9be5ec879edb0bed560c11f597a5bc297e",
+  "checks": {
+    "core": {
+      "passed": 260,
+      "junit_sha256": "f41b1656ab9fc6c18db4ff7c8e2de707ff14e52cbde4580dbe48c56d30fa42cd"
+    },
+    "api": {
+      "passed": 24,
+      "junit_sha256": "43ac5b44bd748b6640c54373d3e8825190ae06664e2bceffeaf4ef73c5f77968"
+    },
+    "chromium": {
+      "passed": 2,
+      "duration_ms": 36381.812,
+      "report_sha256": "807d9e23947d3553557648bcb63e9226d964b7a9ff84da150e323c3333e87f1b"
+    },
+    "firefox": {
+      "passed": 1,
+      "duration_ms": 17030.211,
+      "report_sha256": "ab27fd0c9d29285046abdd3b5d18c2e8face1619b2c5872b851edfb62abf70f3"
+    },
+    "actual_worker_protocol_cases": 11,
+    "post_retirement_device_reacquired": true,
+    "normal_preview_ready": true
+  },
+  "journeys": {
+    "chromium_typed": {
+      "evidence_sha256": "6860aad663431b10419671aa279b748d785d44b666cb08e32eecdca7fcc9b998",
+      "native_binding_count": 2,
+      "replacement_tracks": true,
+      "source_valid_samples": 131070,
+      "source_codec_padding_samples": 1410,
+      "source_metrics": {
+        "first_pcm_stream_sample": 123840,
+        "source_clock_late_max_ms": 2.620434,
+        "queue_peak_samples": 48000,
+        "video_frames": 160,
+        "video_skipped": 0
+      },
+      "decoded_audio_observed": true,
+      "video_presented_callback": true,
+      "presentation_ack": false
+    },
+    "chromium_microphone": {
+      "evidence_sha256": "8ed83b438e4fc40b6f405cb85e8bbba8684bdb99839df677c25926b34af4f8c2",
+      "native_binding_count": 1,
+      "replacement_tracks": false,
+      "source_valid_samples": 74580,
+      "source_codec_padding_samples": 1260,
+      "source_metrics": {
+        "first_pcm_stream_sample": 168480,
+        "source_clock_late_max_ms": 3.606779,
+        "queue_peak_samples": 31860,
+        "video_frames": 153,
+        "video_skipped": 0
+      },
+      "decoded_audio_observed": true,
+      "video_presented_callback": true,
+      "presentation_ack": false
+    },
+    "firefox_typed": {
+      "evidence_sha256": "362222ce7261c0f97b35e54b9737f847e7cebae77f37875db4582c2a7a6f0b60",
+      "native_binding_count": 2,
+      "replacement_tracks": true,
+      "source_valid_samples": 131070,
+      "source_codec_padding_samples": 1410,
+      "source_metrics": {
+        "first_pcm_stream_sample": 116640,
+        "source_clock_late_max_ms": 2.12858,
+        "queue_peak_samples": 48000,
+        "video_frames": 156,
+        "video_skipped": 0
+      },
+      "decoded_audio_observed": true,
+      "video_presented_callback": true,
+      "presentation_ack": false
+    }
+  },
+  "memory": {
+    "samples": 267,
+    "coload_samples": 150,
+    "query_failures": 0,
+    "target_interval_ms": 100,
+    "queries": "sequential device/process NVML snapshots; sampled maxima are not guaranteed peak memory",
+    "device_total_mib": 16376,
+    "sampled_total_device_used_max_mib": 6451,
+    "qwen_process_sampled_max_mib": 4364,
+    "native_process_sampled_max_mib": 859,
+    "other_compute_processes_sampled_max_mib": 1260,
+    "model_plus_media_same_process_query_max_mib": 5221,
+    "planned_encoder_budget_mib": 512,
+    "encoder_budget_passed": false,
+    "motion_present": false,
+    "gpu_llm_present": false,
+    "capacity_qualified": false
+  },
+  "clock": {
+    "source_rate": 48000,
+    "pcm_quantum_samples": 960,
+    "worker_audio_tick_samples": 480,
+    "prebuffer_ms": 300,
+    "worker_queue_bound_samples": 48000,
+    "video_sample_tick": 1600,
+    "preparation_silence": "all source samples before first_pcm_stream_sample; excluded from valid PCM, included in real startup",
+    "clock_domains": "controller/browser/C++ source clocks remain distinct; no physical A/V subtraction or presentation acknowledgment"
+  },
+  "cancellation": "priority SIGTERM bypasses PCM backpressure; owned process retired before replacement; exact new audio/video SIDs gate receiver resume",
+  "copies": "three initial geometry uploads and GPU render/NV12 surfaces; encoded CPU payload copies; prior isolated trace, no new product-process trace claim",
+  "environment": "host reboot stopped services during the gap; restored only this project services and retained databases; API tests rerun after PostgreSQL recovery",
+  "model_impact": "existing pinned Base 1.7B X-vector synthetic voice; no new checkpoint/model/software download, training, human media or V1 changes",
+  "remaining": [
+    "real Claire/authorized speaking-avatar and calibrated retarget",
+    "independent Q0/human voice lifecycle",
+    "physical A/V and latency",
+    "encoder memory budget",
+    "API/inference image qualification",
+    "live virtual-device output/third-party conference/fail-stop"
+  ],
+  "acceptance": {
+    "native_product_transport": true,
+    "static_reference_only": true,
+    "real_speaking_avatar": false,
+    "physical_av": false,
+    "capacity": false,
+    "quality_gate": false,
+    "release": false
+  }
+}

@@ -79,6 +79,9 @@ def initialize(root, name, source, ports):
         'asr_path': str(settings.asr_path), 'asr_files': settings.asr_files,
         'tts_runtime': str(settings.tts_runtime), 'web_dist': str(settings.web_dist),
         'private_dir': str(profile), 'origin': f'http://127.0.0.1:{ports["api"]}'}
+    config['media_backend'] = settings.media_backend
+    if settings.native_media_runtime is not None:
+        config['native_media_runtime'] = str(settings.native_media_runtime)
     private_json(profile / 'runtime.json', config)
     sfu = profile / 'livekit.yaml'
     with open(sfu, 'x', opener=lambda p, flags: os.open(p, flags | os.O_NOFOLLOW, 0o600)) as target:
@@ -190,8 +193,15 @@ def doctor(root, name):
         checks['cached_llm_digest'] = any(model['name'] == settings.llm_model and model['digest'] == settings.llm_digest for model in tags['models'])
     except (OSError, ValueError, KeyError):
         checks['cached_llm_digest'] = False
+    if settings.media_backend == 'native_static':
+        from talkinghead_v2.server.native_media import NativeMediaConfig
+        try:
+            NativeMediaConfig.load(settings.native_media_runtime)
+            checks['pinned_native_media_runtime'] = True
+        except (OSError, ValueError, KeyError):
+            checks['pinned_native_media_runtime'] = False
     return {'status': 'ready' if all(checks.values()) else 'incomplete', 'profile': name, 'checks': checks,
-        'native_media_integrated': False, 'no_fetch_attempted': True}
+        'media_backend': settings.media_backend, 'no_fetch_attempted': True}
 
 
 def provision(root, name):
