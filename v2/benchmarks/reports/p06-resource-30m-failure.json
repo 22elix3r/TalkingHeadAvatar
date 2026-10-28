@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-29",
+  "evidence_class": "failed local actual typed actor/browser sustained cohort",
+  "base_commit": "209beeb9986e93cdcedcb886f7d490768cb173a1",
+  "status": "failed",
+  "source_sha256": {
+    "scripts/qualify_claire_session_soak.py": "ab2d1a97de5258bf1d56bbd3d3c73585795fd3d8b3ce236e6799da148878d03a",
+    "scripts/qualify_claire_receiver_matrix.py": "c1289bd6acb2794a22ff051d59530e8fb7fbefa020b9f13ca72a925f5e45341a",
+    "src/talkinghead_v2/resource_probe.py": "5285f76c7b145f191c647a2c496472a7f77480546f201e522a030e479c152e67",
+    "src/talkinghead_v2/server/actor.py": "9ef7eb2b8e97c0a62654cd6d9603d7024ebf4baf9d73ea399995eb0c0f9062ea",
+    "src/talkinghead_v2/server/claire_media.py": "173cdf8667342db2591229a1627816beb333ef44f4309aa28b96bc6e9023d2bb",
+    "src/talkinghead_v2/providers/tts/native.py": "b2724a1a6a657ead3021dccf543772862595f8d9aa8f334901533d5342a4e31e",
+    "web/src/client.ts": "f33847f2fc66f719c4960e3573555caed8f77d4f13958c605544acfce2533dc9",
+    "web/tests/claire-soak.spec.ts": "9e399594b47a6652705f4589bb51a8743d9013d7e211edb3a0805c30655a2968",
+    "web/playwright.claire.soak.config.ts": "7e7598a7d3197d046d913c3c3cab9bbd648f005e474079620bd3abb4f453bacc",
+    "web/playwright.claire-profile.ts": "3c6660fbdaf1648828fabd4dc53eb6f016997fdc55257b6b7b599590eadc8c2b"
+  },
+  "receipt_sha256": "a5b9d6e1025ce32d7f40ff927d388d19878a4c46dbfa6b404aeb09a3cbcc5201",
+  "runtime_revision": "3b560d0c635991923560486636cce1339678742084b6d7523995a92723e925ae",
+  "tts_descriptor_sha256": "a6a33b0821183f0605ed22727e2ea6219139fc9701c91c66cceede188f76c0c4",
+  "source_and_runtime_stable": true,
+  "browser_summary": {
+    "passed": false,
+    "close_confirmed": true,
+    "requested_seconds": 1800,
+    "measured_node_elapsed_ms": 931576.874582,
+    "completed": 68,
+    "interrupted": 18,
+    "attempts": 87,
+    "browser_version": "154.0.8037.57",
+    "microphone_input": "none; typed closed-loop workload",
+    "clock": "Node performance; browser observation clocks stored separately",
+    "physical_av_qualified": false,
+    "latency_or_capacity_qualified": false
+  },
+  "native_fault": {
+    "code": "Claire motion underrun; retire epoch",
+    "process_exit": 1,
+    "receipt_sha256": "5bbf88adebd4e84b3f4e00ab2ad1a230d90011ff54cd8c698cb8db424ec6136a"
+  },
+  "underlying_motion_delay_cause": "unresolved; numeric readiness/owner timing needed before tuning",
+  "completed_turn_queue_maxima": {
+    "queue_peak_samples": 48000,
+    "motion_queue_peak_packets": 13,
+    "pose_queue_peak_frames": 24,
+    "video_skipped": 0
+  },
+  "telemetry": {
+    "samples": 3757,
+    "query_failures": 0,
+    "failure_types": [],
+    "sampled_maxima_are_not_guaranteed_peaks": true,
+    "subqueries_are_sequential": true,
+    "target_pause_after_queries_ms": 200,
+    "co_load_samples": 3585,
+    "device_used_sampled_max_mib": 9753,
+    "native_process_samples_without_gpu_attribution": 75,
+    "per_role_sampled_gpu_max_mib": {
+      "qwen": 4376,
+      "media": 1215
+    },
+    "per_role_sampled_rss_max_bytes": {
+      "api": 587722752,
+      "qwen": 940609536,
+      "media": 1282732032
+    },
+    "qwen_process_lifetimes": 1,
+    "media_process_lifetimes": 87,
+    "media_lifetimes_with_verified_policy": 87,
+    "remaining_api_child_count": 0
+  },
+  "context": "desktop_and_cpu_packaging",
+  "process_exit": 1,
+  "scope": "68 complete and 18 interrupted attempts passed before the 87th failed, about 15.5 minutes into the workload. All attempts count. The 1800-second gate failed. CPU-only image staging/build overlapped; causation is not established.",
+  "model_downloads": false,
+  "software_downloads": false,
+  "physical_av_qualified": false,
+  "capacity_qualified": false,
+  "sustained_gate_passed": false,
+  "post_close_recovery": {
+    "receipt_sha256": "f93a91ee5702d3697426393aea5def60675019918e2bcf72a1dc43fa45d21eaa",
+    "stats": {
+      "startTime": "2026-10-28T23:19:46.970Z",
+      "duration": 46448.530000000006,
+      "expected": 2,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "native_worker_executions": 3,
+    "every_observed_worker_validated": true,
+    "scope": "Fresh sessions after explicit close; not an underrun fix or sustained-gate pass."
+  }
+}

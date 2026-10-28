@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-29",
+  "evidence_class": "local offline software-image build, imports and driver inspection",
+  "base_commit": "209beeb9986e93cdcedcb886f7d490768cb173a1",
+  "source_sha256": {
+    "scripts/build_p06_host_image.py": "06d95050c5f666c99429adf234cd573f3451f4c73a17cc6a366ddf22faa0e8b4",
+    "src/talkinghead_v2/host_image.py": "7518d9cd0b3998a103771095b4fa24563f7f1183219c30589e7f85a735e6309f",
+    "tests/test_host_image.py": "df98e0608aa957740b0d7ad2c82aa69ffbe384d5cd23158458f11c3e1e750a26"
+  },
+  "build": {
+    "schema_version": 1,
+    "status": "built",
+    "image_id": "sha256:917fe97b846d46e34aad0499df33d85b28e6b5a5f905f50af1f92a836e1bfdae",
+    "image_size_bytes": 1928851885,
+    "software_file_records": 5309,
+    "software_logical_bytes": 4353346965,
+    "external_software_file_count": 0,
+    "software_inventory_sha256": "5eb77f22c8ce3759fb1e3d34598aaf6705e1c79946cec6699d21c5ede212b76e",
+    "build_script_sha256": "06d95050c5f666c99429adf234cd573f3451f4c73a17cc6a366ddf22faa0e8b4",
+    "stager_sha256": "7518d9cd0b3998a103771095b4fa24563f7f1183219c30589e7f85a735e6309f",
+    "help_process_exit": 0,
+    "source_runtime_unchanged": true,
+    "model_downloads": false,
+    "software_downloads": false,
+    "real_provider_or_gpu_image_qualified": false,
+    "scope": "Offline software image from qualified host files. Selected model/native caches stay outside; provider startup, GPU access and browser behavior require separate qualification."
+  },
+  "build_receipt_sha256": "6f1ce6998159e81e4da659e3e356bd145f5c8aae876893846af35a770a6ff3a0",
+  "driver_inspection": {
+    "process_exit": 0,
+    "network": "none",
+    "rootfs_read_only": true,
+    "user": "1000:1000",
+    "scope": "NVML inspection only; no CUDA or provider inference",
+    "receipt_sha256": "7663e80a05d772367161e15f22d8df51cc222c9f9842e47ffa4345040075d455",
+    "output": "0, NVIDIA GeForce RTX 4070 Ti SUPER, 580.178.04, 16376 MiB"
+  },
+  "imports": {
+    "process_exit": 0,
+    "network": "none",
+    "rootfs_read_only": true,
+    "devices": false,
+    "model_caches": false,
+    "scope": "Software import/ABI check only; no model inference",
+    "receipt_sha256": "c97babe7a0244e09a4c0314da3024b7d2df85e54a9e40a8e9f6a7956ff1d1d3d"
+  },
+  "validation": {
+    "core_tests": 437,
+    "core_failures": 0,
+    "core_seconds": 7.879,
+    "junit_sha256": "5cb7c591f1ffbe1dd84f5ca288a9b864312fd9b76a67984972aafa684e0677d9"
+  },
+  "scope": "Private scratch image assembled from the verified Fedora/Python/API software and installed driver packages. Selected model/native caches, profile credentials and database state are external. NVML inspection does not establish CUDA inference or browser delivery in the image.",
+  "third_party_terms": "Existing package, FFmpeg, driver/CUDA/runtime terms remain separate; no combined-image redistribution clearance is asserted.",
+  "api_container_lifecycle_qualified": false,
+  "real_provider_image_qualified": false,
+  "native_gpu_image_qualified": false,
+  "release_qualified": false,
+  "model_downloads": false,
+  "software_downloads": false,
+  "v1_changed": false,
+  "global_driver_or_daemon_configuration_changed": false
+}

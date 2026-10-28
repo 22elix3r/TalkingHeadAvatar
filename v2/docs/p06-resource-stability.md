@@ -89,3 +89,29 @@ Raw telemetry, publication IDs and browser events stay private. No model/softwar
 download, training, global change, V1 mutation or cloud deployment occurred.
 P02–P06 remain in progress; the full sustained result and remaining packaging,
 virtual-device, physical presentation and quality gates stay open.
+
+## 1,800-second cohort outcome
+
+The separate sustained run **failed**, with 68 complete and 18 interrupted
+turns before attempt 87 stopped on the retained native code `Claire motion
+underrun; retire epoch`. Its measured workload-to-close interval was 931.58 s,
+short of 1,800 s. Source/runtime pins stayed stable; close was confirmed and
+no API children remained. The observer recorded 3,757 samples, zero query
+failures and a sampled device maximum of 9,753 MiB. Completed-turn queue maxima
+stayed at 48,000 audio samples / 13 motion packets / 24 poses, with zero reported
+render skips. These prior successful turns do not turn the failed run into a
+pass. CPU-only image staging/build overlapped; it is context, not an established
+cause. The guard identifies a motion-readiness failure, but its underlying delay
+remains unresolved. Numeric readiness/owner timing is needed before changing
+buffer policy or rerunning the full cohort.
+
+[Failure evidence](../benchmarks/reports/p06-resource-30m-failure.json) retains
+all attempt accounting, runtime/source/receipt hashes and bounded fault/resource
+metadata. The raw events, detailed logs and private identifiers remain excluded.
+The earlier smoke and its report remain distinct.
+
+After explicit close, a fresh Chromium typed/microphone recovery cohort passed
+2 checks in 46.45 s; all three native workers matched the selected SDK policy.
+This qualifies post-close reuse in those short journeys, not a fix for the
+underrun or a passing sustained cohort. All four local profile endpoints were
+ready afterward.
