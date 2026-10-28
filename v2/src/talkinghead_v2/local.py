@@ -82,6 +82,8 @@ def initialize(root, name, source, ports):
     config['media_backend'] = settings.media_backend
     if settings.native_media_runtime is not None:
         config['native_media_runtime'] = str(settings.native_media_runtime)
+    if settings.inbound_audio_runtime is not None:
+        config['inbound_audio_runtime'] = str(settings.inbound_audio_runtime)
     private_json(profile / 'runtime.json', config)
     sfu = profile / 'livekit.yaml'
     with open(sfu, 'x', opener=lambda p, flags: os.open(p, flags | os.O_NOFOLLOW, 0o600)) as target:
@@ -182,6 +184,13 @@ def doctor(root, name):
     checks = {'cached_asr_hashes': all(digest(settings.asr_path / filename) == expected for filename, expected in settings.asr_files.items()),
         'tts_descriptor_present': settings.tts_runtime.is_file(), 'web_build_present': (settings.web_dist / 'index.html').is_file(),
         'offline_runtime_present': (directory / 'api-venv/bin/python').is_file()}
+    if settings.inbound_audio_runtime is not None:
+        from talkinghead_v2.server.inbound_config import InboundAudioConfig
+        try:
+            InboundAudioConfig.load(settings.inbound_audio_runtime)
+            checks['pinned_inbound_audio_runtime'] = True
+        except (OSError, ValueError, KeyError, TypeError):
+            checks['pinned_inbound_audio_runtime'] = False
     if (directory / 'runtime-source.json').exists():
         try:
             source = safe_read(directory / 'runtime-source.json')
@@ -308,6 +317,9 @@ def up(root, name):
             probe.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             probe.bind(('127.0.0.1', marker['ports']['api']))
         env = dict(os.environ, HF_HUB_OFFLINE='1', TRANSFORMERS_OFFLINE='1', THA_P04_CONFIG=str(directory / 'runtime.json'))
+        if settings.inbound_audio_runtime is not None:
+            from talkinghead_v2.server.inbound_config import InboundAudioConfig
+            env = InboundAudioConfig.load(settings.inbound_audio_runtime).environment(env)
         with open(directory / 'operator.log', 'a', opener=lambda p, flags: os.open(p, flags | os.O_NOFOLLOW, 0o600)) as log:
             command(compose_command(directory, marker) + ['up', '-d', '--wait', '--wait-timeout', '40', '--pull', 'never'], log=log)
             command([str(directory / 'api-venv/bin/alembic'), '-c', str(root / 'runtimes/session-api/alembic.ini'), 'upgrade', 'head'], env=env, log=log)

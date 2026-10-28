@@ -58,6 +58,12 @@ def create_app(settings: Settings,*,load_models=True,run_jobs=True):
     async def lifespan(app):
         await asyncio.to_thread(store.require_schema)
         if load_models:
+            if settings.inbound_audio_runtime is not None:
+                from talkinghead_v2.server.inbound_config import InboundAudioConfig
+                from talkinghead_v2.server.inbound_audio import validate_loaded_runtime
+                inbound=await asyncio.to_thread(InboundAudioConfig.load,settings.inbound_audio_runtime)
+                validate_loaded_runtime(inbound)
+                resources['inbound_audio_config']=inbound
             config=await asyncio.to_thread(load_native_config,settings.tts_runtime)
             if config.voice_kind!='synthetic_fixture': raise ValueError('P04 audio_reference requires an explicitly labeled synthetic voice fixture')
             asr=await asyncio.to_thread(Asr,settings.asr_path,settings.asr_files)
@@ -152,10 +158,12 @@ def create_app(settings: Settings,*,load_models=True,run_jobs=True):
     @app.get('/health/ready')
     async def ready():
         return JSONResponse({'ready':resources['ready'],'profile':profile,'avatar_ready':research and resources['ready'],
-                             'visual_quality_qualified':False},status_code=200 if resources['ready'] else 503)
+                             'visual_quality_qualified':False,
+                             'inbound_audio_queue':'native_fail_closed' if resources.get('inbound_audio_config') else 'python_checked_native_unqualified'},status_code=200 if resources['ready'] else 503)
     @app.get('/v1/capabilities')
     async def capabilities():
         return {'profiles':[profile],'voice_kind':'synthetic_fixture','avatar_ready':research,
+                'inbound_audio_queue':'native_fail_closed' if resources.get('inbound_audio_config') else 'python_checked_native_unqualified',
                 'visual_quality_qualified':False,'asset_imports':not research,
                 'authentication':'loopback_development','recording':False,'asr_streaming':'rolling_window_revisions',
                 'llm':'explicit_cpu_qwen','tts':'Qwen3-TTS Base 1.7B','receiver_resume':'replace_tracks'}
@@ -207,7 +215,7 @@ def create_app(settings: Settings,*,load_models=True,run_jobs=True):
                     if body.asset_id not in {'synthetic-audio-reference',reference_id}:
                         path=await asyncio.to_thread(lifecycle.serving_manifest,p.id,row.asset_id,row.asset_revision)
                         selected=await asyncio.to_thread(load_avatar,path,tenant_id=p.id)
-                    actor=Actor(settings,store,row,resources['asr'],resources['llm'],resources['config'],resources.get('avatar_config'))
+                    actor=Actor(settings,store,row,resources['asr'],resources['llm'],resources['config'],resources.get('avatar_config'),resources.get('inbound_audio_config'))
                     if selected:
                         actor.media.asset=selected;actor.media.renderer=MeshRenderer(selected,resolution=128)
                     actors[row.id]=actor

@@ -1,0 +1,184 @@
+diff --git a/libwebrtc/src/audio_stream.rs b/libwebrtc/src/audio_stream.rs
+index 00677c4..ae3eb6d 100644
+--- a/libwebrtc/src/audio_stream.rs
++++ b/libwebrtc/src/audio_stream.rs
+@@ -37,9 +37,8 @@ pub mod native {
+         /// on the WebRTC sink path.
+         ///
+         /// `None` uses the default bounded queue size of 10 frames. `Some(0)`
+-        /// opts into unbounded buffering. Positive values bound the queue, and
+-        /// the stream drops the oldest queued frames on overflow so latency
+-        /// stays bounded.
++        /// opts into unbounded buffering. Positive values bound the queue;
++        /// overflow closes the stream so consumers can fence a discontinuity.
+         ///
+         /// If your application consumes both audio and video, keep the queue
+         /// sizing strategy coordinated across both streams. Using a much larger
+@@ -90,6 +89,10 @@ pub mod native {
+             self.handle.track()
+         }
+ 
++        pub fn native_queue_overflowed(&self) -> bool {
++            self.handle.native_queue_overflowed()
++        }
++
+         pub fn close(&mut self) {
+             self.handle.close()
+         }
+diff --git a/libwebrtc/src/native/audio_stream.rs b/libwebrtc/src/native/audio_stream.rs
+index deb7291..868533a 100644
+--- a/libwebrtc/src/native/audio_stream.rs
++++ b/libwebrtc/src/native/audio_stream.rs
+@@ -61,6 +61,10 @@ impl NativeAudioStream {
+         self.audio_track.clone()
+     }
+ 
++    pub fn native_queue_overflowed(&self) -> bool {
++        self.frame_queue.dropped_frames.load(Ordering::Acquire) > 0
++    }
++
+     pub fn close(&mut self) {
+         let audio = unsafe { sys_at::ffi::media_to_audio(self.audio_track.sys_handle()) };
+         audio.remove_sink(&self.native_sink);
+@@ -157,23 +161,14 @@ impl AudioFrameQueue {
+         self.wake_receiver();
+     }
+ 
+-    fn push_bounded(&self, queue: &BoundedAudioFrameQueue, mut frame: AudioFrame<'static>) {
+-        loop {
+-            let push_result = queue.producer.lock().push(frame);
+-            match push_result {
+-                Ok(()) => return,
+-                Err(PushError::Full(returned_frame)) => {
+-                    frame = returned_frame;
+-
+-                    let dropped = queue.consumer.lock().pop().is_ok();
+-
+-                    if dropped {
+-                        self.record_drop();
+-                    } else {
+-                        return;
+-                    }
+-                }
+-            }
++    fn push_bounded(&self, queue: &BoundedAudioFrameQueue, frame: AudioFrame<'static>) {
++        let push_result = queue.producer.lock().push(frame);
++        if let Err(PushError::Full(_)) = push_result {
++            // A gap in microphone PCM cannot be repaired by evicting older
++            // speech. End this stream so the consumer can fence the turn.
++            let events = self.dropped_frames.fetch_add(1, Ordering::AcqRel) + 1;
++            self.close();
++            Self::log_overflow(events);
+         }
+     }
+ 
+@@ -193,6 +188,9 @@ impl AudioFrameQueue {
+     }
+ 
+     fn poll_recv(&self, cx: &mut Context<'_>) -> Poll<Option<AudioFrame<'static>>> {
++        if self.closed.load(Ordering::Acquire) {
++            return Poll::Ready(None);
++        }
+         if let Some(frame) = self.try_pop() {
+             return Poll::Ready(Some(frame));
+         }
+@@ -203,7 +201,10 @@ impl AudioFrameQueue {
+ 
+         *self.waker.lock() = Some(cx.waker().clone());
+ 
+-        if let Some(frame) = self.try_pop() {
++        if self.closed.load(Ordering::Acquire) {
++            self.waker.lock().take();
++            Poll::Ready(None)
++        } else if let Some(frame) = self.try_pop() {
+             self.waker.lock().take();
+             Poll::Ready(Some(frame))
+         } else if self.closed.load(Ordering::Acquire) {
+@@ -227,11 +228,10 @@ impl AudioFrameQueue {
+         }
+     }
+ 
+-    fn record_drop(&self) {
+-        let dropped_frames = self.dropped_frames.fetch_add(1, Ordering::Relaxed) + 1;
++    fn log_overflow(dropped_frames: u64) {
+         if dropped_frames == 1 || dropped_frames % 100 == 0 {
+             log::warn!(
+-                "native audio stream queue overflow; dropped {} queued frames",
++                "native audio stream queue overflow; stream closed after {} overflow events",
+                 dropped_frames
+             );
+         }
+@@ -273,7 +273,7 @@ mod tests {
+     }
+ 
+     #[test]
+-    fn bounded_queue_drops_oldest_when_full() {
++    fn bounded_queue_ends_stream_when_full() {
+         let queue = AudioFrameQueue::new(Some(2));
+ 
+         queue.push(test_frame(1));
+@@ -281,9 +281,17 @@ mod tests {
+         queue.push(test_frame(3));
+ 
+         assert_eq!(queue.dropped_frames.load(Ordering::Relaxed), 1);
+-        assert_eq!(pop_marker(&queue), Some(2));
+-        assert_eq!(pop_marker(&queue), Some(3));
++        assert!(queue.closed.load(Ordering::Acquire));
++        assert_eq!(pop_marker(&queue), None);
++        queue.push(test_frame(4));
+         assert_eq!(pop_marker(&queue), None);
++        struct NoopWake;
++        impl std::task::Wake for NoopWake {
++            fn wake(self: std::sync::Arc<Self>) {}
++        }
++        let waker = std::task::Waker::from(std::sync::Arc::new(NoopWake));
++        let mut context = std::task::Context::from_waker(&waker);
++        assert!(matches!(queue.poll_recv(&mut context), std::task::Poll::Ready(None)));
+     }
+ 
+     #[test]
+diff --git a/livekit-ffi/protocol/audio_frame.proto b/livekit-ffi/protocol/audio_frame.proto
+index 3514390..91f2caa 100644
+--- a/livekit-ffi/protocol/audio_frame.proto
++++ b/livekit-ffi/protocol/audio_frame.proto
+@@ -282,7 +282,10 @@ message AudioFrameReceived {
+   required OwnedAudioFrameBuffer frame = 1;
+ }
+ 
+-message AudioStreamEOS {}
++message AudioStreamEOS {
++  // TalkingHeadAvatar pinned extension: bounded native microphone queue failed.
++  optional bool native_queue_overflow = 1;
++}
+ 
+ //
+ // AudioSource
+diff --git a/livekit-ffi/src/server/audio_stream.rs b/livekit-ffi/src/server/audio_stream.rs
+index 1bcb21f..cadee14 100644
+--- a/livekit-ffi/src/server/audio_stream.rs
++++ b/livekit-ffi/src/server/audio_stream.rs
+@@ -395,7 +395,7 @@ impl FfiAudioStream {
+         if let Err(err) = server.send_event(
+             proto::AudioStreamEvent {
+                 stream_handle: stream_handle,
+-                message: Some(proto::AudioStreamEos {}.into()),
++                message: Some(proto::AudioStreamEos::default().into()),
+             }
+             .into(),
+         ) {
+@@ -506,10 +506,14 @@ impl FfiAudioStream {
+             }
+         }
+         if send_eos {
++            let native_queue_overflow = match &native_stream {
++                AudioStreamKind::Native(stream) => stream.native_queue_overflowed(),
++                AudioStreamKind::Filtered(_) => false,
++            };
+             if let Err(err) = server.send_event(
+                 proto::AudioStreamEvent {
+                     stream_handle: stream_handle_id,
+-                    message: Some(proto::AudioStreamEos {}.into()),
++                    message: Some(proto::AudioStreamEos { native_queue_overflow: Some(native_queue_overflow) }.into()),
+                 }
+                 .into(),
+             ) {

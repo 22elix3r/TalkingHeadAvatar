@@ -47,12 +47,16 @@ class CheckedReceiveQueue:
         return self.queue.popleft()
 
 
-def checked_audio_stream(track):
-    stream=rtc.AudioStream(track,sample_rate=16000,num_channels=1,frame_size_ms=20,capacity=0)
+def checked_audio_stream(track,inbound_config=None):
+    if inbound_config is not None:
+        from talkinghead_v2.server.inbound_audio import BoundedNativeAudioStream
+        stream=BoundedNativeAudioStream(track,inbound_config)
+    else:
+        stream=rtc.AudioStream(track,sample_rate=16000,num_channels=1,frame_size_ms=20,capacity=0)
     # livekit 1.1.21 owns this queue. Guard the inspected integration point; do
     # not modify the SDK globally or permit its silent RingQueue eviction policy.
     if type(stream._queue).__name__!='RingQueue': raise RuntimeError('unqualified LiveKit receive queue implementation')
-    stream._queue=CheckedReceiveQueue()
+    stream._queue=CheckedReceiveQueue(inbound_config.python_frames if inbound_config is not None else 25)
     return stream
 
 

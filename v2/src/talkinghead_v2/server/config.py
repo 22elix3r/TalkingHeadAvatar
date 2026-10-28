@@ -23,6 +23,7 @@ class Settings:
     origin: str='http://127.0.0.1:18700'
     media_backend: str='raw_reference'
     native_media_runtime: Path | None=None
+    inbound_audio_runtime: Path | None=None
 
     @classmethod
     def load(cls,path: Path):
@@ -35,6 +36,8 @@ class Settings:
             raise ValueError('unknown media backend')
         if d.get('native_media_runtime') is not None:
             d['native_media_runtime']=(path.parent/d['native_media_runtime']).resolve()
+        if d.get('inbound_audio_runtime') is not None:
+            d['inbound_audio_runtime']=(path.parent/d['inbound_audio_runtime']).resolve()
         if d.get('media_backend') in {'native_static','native_claire_research'} and not d.get('native_media_runtime'):
             raise ValueError('native media requires an explicit pinned runtime')
         return cls(**d)

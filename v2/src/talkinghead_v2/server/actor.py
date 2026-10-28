@@ -45,9 +45,10 @@ class Events:
 
 
 class Actor:
-    def __init__(self,settings,store,row,asr,llm,native_config,avatar_config=None):
+    def __init__(self,settings,store,row,asr,llm,native_config,avatar_config=None,inbound_audio_config=None):
         self.settings,self.store,self.row=settings,store,row
         self.asr,self.llm=asr,llm
+        self.inbound_audio_config=inbound_audio_config
         lease_path=getattr(native_config,'device_lease_path',None)
         self.device_lease=DeviceLease(lease_path) if lease_path else None
         self.tts=QwenNativeProvider(native_config,diagnostic_log=settings.private_dir/'native-diagnostics.log',device_lease=self.device_lease)
@@ -70,6 +71,7 @@ class Actor:
         self.voiced_run=0;self.metrics=deque(maxlen=64)
         self.client_seen=False;self.ready_at=0.
         self.last_browser_heartbeat=time.monotonic();self.final_task=None
+        self.input_loss_task=None
         self.closing=False;self.preparation=None;self.close_done=asyncio.Event();self.closed_persisted=False
     async def prepare(self):
         try:
@@ -85,6 +87,9 @@ class Actor:
                 if participant.identity=='user-'+self.row.id and track.kind==rtc.TrackKind.KIND_AUDIO:
                     if self.input_task: self.input_task.cancel()
                     self.input_task=asyncio.create_task(self.receive(track))
+            @self.controller.on('track_unpublished')
+            def unpublished(publication,participant):
+                self.microphone_unpublished(publication,participant)
             @self.controller.on('participant_disconnected')
             def left(participant):
                 if participant.identity=='user-'+self.row.id: asyncio.create_task(self.close())
@@ -112,9 +117,18 @@ class Actor:
                 await asyncio.to_thread(self.store.update,self.row.id,epoch=self.epoch)
         except asyncio.CancelledError: pass
         except Exception: await self.fail('lease_lost')
+    def microphone_unpublished(self,publication,participant):
+        if (participant.identity!='user-'+self.row.id or publication.source!=rtc.TrackSource.SOURCE_MICROPHONE or
+            self.closed or self.closing):return
+        pending=getattr(self,'input_loss_task',None)
+        if pending is None or pending.done():
+            self.input_loss_task=asyncio.create_task(self.fail('microphone_discontinuity'))
+
     async def receive(self,track):
-        stream=checked_audio_stream(track)
+        stream=None
         try:
+            if self.closed:return
+            stream=checked_audio_stream(track,getattr(self,'inbound_audio_config',None))
             async for event in stream:
                 if self.closed: break
                 pcm=bytes(event.frame.data)
@@ -134,9 +148,13 @@ class Actor:
                     utterance=self.utterance
                     if self.final_task and not self.final_task.done(): self.final_task.cancel()
                     self.final_task=asyncio.create_task(self.commit_audio(endpoint,utterance))
+            else:
+                if not self.closed and not self.closing:
+                    raise RuntimeError('microphone stream ended unexpectedly')
         except asyncio.CancelledError: pass
         except Exception: await self.fail('microphone_discontinuity')
-        finally: await stream.aclose()
+        finally:
+            if stream is not None:await stream.aclose()
     async def caption(self,pcm,utterance):
         try:
             text=await self.asr.transcribe(pcm)
@@ -250,7 +268,7 @@ class Actor:
             try: await self.interrupt('session_closed')
             except Exception: logging.getLogger(__name__).warning('source cancellation failed during close')
             self.closed=True;self.ready=False
-            for task in (self.input_task,self.partial,self.final_task,self.heartbeat):
+            for task in (self.input_task,self.partial,self.final_task,self.heartbeat,getattr(self,'input_loss_task',None)):
                 if task and task is not asyncio.current_task(): task.cancel()
             await asyncio.gather(self.tts.close(),self.media.close(),self.controller.disconnect(),return_exceptions=True)
             try:

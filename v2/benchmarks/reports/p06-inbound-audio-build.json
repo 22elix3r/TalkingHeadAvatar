@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "rust_revision": "bae4df2f3d6c8f0f6ce81a7370c445779f1948d2",
+  "patch_sha256": "c740299162fe2764e5d07754f0f79dd94cae64dd76d98753a68f609e26c39330",
+  "cargo_lock_sha256": "f3dbfe24ec94cb2f37eede9962cf50c93673fa44c9c501fcd8c5d820bd93e5a7",
+  "library_sha256": "16eb6e043651eb1c509bf515f512abac2c0e079035cc24928f72d3daa9866d03",
+  "native_audio_tests_passed": 4,
+  "rust_version": "rustc 1.99.0 (b940084d7 2026-09-28)",
+  "protoc_sha256": "141906a4a6b76043aea53df26465d2738a72c540d5ef6952ba85676d699c6769",
+  "webrtc_sha256": "daa499c9769ac884380dff248a533b8d1adb9a6c33e1a04f8e605dc0012bcb21",
+  "source_sha256": {
+    "libwebrtc/src/audio_stream.rs": "3496da8e37d0eb33fd9f3d935f74493dd7a3dbca37264db09026170fdd01283a",
+    "libwebrtc/src/native/audio_stream.rs": "f7accfa3efc0f3f2322f0fa02fcceb0889d9e9b0b4456a14f0c3f68dec07d911",
+    "livekit-ffi/protocol/audio_frame.proto": "d51437f42ee18e1feb09d99cfd876a719123384407df001cd33986d46d603539",
+    "livekit-ffi/src/server/audio_stream.rs": "8fba8750852cd5a35756ea59f97e1426c223e40a5bca3b907cc82200487c5fc5"
+  },
+  "build_script_sha256": "2310a0880b39c83deb86f15034019b39be58279cccda872aac36587f1235220c",
+  "logs_sha256": {
+    "audio-ffi-build-source-guard-v2-native-audio-tests.log": "0ea10b4afc497edde7cbf4301b48bfc631dc1694216be67d02e0eefa0d4abc28",
+    "audio-ffi-build-source-guard-v2-ffi-build.log": "7a5ce3e87db05d46a66b72b90115cb10ac043cc3fb07c36fd1199e4df87ece22"
+  },
+  "offline": true,
+  "model_downloads": false
+}

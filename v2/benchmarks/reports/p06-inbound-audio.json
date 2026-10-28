@@ -1,0 +1,118 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-28",
+  "evidence_class": "local_observation",
+  "scope": "Opt-in bounded native microphone receiver and session failure/recovery; synthetic mic and cached real providers. No physical A/V, human-ASR quality, full-avatar delivery or phase-completion claim.",
+  "source_sha256": {
+    "scripts/build_inbound_audio_ffi.py": "2310a0880b39c83deb86f15034019b39be58279cccda872aac36587f1235220c",
+    "scripts/describe_inbound_audio.py": "b19fe9d564f0e250a6509197de89ddb8f7c361dd3e02c8d407d44508b43efb56",
+    "scripts/qualify_inbound_audio_matrix.py": "2fd37de8272ef6a2b319f61850ff7f331edbc7fb29edbc66ad4e797eb1b9f5dd",
+    "scripts/qualify_native_audio_queue.py": "6319408b22c01dfa0459b3d9c49b4b47465b297814eb990d252db5ca05a8f22a",
+    "scripts/serve_p04.py": "c61bc608e41e9e029bf0fa342de13e9e4988aabb4f2d7a99d65d472d93eea619",
+    "patches/livekit-native-audio-fail-closed.patch": "c740299162fe2764e5d07754f0f79dd94cae64dd76d98753a68f609e26c39330",
+    "src/talkinghead_v2/server/inbound_config.py": "16278db49927ba7f1da6dfb7cd6434c918d47d95dae8f172af30d65e3ed62e5e",
+    "src/talkinghead_v2/server/inbound_audio.py": "92ffb95adf58f2e3a41d5115c8c6f2ed208a6f932d585426585574e2c367a3c5",
+    "src/talkinghead_v2/server/transport.py": "fe1e97f8656f2a97ad7a8b8deeec7c0199a982eb2a34d1acd5a946ff6f4c6986",
+    "src/talkinghead_v2/server/actor.py": "9ef7eb2b8e97c0a62654cd6d9603d7024ebf4baf9d73ea399995eb0c0f9062ea",
+    "src/talkinghead_v2/server/app.py": "6db2b8c74458918b448d6f7fef1da7b73543d7e3bc0cedd32447bad7a1c55f33",
+    "src/talkinghead_v2/server/config.py": "6338d48aac7588ce8349b2066d78932dd032f9ad801624ad72890361613a6f69",
+    "src/talkinghead_v2/local.py": "ec525b6a90f9494fd72de06bcfc57e87cb491b1372b1099e30b92aef3b85b545",
+    "src/talkinghead_v2/local_server.py": "061b991dc96f742aeee956a3c784c550b5f933e41caf40a148648a95c8403f60",
+    "web/tests/inbound-audio.spec.ts": "b5b52ae6549884e664455a908689fcfb5d8eb28004690e83a1919cf88763eeba",
+    "web/playwright.inbound.config.ts": "db85766ccda93d5924fe80ddba0ed890d6f52b9a8c2c41f3538505758619095f",
+    "web/playwright.inbound.firefox.config.ts": "02007c0ff8f01383c5a7ef96516215ec701c5fbc7ec564cc03d3a812174b9eea",
+    "tests/test_inbound_build_source.py": "8fa9cddfa83f140d2a55e321d07afa9cade6135d0b10ee574efeabbdcbeb71a1"
+  },
+  "native_library_sha256": "16eb6e043651eb1c509bf515f512abac2c0e079035cc24928f72d3daa9866d03",
+  "descriptor_sha256": "ec5d27245548829391ab745b136b4a7899d020cc251a2c771802edbbe6afe233",
+  "native_queue_frames": 25,
+  "native_queue_nominal_ms": 250,
+  "python_queue_frames_20ms": 12,
+  "python_queue_ms": 240,
+  "junit": {
+    "core": {
+      "tests": 351,
+      "failures": 0,
+      "errors": 0,
+      "time_seconds": 5.969,
+      "receipt_sha256": "9d03a2a42f18707c9fae1941c1c2001ffecff4267d0262eb152be52023a21af2"
+    },
+    "api": {
+      "tests": 39,
+      "failures": 0,
+      "errors": 0,
+      "time_seconds": 4.327,
+      "receipt_sha256": "01403897d32c603057bf1ac8988619da3b48033a5465b1dbba31c2f6f6a6cda3"
+    }
+  },
+  "browsers": {
+    "chromium": {
+      "stats": {
+        "startTime": "2026-10-28T07:02:38.201Z",
+        "duration": 30111.874,
+        "expected": 3,
+        "skipped": 1,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "report_sha256": "52f9c6b3a7c21d149d6b1429bc4655d121791714e581b528ab74e62cd7bf4824",
+      "browser_version": "154.0.8037.57",
+      "typed_observation_counts": {
+        "connected": 1,
+        "local_output_muted": 3,
+        "playback_binding": 2,
+        "decoded_audio_observed": 2,
+        "video_presented_callback": 2,
+        "sender_complete": 1
+      },
+      "real_providers": true,
+      "input_queue": "native_fail_closed",
+      "physical_av_qualified": false,
+      "microphone_unpublish": {
+        "real_api": true,
+        "real_cached_qwen_preparation": true,
+        "failed_code": "microphone_discontinuity",
+        "fresh_session_ready": true,
+        "synthetic_microphone": true,
+        "physical_av_qualified": false
+      },
+      "synthetic_microphone_asr_answer_decoded": true
+    },
+    "firefox": {
+      "stats": {
+        "startTime": "2026-10-28T07:03:08.616Z",
+        "duration": 19440.86,
+        "expected": 2,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "report_sha256": "b6608f10e0a728a9abe9c0224d490091c1c4768da7792764c72e47b07725b172",
+      "browser_version": "157.0",
+      "typed_observation_counts": {
+        "connected": 1,
+        "local_output_muted": 3,
+        "playback_binding": 2,
+        "video_presented_callback": 2,
+        "decoded_audio_observed": 2,
+        "sender_complete": 1
+      },
+      "real_providers": true,
+      "input_queue": "native_fail_closed",
+      "physical_av_qualified": false,
+      "synthetic_microphone_barge_resume": {
+        "browser_version": "157.0",
+        "real_providers": true,
+        "synthetic_microphone": true,
+        "vad_barge_in_observed": true,
+        "muted_resume_answer_decoded": true,
+        "input_queue": "native_fail_closed",
+        "asr_quality_qualified": false,
+        "physical_av_qualified": false
+      }
+    }
+  },
+  "model_downloads": false,
+  "software_download_deviation": "An accidental repo-root npx invocation fetched playwright 1.64.1 before failing without a config. Final runs use the existing v2/web/node_modules binary; no model/browser binary was fetched.",
+  "build_guard_review": "Reject staged extra edits, untracked sources and dirty pinned submodules before and after build. Actual guarded offline rerun passed4 native tests and produced the identical FFI. Existing serving descriptor retains original build receipt; guarded receipt is additional evidence for same bytes."
+}

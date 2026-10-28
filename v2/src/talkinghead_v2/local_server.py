@@ -24,13 +24,26 @@ def main():
         os.replace(temporary, directory / 'api-process.json')
         try:
             import uvicorn
-            from talkinghead_v2.server.app import create_app
             from talkinghead_v2.server.config import Settings
             settings = Settings.load(directory / 'runtime.json')
+            inbound = None
+            if settings.inbound_audio_runtime is not None:
+                from talkinghead_v2.server.inbound_config import InboundAudioConfig
+                inbound = InboundAudioConfig.load(settings.inbound_audio_runtime)
+                selected = inbound.environment(os.environ)
+                for key in ('LD_PRELOAD', 'LD_AUDIT'):
+                    os.environ.pop(key, None)
+                os.environ['LIVEKIT_LIB_PATH'] = selected['LIVEKIT_LIB_PATH']
+            from talkinghead_v2.server.app import create_app
             origin = urlparse(settings.origin)
             if origin.scheme != 'http' or origin.hostname != '127.0.0.1' or origin.port is None or origin.path or origin.query or origin.fragment or origin.username:
                 raise ValueError('local serving requires an explicit http://127.0.0.1:port origin')
-            uvicorn.run(create_app(settings), host='127.0.0.1', port=origin.port, access_log=False, log_level='warning')
+            try:
+                uvicorn.run(create_app(settings), host='127.0.0.1', port=origin.port, access_log=False, log_level='warning')
+            finally:
+                if inbound is not None:
+                    from talkinghead_v2.server.inbound_audio import dispose_owned_runtime
+                    dispose_owned_runtime(inbound)
         finally:
             path = directory / 'api-process.json'
             if path.exists() and safe_read(path) == record:
