@@ -35,3 +35,8 @@ Chromium **2 passed**: typed interaction with interruption/fresh audio and video
 The native worker's 19 GPU/SFU cases cover recorded input, exact/partial EOF boundaries, protocol faults and blocked-producer cancellation. In one live-Qwen receiver cohort, the sender produced **324 source frames** and the receiver observed **312**, including the first and final source frames; twelve missing intermediate indices remain a finding. A separate earlier zero-gap cohort is preserved as [historical evidence](../benchmarks/reports/p03-claire-live-preroll-20261027.json), not a repeatability claim. The research descriptor requires explicit opt-in when receiver gaps remain. Neither cohort proves complete frame delivery, physical A/V alignment, low latency, visual quality or concurrency capacity.
 
 The CPU core suite passed **335** tests and the isolated API/PostgreSQL suite **29**; the web unit suite passed **2**, and TypeScript/Vite builds passed. The model and runtime were already present; this checkpoint downloaded no weights and did not alter V1. Human consent/enrollment, avatar retargeting, independent visual quality, receiver suppression and physical A/V, deployment and release remain open.
+
+The [2026-10-29 publisher rollout](p06-publisher-serving.md) now selects the
+qualified external-rate-controller SDK policy on port 18730 after isolated and
+preview browser checks with idle rollback/reapply. The intermediate-frame loss
+observations above remain historical evidence; physical A/V and quality stay open.

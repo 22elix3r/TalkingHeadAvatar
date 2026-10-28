@@ -9,6 +9,8 @@ import subprocess
 from talkinghead_v2.assets.artifacts import sha256_file
 from talkinghead_v2.server.claire_media import CLAIRE_PROTOCOL,CLAIRE_REVISION,CLAIRE_SDK_REVISION,ClaireMediaConfig
 from talkinghead_v2.server.native_media import SDK_REVISION,private_write
+from talkinghead_v2.publish_probe import PublisherTraceConfig
+from talkinghead_v2.server.claire_publisher import PUBLISHER_ROLES
 
 ROOT=Path(__file__).resolve().parents[1]
 
@@ -17,9 +19,19 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     for name in ('engine','scene','output'):parser.add_argument('--'+name,type=Path,required=True)
     parser.add_argument('--allow-receiver-video-gaps',action='store_true',help='experimental research only: retain observed decoder gaps without claiming quality/release acceptance')
+    parser.add_argument('--qualified-live-report',type=Path,default=ROOT/'benchmarks/reports/p03-claire-live-preroll.json')
+    parser.add_argument('--publisher-runtime',type=Path,help='explicit qualified SDK/worker probe inventory to snapshot into serving')
+    parser.add_argument('--trust-encoded-rate-control',action='store_true',help='explicit local research policy; requires lifecycle/live/rate and clean owner evidence')
+    for name in ('lifecycle-report','rate-report','live-owner','lifecycle-owner'):parser.add_argument('--'+name,type=Path)
     args=parser.parse_args()
     if args.output.exists():raise ValueError('preserve existing pinned runtime')
-    qualified=json.loads((ROOT/'benchmarks/reports/p03-claire-live-preroll.json').read_text())
+    publisher=PublisherTraceConfig.load(args.publisher_runtime) if args.publisher_runtime else None
+    supplied=[args.lifecycle_report,args.rate_report,args.live_owner,args.lifecycle_owner]
+    if publisher is not None:
+        if not args.trust_encoded_rate_control or not all(supplied) or not publisher.supports_external_rate_control:
+            raise ValueError('explicit tested publisher policy and complete evidence paths required')
+    elif args.trust_encoded_rate_control or any(supplied):raise ValueError('publisher evidence requires an explicit publisher runtime')
+    qualified=json.loads(args.qualified_live_report.read_text())
     observed=qualified['cases'][0];received=observed['receiver']['video'];missing=observed['receiver']['missing_source_frame_indices']
     if (not qualified['live_qwen_streaming'] or qualified.get('protocol')!=CLAIRE_PROTOCOL or
         qualified.get('eligible_motion_start_buffer_ms')!=500 or qualified.get('motion_input_lead_bound_ms')!=800 or
@@ -34,14 +46,19 @@ def main():
         'livekit_library':lk/'liblivekit.so','ffi_library':lk/'liblivekit_ffi.so','sdk_library':ROOT/'var/build/audio2face-sdk/audio2x-sdk/lib/libaudio2x.so',
         'scene':args.scene/'research-scene.bin','scene_descriptor':args.scene/'scene.json','model_descriptor':args.engine/'model.json',
         'engine_descriptor':args.engine/'engine.json','engine':args.engine/'network.trt','runtime_manifest':ROOT/'var/toolchains/tensorrt-10.13.3.9/runtime.json'}
+    if publisher:
+        paths.update(executable=publisher.executable,ffi_library=publisher.ffi_library,livekit_library=publisher.cpp_library,
+            publisher_build_report=args.publisher_runtime.parent/publisher.files['build_report']['path'],
+            publisher_live_report=args.qualified_live_report,publisher_lifecycle_report=args.lifecycle_report,
+            publisher_rate_report=args.rate_report,publisher_live_owner=args.live_owner,publisher_lifecycle_owner=args.lifecycle_owner)
     for role,field in [('executable','binary_sha256'),('ptx','ptx_sha256'),('bridge_library','bridge_sha256'),('engine','engine_sha256'),('scene','scene_sha256')]:
         if sha256_file(paths[role])!=qualified[field]:raise ValueError('qualified native binary/model/scene changed')
     args.output.parent.mkdir(parents=True,exist_ok=True,mode=0o700)
-    snapshot=args.output.parent/('native-'+sha256_file(paths['executable'])[:16]+'-'+sha256_file(paths['bridge_library'])[:16])
-    roles=('executable','ptx','bridge_library','livekit_library','ffi_library')
+    snapshot=args.output.parent/('native-'+sha256_file(paths['executable'])[:16]+'-'+sha256_file(paths['bridge_library'])[:16]+'-'+sha256_file(paths['ffi_library'])[:16])
+    roles=('executable','ptx','bridge_library','livekit_library','ffi_library')+(tuple(sorted(PUBLISHER_ROLES)) if publisher else ())
     if not snapshot.exists():snapshot.mkdir(mode=0o700)
     for role in roles:
-        original=paths[role];target=snapshot/original.name
+        original=paths[role];target=snapshot/(role+'.json' if role in PUBLISHER_ROLES else original.name)
         if not target.exists():
             with original.open('rb') as source,open(target,'xb',opener=lambda name,flags:os.open(name,flags,0o700 if role=='executable' else 0o600)) as destination:
                 shutil.copyfileobj(source,destination,1024*1024)
@@ -72,7 +89,8 @@ def main():
         'allowed_use':'local_noncommercial_research','consent_evidence':'vendor_assertion','human_enrollment':False,
         'experimental_receiver_video_gaps':missing,'visual_quality_qualified':False,'physical_av_qualified':False,'release_qualified':False,
         'basis_hash':scene['source_geometry_parity_report_sha256'],'topology_hash':scene['topology_material_sha256'],
-        'qualification_report_sha256':sha256_file(ROOT/'benchmarks/reports/p03-claire-live-preroll.json'),
+        'qualification_report_sha256':sha256_file(args.qualified_live_report),
+        'publisher_rate_control':'external_trusted_local_research' if publisher else 'sdk_default',
         'files':{name:{'path':str(path.resolve(strict=True)),'size':path.stat().st_size,'sha256':sha256_file(path)} for name,path in paths.items()}}
     args.output.parent.mkdir(parents=True,exist_ok=True,mode=0o700)
     private_write(args.output,(json.dumps(payload,indent=2)+'\n').encode())

@@ -57,6 +57,7 @@ def test_pinning_is_offline_and_separately_checks_device_identity(tmp_path, monk
     query = Mock(return_value='GPU-fixture, qualified-driver\n')
     monkeypatch.setattr('subprocess.check_output', query)
     config = ClaireMediaConfig.load(descriptor)
+    assert config.trust_external_rate_control is False
     query.assert_not_called()
     config.validate_device()
     query.return_value = 'GPU-fixture, changed-driver'
@@ -64,6 +65,12 @@ def test_pinning_is_offline_and_separately_checks_device_identity(tmp_path, monk
     query.return_value = 'GPU-fixture, qualified-driver\nGPU-other, qualified-driver'
     with pytest.raises(ContractError, match='one explicit device'): config.validate_device()
     with pytest.raises(TypeError): config.paths['engine'] = Path('/unqualified')
+
+
+def test_trusted_policy_cannot_be_added_without_qualified_inventory(tmp_path):
+    descriptor,data,_,save=fixture(tmp_path)
+    data['publisher_rate_control']='external_trusted_local_research';save()
+    with pytest.raises(ContractError,match='evidence inventory'):ClaireMediaConfig.load(descriptor)
 
 
 @pytest.mark.parametrize('field,value', [('schema_version', True), ('prebuffer_ms', True), ('prebuffer_ms', 299), ('prebuffer_ms', 305),

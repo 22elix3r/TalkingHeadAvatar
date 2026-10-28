@@ -105,3 +105,7 @@ serving descriptor, then exercise actor/browser cancellation and recovery before
 an idle research-preview rollout.
 P02–P06 stay in progress; this test closes no physical A/V, human quality,
 capacity, constrained-network or release gate.
+
+The [serving-policy follow-up](p06-publisher-serving.md) now binds fresh owner
+receipts to exact probes-disabled reports and deploys this candidate to the
+Claire preview after browser and idle rollback checks.

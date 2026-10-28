@@ -14,6 +14,7 @@ from talkinghead_v2.assets.artifacts import sha256_file
 from talkinghead_v2.contracts import AudioEOF, ContractError
 from talkinghead_v2.providers.motion.paired import ClaireInputMux
 from talkinghead_v2.server.native_media import NativeMedia, SDK_REVISION
+from talkinghead_v2.server.claire_publisher import validate_publisher_policy
 
 CLAIRE_REVISION = 'a46eafb067adfdd7cc8f5c7941586b309004561c'
 CLAIRE_SDK_REVISION = '1ca0f02535ed774f5dbcd724a31cd486368dc783'
@@ -41,6 +42,7 @@ class ClaireMediaConfig:
     model_hash: str
     gpu_uuid_sha256: str
     driver: str
+    trust_external_rate_control: bool = False
 
     @property
     def executable(self): return self.paths['executable']
@@ -116,8 +118,10 @@ class ClaireMediaConfig:
             for field, suffix in (('config', '_config.json'), ('data', '.npz')):
                 if Path(model['blendshapePaths'][part][field]) != paths['model_files/bs_' + part + suffix]:
                     raise ContractError('Claire blendshape dependency binding mismatch')
+        trusted=validate_publisher_policy(data.get('publisher_rate_control','sdk_default'),paths,
+            {role:hashed[p] for role,p in paths.items()},data['prebuffer_ms'])
         return cls(MappingProxyType(paths), data['prebuffer_ms'], sha256_file(path), data['basis_hash'], data['topology_hash'],
-                   engine['engine_sha256'], engine['gpu_uuid_sha256'], engine['driver'])
+                   engine['engine_sha256'], engine['gpu_uuid_sha256'], engine['driver'],trusted)
 
     def validate_device(self):
         value = subprocess.check_output(['nvidia-smi', '--query-gpu=uuid,driver_version', '--format=csv,noheader'], text=True, timeout=5).strip()
@@ -174,6 +178,8 @@ class ClaireMedia(NativeMedia):
         environment.pop('THA_CLAIRE_RATE_PROBE', None)
         environment.pop('THA_CLAIRE_PROBE_BITRATE_BPS', None)
         environment.pop('THA_CLAIRE_RATE_PROBE_SCHEDULE', None)
+        if getattr(self.config,'trust_external_rate_control',False):
+            environment['THA_LK_TRUST_EXTERNAL_RATE_CONTROL']='1'
         return environment
 
     def _visual_mode(self): return 'claire_vendor_research'
