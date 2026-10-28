@@ -1,4 +1,4 @@
-"""Isolated fixed-ceiling feedback observations; no WAN/congestion qualification."""
+"""Isolated fixed or injected encoder ceilings; no WAN/congestion qualification."""
 import argparse,json,os,signal,sys
 from pathlib import Path
 from qualify_claire_receiver_matrix import run_owned_process
@@ -15,13 +15,16 @@ def main(args):
     sources=[Path(__file__),ROOT/'scripts/qualify_claire_session_worker.py',ROOT/'scripts/qualify_claire_receiver_matrix.py']
     before={str(p.relative_to(ROOT)):file_hash(p) for p in sources}
     args.directory.mkdir(parents=True,mode=0o700);rows=[]
-    for ceiling in (300000,1200000,600000,2400000):
-        name='ceiling-'+str(ceiling);report_path=args.directory/(name+'.json');log_path=args.directory/(name+'.log')
+    ceilings=(1200000,)*3 if args.schedule else (300000,1200000,600000,2400000)
+    for index,ceiling in enumerate(ceilings,1):
+        name='down-up-'+str(index) if args.schedule else 'ceiling-'+str(ceiling)
+        report_path=args.directory/(name+'.json');log_path=args.directory/(name+'.log')
         command=[sys.executable,str(sources[1]),'--live-qwen','--trace-source-captures','--trace-receiver-ffi',
             '--publisher-trace-runtime',str(args.publisher_runtime.resolve()),'--trust-encoded-rate-control',
             '--probe-bitrate-bps',str(ceiling),'--receiver-runtime',str(args.receiver_runtime.resolve()),
             '--directory',str((args.directory/name).resolve()),'--report',str(report_path.resolve())]
         for key in ('config','engine','scene'):command.extend(['--'+key,str(getattr(args,key).resolve())])
+        if args.schedule:command.extend(['--probe-rate-schedule',args.schedule])
         environment=dict(os.environ,HF_HUB_OFFLINE='1',TRANSFORMERS_OFFLINE='1')
         for key in ('LIVEKIT_LIB_PATH','LK_DISABLE_NVDEC','LD_PRELOAD','LD_AUDIT'):environment.pop(key,None)
         with open(log_path,'xb',opener=lambda p,f:os.open(p,f|os.O_NOFOLLOW,0o600)) as log:
@@ -44,18 +47,26 @@ def main(args):
                 missing_at_packetizer=trace['missing_source_frame_ids_at_packetizer'],
                 missing_at_receiver=case['receiver']['missing_source_frame_indices'],sender=case['sender'],
                 publisher_runtime=data['publisher_trace_runtime'],receiver_runtime=data['receiver_runtime'])
+            if args.schedule:
+                if count<=288000:raise ValueError('in-turn fixture must reach recovery phase')
+                row['source_payload_phases_48khz']=[]
+                for start,end in ((0,144000),(144000,288000),(288000,count)):
+                    bits=sum(x['encoded_bytes']*8 for x in capture if start<=x['source_sample']<end)
+                    row['source_payload_phases_48khz'].append({'start_sample':start,'end_sample_exclusive':end,'payload_bits':bits,'average_bps':bits*48000/(end-start)})
             valid=(data['source_sha256']['scripts/qualify_claire_session_worker.py']==before['scripts/qualify_claire_session_worker.py'] and
                 data['publisher_trace_runtime']['descriptor_sha256']==publisher.revision and data['publisher_probe_bitrate_bps']==ceiling and
                 data['publisher_trace_runtime']['trusted_external_rate_control'] is True and data['publisher_stage_trace_enabled'] is True and
-                data['receiver_runtime']['library_sha256']==receiver.library_sha256)
+                data['receiver_runtime']['library_sha256']==receiver.library_sha256 and data['publisher_probe_rate_schedule']==args.schedule)
         row['diagnostic_completed']=valid;rows.append(row)
         print(json.dumps({k:row.get(k) for k in ('ceiling_bps','process_exit','diagnostic_completed','source_payload_average_bps','received_source_frames')}),flush=True)
         if not valid:break
     stable=(before=={str(p.relative_to(ROOT)):file_hash(p) for p in sources} and
         PublisherTraceConfig.load(args.publisher_runtime).revision==publisher.revision and InboundAudioConfig.load(args.receiver_runtime).revision==receiver.revision)
-    completed=len(rows)==4 and all(x['diagnostic_completed'] for x in rows) and stable
+    completed=len(rows)==len(ceilings) and all(x['diagnostic_completed'] for x in rows) and stable
     result={'schema_version':1,'status':'completed' if completed else 'failed','source_sha256':before,'cases':rows,
-        'scope':'Four separate fixed publish/encoder ceilings, one local SFU. Payload averages exclude RTP overhead; partial final windows remain explicit. No in-turn bandwidth transition, network shaping, pacer delay, physical presentation, quality or rate-control acceptance.',
+        'encoder_ceiling_schedule':args.schedule,
+        'scope':('Three turns with injected encoder ceilings of 1.2M/300k/1.2M at source seconds 0/3/6, publish ceiling remains 1.2M. ' if args.schedule else 'Four separate fixed publish/encoder ceilings. ')+
+            'One local SFU; payload averages exclude RTP overhead; partial final windows remain explicit. No network shaping, congestion-controller, pacer delay, physical presentation, quality or rate-control acceptance.',
         'model_downloads':False,'software_downloads':False,'serving_configuration_changed':False}
     args.report.parent.mkdir(parents=True,exist_ok=True,mode=0o700)
     with open(args.report,'x',opener=lambda p,f:os.open(p,f|os.O_NOFOLLOW,0o600)) as output:output.write(json.dumps(result,indent=2)+'\n')
@@ -66,5 +77,6 @@ if __name__=='__main__':
     def interrupted(signum,frame):raise KeyboardInterrupt('qualification interrupted')
     signal.signal(signal.SIGTERM,interrupted)
     parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--schedule',choices=('down-up',),help='three injected encoder-control turns instead of the four fixed ceilings')
     for name in ('publisher-runtime','receiver-runtime','config','engine','scene','directory','report'):parser.add_argument('--'+name,type=Path,required=True)
     raise SystemExit(main(parser.parse_args()))

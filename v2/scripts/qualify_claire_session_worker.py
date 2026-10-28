@@ -201,6 +201,8 @@ async def main(args):
     publisher_path=args.publisher_trace_runtime or args.publisher_runtime
     publisher=PublisherTraceConfig.load(publisher_path) if publisher_path else None
     publisher_tracing=args.publisher_trace_runtime is not None
+    if args.probe_rate_schedule is not None and args.probe_bitrate_bps!=1200000:
+        raise ValueError('in-turn rate schedule requires the explicit 1200000 initial probe ceiling')
     if args.probe_bitrate_bps is not None and (not publisher_tracing or not args.live_qwen or not args.trace_source_captures):
         raise ValueError('rate probing requires an explicit live publisher stage/source trace')
     if args.trust_encoded_rate_control and (publisher is None or not publisher.supports_external_rate_control):
@@ -314,7 +316,7 @@ async def main(args):
                 LD_LIBRARY_PATH=str(runtime/'lib')+':/usr/local/cuda-12.8/lib64',CUDA_CACHE_PATH=str(ROOT/'var/cache/claire-cuda'))
             env.pop('THA_CLAIRE_CAPTURE_TRACE',None)
             for key in ('THA_CLAIRE_PUBLISH_TRACE','THA_CLAIRE_TRACE_FFI_PATH','THA_LK_TRUST_EXTERNAL_RATE_CONTROL',
-                        'THA_CLAIRE_RATE_PROBE','THA_CLAIRE_PROBE_BITRATE_BPS','LD_PRELOAD','LD_AUDIT'):env.pop(key,None)
+                        'THA_CLAIRE_RATE_PROBE','THA_CLAIRE_PROBE_BITRATE_BPS','THA_CLAIRE_RATE_PROBE_SCHEDULE','LD_PRELOAD','LD_AUDIT'):env.pop(key,None)
             if publisher:
                 env['LD_LIBRARY_PATH']=str(publisher.ffi_library.parent)+':'+env['LD_LIBRARY_PATH']
                 if publisher_tracing:
@@ -322,6 +324,7 @@ async def main(args):
                 if args.trust_encoded_rate_control:env['THA_LK_TRUST_EXTERNAL_RATE_CONTROL']='1'
             if args.probe_bitrate_bps is not None:
                 env['THA_CLAIRE_RATE_PROBE']='1';env['THA_CLAIRE_PROBE_BITRATE_BPS']=str(args.probe_bitrate_bps)
+            if args.probe_rate_schedule is not None:env['THA_CLAIRE_RATE_PROBE_SCHEDULE']=args.probe_rate_schedule
             # This experiment changes only the receiver factory, not the
             # external NVENC publisher's independently qualified environment.
             env.pop('LK_DISABLE_NVDEC',None)
@@ -447,7 +450,8 @@ async def main(args):
                             record['source_capture_trace']=trace;record['sender_rtp_stats']=sender_rtp_stats(lines)
                             record['sender_rtp_after_300ms']=sender_rtp_stats(lines,'THA_SENDER_RTP_AFTER_300MS')
                             if publisher_tracing:record['publisher_stage_trace']=publish_stage_trace(lines,trace)
-                            if args.probe_bitrate_bps is not None:record['publisher_rate_probe']=publisher_rate_probe(lines,args.probe_bitrate_bps)
+                            if args.probe_bitrate_bps is not None:
+                                record['publisher_rate_probe']=publisher_rate_probe(lines,args.probe_bitrate_bps,schedule=args.probe_rate_schedule)
                 private_write(directory/'result.json',(json.dumps(cases[-1],indent=2)+'\n').encode())
             finally:
                 if process.returncode is None:process.kill();await process.wait()
@@ -488,6 +492,7 @@ async def main(args):
     report['receiver_ffi_trace_enabled']=args.trace_receiver_ffi
     report['publisher_stage_trace_enabled']=publisher_tracing
     report['publisher_probe_bitrate_bps']=args.probe_bitrate_bps
+    report['publisher_probe_rate_schedule']=args.probe_rate_schedule
     report['publisher_trace_runtime']=None if publisher is None else {'descriptor_sha256':publisher.revision,
         'ffi_sha256':digest(publisher.ffi_library),'cpp_sha256':digest(publisher.cpp_library),
         'executable_sha256':digest(publisher.executable),'serving_runtime':False,'trusted_external_rate_control':args.trust_encoded_rate_control}
@@ -548,6 +553,7 @@ if __name__=='__main__':
     publisher_options.add_argument('--publisher-runtime',type=Path,help='explicit isolated SDK/worker without stage tracing, including lifecycle/fault cases')
     parser.add_argument('--trust-encoded-rate-control',action='store_true',help='isolated opt-in experiment; external NVENC must honor rate feedback')
     parser.add_argument('--probe-bitrate-bps',type=int,choices=(300000,600000,1200000,2400000),help='isolated fixed publish/encoder ceiling; requires live stage/source tracing')
+    parser.add_argument('--probe-rate-schedule',choices=('down-up',),help='injected external-encoder ceiling at source seconds 3 and 6, not network shaping')
     parser.add_argument('--receiver-decoder',choices=('auto','disable-nvdec'),default='auto',help='source-matched receiver factory only; publisher remains unchanged')
     parser.add_argument('--trace-receiver-ffi',action='store_true',help='qualification-only bounded source identities before Python dispatch')
     parser.add_argument('--stall-video-ffi-ms',type=int,choices=(0,500),default=0,help='deliberate one-callback stall for an isolated queue positive control')

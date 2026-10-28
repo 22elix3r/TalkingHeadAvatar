@@ -173,6 +173,7 @@ class ClaireMedia(NativeMedia):
         environment.pop('THA_LK_TRUST_EXTERNAL_RATE_CONTROL', None)
         environment.pop('THA_CLAIRE_RATE_PROBE', None)
         environment.pop('THA_CLAIRE_PROBE_BITRATE_BPS', None)
+        environment.pop('THA_CLAIRE_RATE_PROBE_SCHEDULE', None)
         return environment
 
     def _visual_mode(self): return 'claire_vendor_research'

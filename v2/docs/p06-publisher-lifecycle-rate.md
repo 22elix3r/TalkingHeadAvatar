@@ -119,3 +119,7 @@ Next: controlled in-turn rate reduction and recovery, then an explicit actor/
 serving policy with browser cancel/recovery and idle rollback evidence.
 P02–P06 stay in progress; no presentation, quality, capacity or release gate is
 closed by this study.
+
+The [in-turn follow-up](p06-publisher-rate-transition.md) now records three
+injected ceiling reductions/recoveries and probes-disabled qualification of the
+final worker. Its scope remains distinct from network congestion qualification.

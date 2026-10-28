@@ -14,8 +14,9 @@ RATE_PATCH_SHA256='a08f5363be5ff8166b495c21e738d0647f022d774fec48e070b398a297211
 MAX_EVENTS=16384
 
 
-def publisher_rate_probe(lines,expected):
+def publisher_rate_probe(lines,expected,*,schedule=None):
     """Observe requested/applied encoder settings, not network rate compliance."""
+    if schedule is not None:return _scheduled_rate_probe(lines,expected,schedule)
     if type(expected) is not int or expected not in (300000,600000,1200000,2400000):
         raise ContractError('unsupported rate-probe ceiling')
     bounds=[];rows=[]
@@ -41,6 +42,48 @@ def publisher_rate_probe(lines,expected):
         raise ContractError('rate feedback missing or truncated')
     return {'initial_bitrate_bps':expected,'feedback':rows,'clock':'publisher_stream_samples_48000hz',
         'scope':'Requested SDK target and accepted external-encoder API settings; not hardware execution, RTP rate or pacer compliance.'}
+
+
+def _scheduled_rate_probe(lines,expected,schedule):
+    if type(expected) is not int or expected!=1200000 or schedule!='down-up':
+        raise ContractError('unsupported in-turn rate probe')
+    bounds=[];rows=[];previous_phase=0
+    for line in lines:
+        if line.startswith(('THA_RATE_PROBE ','THA_RATE_FEEDBACK ')):
+            raise ContractError('mixed rate-probe formats')
+        if line.startswith('THA_RATE_PROBE_V2 '):
+            fields=line.split()
+            try:
+                if len(fields)!=4 or fields[2]!='down-up':raise ValueError
+                bounds.append((int(fields[1]),int(fields[3])))
+            except ValueError:raise ContractError('invalid in-turn rate bound') from None
+        elif line.startswith('THA_RATE_FEEDBACK_V2 '):
+            fields=line.split()
+            try:
+                if len(fields)!=7:raise ValueError
+                stream,source,requested,applied=map(int,fields[1:5]);fps=float(fields[5]);reason=fields[6]
+            except ValueError:raise ContractError('invalid in-turn rate feedback') from None
+            phase=0 if source<144000 else 1 if source<288000 else 2
+            ceiling=300000 if phase==1 else expected
+            if (len(rows)>=256 or not 0<=stream<=48000*130 or not 0<=source<=48000*130 or source%1600 or
+                not 0<requested<=2**64-1 or applied!=min(max(requested,100000),ceiling) or
+                not math.isfinite(fps) or not 1<=fps<=60 or reason not in ('initial','feedback','ceiling') or
+                (rows and (stream<rows[-1]['stream_sample'] or source<rows[-1]['source_sample']))):
+                raise ContractError('in-turn rate feedback outside bounds')
+            if not rows:
+                if (stream,source,requested,applied,fps,reason)!=(0,0,expected,expected,30.,'initial'):
+                    raise ContractError('missing initial rate setting')
+            elif (reason=='initial' or phase<previous_phase or phase>previous_phase+1 or
+                  (reason=='ceiling')!=(phase!=previous_phase)):
+                raise ContractError('in-turn rate transition mismatch')
+            rows.append({'stream_sample':stream,'source_sample':source,'requested_bitrate_bps':requested,
+                'applied_bitrate_bps':applied,'framerate_fps':fps,'reason':reason,'ceiling_bps':ceiling})
+            previous_phase=phase
+    if len(bounds)!=1 or bounds[0]!=(expected,len(rows)) or not rows or previous_phase!=2:
+        raise ContractError('in-turn rate observation missing or truncated')
+    return {'initial_bitrate_bps':expected,'schedule':schedule,'feedback':rows,
+        'clock':'publisher_stream_samples_48000hz','source_clock':'source_frame_samples_48000hz',
+        'scope':'Injected encoder ceiling changes at source seconds 3 and 6. Accepted API settings and separate payload observations; no congestion-controller or network acceptance.'}
 
 
 @dataclass(frozen=True)
