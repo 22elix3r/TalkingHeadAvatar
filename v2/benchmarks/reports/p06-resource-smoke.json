@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-29",
+  "evidence_class": "local actual typed actor/browser resource smoke",
+  "base_commit": "21e1fd86f5048ad42696c9b2c54441edaf2d2e48",
+  "source_sha256": {
+    "scripts/qualify_claire_session_soak.py": "ab2d1a97de5258bf1d56bbd3d3c73585795fd3d8b3ce236e6799da148878d03a",
+    "scripts/qualify_claire_receiver_matrix.py": "c1289bd6acb2794a22ff051d59530e8fb7fbefa020b9f13ca72a925f5e45341a",
+    "src/talkinghead_v2/resource_probe.py": "5285f76c7b145f191c647a2c496472a7f77480546f201e522a030e479c152e67",
+    "src/talkinghead_v2/server/actor.py": "9ef7eb2b8e97c0a62654cd6d9603d7024ebf4baf9d73ea399995eb0c0f9062ea",
+    "src/talkinghead_v2/server/claire_media.py": "173cdf8667342db2591229a1627816beb333ef44f4309aa28b96bc6e9023d2bb",
+    "src/talkinghead_v2/providers/tts/native.py": "b2724a1a6a657ead3021dccf543772862595f8d9aa8f334901533d5342a4e31e",
+    "web/src/client.ts": "f33847f2fc66f719c4960e3573555caed8f77d4f13958c605544acfce2533dc9",
+    "web/tests/claire-soak.spec.ts": "9e399594b47a6652705f4589bb51a8743d9013d7e211edb3a0805c30655a2968",
+    "web/playwright.claire.soak.config.ts": "7e7598a7d3197d046d913c3c3cab9bbd648f005e474079620bd3abb4f453bacc",
+    "web/playwright.claire-profile.ts": "3c6660fbdaf1648828fabd4dc53eb6f016997fdc55257b6b7b599590eadc8c2b"
+  },
+  "receipt_sha256": "c73f2713d081a1f0df1833437e846a0be56173adad7404b9b02c8ba11b404eeb",
+  "descriptor_revision": "3b560d0c635991923560486636cce1339678742084b6d7523995a92723e925ae",
+  "tts_descriptor_sha256": "a6a33b0821183f0605ed22727e2ea6219139fc9701c91c66cceede188f76c0c4",
+  "measured_scope": "Single typed closed-loop actor; sampled host/device/API/native resources. No physical presentation, human speech, open-loop capacity, eight-hour soak or latency SLO qualification.",
+  "context": "desktop_and_cpu_packaging",
+  "process_exit": 0,
+  "browser_summary": {
+    "passed": true,
+    "close_confirmed": true,
+    "requested_seconds": 60,
+    "measured_node_elapsed_ms": 69258.40304,
+    "completed": 5,
+    "interrupted": 2,
+    "attempts": 7,
+    "browser_version": "154.0.8037.57",
+    "microphone_input": "none; typed closed-loop workload",
+    "clock": "Node performance; browser observation clocks stored separately",
+    "physical_av_qualified": false,
+    "latency_or_capacity_qualified": false
+  },
+  "telemetry": {
+    "samples": 302,
+    "query_failures": 0,
+    "failure_types": [],
+    "sampled_maxima_are_not_guaranteed_peaks": true,
+    "subqueries_are_sequential": true,
+    "target_pause_after_queries_ms": 200,
+    "co_load_samples": 266,
+    "device_used_sampled_max_mib": 9687,
+    "native_process_samples_without_gpu_attribution": 3,
+    "per_role_sampled_gpu_max_mib": {
+      "qwen": 4376,
+      "media": 1203
+    },
+    "per_role_sampled_rss_max_bytes": {
+      "api": 540737536,
+      "qwen": 940777472,
+      "media": 1193402368
+    },
+    "qwen_process_lifetimes": 1,
+    "media_process_lifetimes": 7,
+    "media_lifetimes_with_verified_policy": 7,
+    "remaining_api_child_count": 0
+  },
+  "completed_turn_queue_maxima": {
+    "queue_peak_samples": 48000,
+    "motion_queue_peak_packets": 13,
+    "pose_queue_peak_frames": 24,
+    "video_skipped": 0
+  },
+  "interruptions_before_sender_complete": 2,
+  "validation": {
+    "core_tests": 431,
+    "core_failures": 0,
+    "core_seconds": 8.253,
+    "junit_sha256": "a79ff417275dce601b3b8f3a3d9df6b89da1ef6a63f1d47c249302a5c3e4b8d7",
+    "web_typecheck_passed": true,
+    "web_unit_tests": 2
+  },
+  "full_30_minute_gate": "not qualified by this smoke; separate 1800-second measurement started at this checkpoint",
+  "physical_av_qualified": false,
+  "latency_or_capacity_qualified": false,
+  "model_downloads": false,
+  "software_downloads": false,
+  "serving_configuration_changed": false
+}
