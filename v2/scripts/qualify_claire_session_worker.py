@@ -29,6 +29,7 @@ from talkinghead_v2.server.config import Settings
 from talkinghead_v2.server.native_media import private_write
 from talkinghead_v2.server.transport import CheckedReceiveQueue,grant
 from talkinghead_v2.session.device import DeviceLease
+from talkinghead_v2.publish_probe import PublisherTraceConfig,publish_stage_trace
 
 ROOT=Path(__file__).resolve().parents[1]
 
@@ -197,12 +198,23 @@ async def main(args):
     if args.trace_source_captures and not args.live_qwen:raise ValueError('source capture tracing requires the live-Qwen case')
     if args.directory.exists() or args.report.exists():raise ValueError('preserve previous worker evidence')
     selected=getattr(args,'selected_receiver',None)
+    publisher=PublisherTraceConfig.load(args.publisher_trace_runtime) if args.publisher_trace_runtime else None
+    if args.trust_encoded_rate_control and (publisher is None or not publisher.supports_external_rate_control):
+        raise ValueError('external-rate-control selection requires an explicit compatible publisher probe')
+    if publisher and (not args.trace_source_captures or not args.live_qwen):raise ValueError('publisher stage tracing requires the explicit live source trace')
     if args.trace_receiver_ffi and selected is None:raise ValueError('FFI tracing requires an explicit source-matched receiver runtime')
     if args.stall_video_ffi_ms and not args.trace_receiver_ffi:raise ValueError('callback stall requires the explicit FFI trace')
     bridge=json.loads((ROOT/'benchmarks/reports/p03-claire-bridge.json').read_text())
     build=ROOT/'var/build/native-media';library=build/'libtha_claire_bridge.so';binary=build/'tha_claire_session_media';ptx=build/'media_kernels.ptx'
+    if publisher:binary=publisher.executable
     sources=['native/media/claire_session_worker.cpp','native/motion/claire_bridge.cpp','native/motion/claire_bridge.h','native/media/CMakeLists.txt',
-        'src/talkinghead_v2/providers/motion/paired.py','scripts/qualify_claire_session_worker.py']
+        'src/talkinghead_v2/providers/motion/paired.py','scripts/qualify_claire_session_worker.py',
+        'native/media/publish_trace.h','src/talkinghead_v2/publish_probe.py']
+    if publisher:
+        from talkinghead_v2.server.inbound_config import private_json
+        pinned=private_json(args.publisher_trace_runtime)
+        if any(digest(ROOT/name)!=expected for name,expected in pinned['worker_source_sha256'].items()):
+            raise ValueError('publisher trace worker source changed since pinning')
     if selected is not None:sources.extend(['src/talkinghead_v2/server/inbound_config.py','src/talkinghead_v2/server/inbound_audio.py'])
     if args.live_qwen:sources.append('src/talkinghead_v2/providers/tts/native.py')
     source_before={path:digest(ROOT/path) for path in sources}
@@ -297,6 +309,11 @@ async def main(args):
             env=dict(os.environ,THA_DEVICE_LEASE_FD=str(lease.fileno),HF_HUB_OFFLINE='1',TRANSFORMERS_OFFLINE='1',CUDA_VISIBLE_DEVICES='0',
                 LD_LIBRARY_PATH=str(runtime/'lib')+':/usr/local/cuda-12.8/lib64',CUDA_CACHE_PATH=str(ROOT/'var/cache/claire-cuda'))
             env.pop('THA_CLAIRE_CAPTURE_TRACE',None)
+            for key in ('THA_CLAIRE_PUBLISH_TRACE','THA_CLAIRE_TRACE_FFI_PATH','THA_LK_TRUST_EXTERNAL_RATE_CONTROL','LD_PRELOAD','LD_AUDIT'):env.pop(key,None)
+            if publisher:
+                env['LD_LIBRARY_PATH']=str(publisher.ffi_library.parent)+':'+env['LD_LIBRARY_PATH']
+                env['THA_CLAIRE_PUBLISH_TRACE']='1';env['THA_CLAIRE_TRACE_FFI_PATH']=str(publisher.ffi_library)
+                if args.trust_encoded_rate_control:env['THA_LK_TRUST_EXTERNAL_RATE_CONTROL']='1'
             # This experiment changes only the receiver factory, not the
             # external NVENC publisher's independently qualified environment.
             env.pop('LK_DISABLE_NVDEC',None)
@@ -421,6 +438,7 @@ async def main(args):
                                 raise ValueError('FFI callback identity differs from source capture trace')
                             record['source_capture_trace']=trace;record['sender_rtp_stats']=sender_rtp_stats(lines)
                             record['sender_rtp_after_300ms']=sender_rtp_stats(lines,'THA_SENDER_RTP_AFTER_300MS')
+                            if publisher:record['publisher_stage_trace']=publish_stage_trace(lines,trace)
                 private_write(directory/'result.json',(json.dumps(cases[-1],indent=2)+'\n').encode())
             finally:
                 if process.returncode is None:process.kill();await process.wait()
@@ -448,6 +466,8 @@ async def main(args):
         raise ValueError('source or binary changed during qualification; private observations retained without a passing export')
     if selected is not None and (digest(selected.library)!=selected.library_sha256 or digest(args.receiver_runtime)!=selected.revision):
         raise ValueError('selected receiver binary or descriptor changed during qualification')
+    if publisher and PublisherTraceConfig.load(args.publisher_trace_runtime).revision!=publisher.revision:
+        raise ValueError('publisher trace runtime changed during qualification')
     report={'schema_version':1,'observation':'local actual Claire SDK/GPU/NVENC/LiveKit sender and Python receiver; '+('live cached Qwen' if args.live_qwen else 'recorded synthetic-reference Qwen PCM'),
         'source_sha256':{path:digest(ROOT/path) for path in sources},'binary_sha256':digest(binary),'bridge_sha256':digest(library),'ptx_sha256':digest(ptx),
         'bridge_report_sha256':digest(ROOT/'benchmarks/reports/p03-claire-bridge.json'),'engine_sha256':engine['engine_sha256'],'scene_sha256':scene['geometry_sha256'],
@@ -457,6 +477,9 @@ async def main(args):
         'live_qwen_streaming':args.live_qwen,'browser_receiver':False,'physical_av_qualified':False,'qwen_coload_qualified':False,'quality_qualified':False,'additional_downloads':False}
     report['source_capture_trace_enabled']=args.trace_source_captures
     report['receiver_ffi_trace_enabled']=args.trace_receiver_ffi
+    report['publisher_trace_runtime']=None if publisher is None else {'descriptor_sha256':publisher.revision,
+        'ffi_sha256':digest(publisher.ffi_library),'cpp_sha256':digest(publisher.cpp_library),
+        'executable_sha256':digest(publisher.executable),'serving_runtime':False,'trusted_external_rate_control':args.trust_encoded_rate_control}
     report['receiver_runtime']={'library_sha256':digest(Path(FfiClient.instance._ffi_lib._name)),
         'source_matched':selected is not None,'descriptor_sha256':selected.revision if selected else None,
         'native_audio_queue_frames':25 if selected else None,'python_audio_queue_frames_10ms':30,
@@ -509,6 +532,8 @@ if __name__=='__main__':
     parser.add_argument('--trace-source-captures',action='store_true',help='live qualification only: privately trace source capture timing and payload sizes')
     parser.add_argument('--native-video-queue-frames',type=int,choices=(1,8),default=1,help='request bounded native receiver queue for research comparison')
     parser.add_argument('--receiver-runtime',type=Path,help='explicit qualified source-matched FFI descriptor; no provisioning')
+    parser.add_argument('--publisher-trace-runtime',type=Path,help='explicit isolated SDK/worker stage-trace descriptor; never a serving runtime')
+    parser.add_argument('--trust-encoded-rate-control',action='store_true',help='isolated opt-in experiment; external NVENC must honor rate feedback')
     parser.add_argument('--receiver-decoder',choices=('auto','disable-nvdec'),default='auto',help='source-matched receiver factory only; publisher remains unchanged')
     parser.add_argument('--trace-receiver-ffi',action='store_true',help='qualification-only bounded source identities before Python dispatch')
     parser.add_argument('--stall-video-ffi-ms',type=int,choices=(0,500),default=0,help='deliberate one-callback stall for an isolated queue positive control')

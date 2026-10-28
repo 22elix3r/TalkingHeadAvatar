@@ -86,3 +86,13 @@ async def test_serving_revision_cannot_change_under_active_session_and_revocatio
     assert (await c.get('/v1/assets')).json()['items'][0]['status'] == 'revoked'
     denied = await c.post('/v1/sessions', json={'profile': PROFILE, 'asset_id': ASSET}, headers={'Idempotency-Key': 'after-revoke'})
     assert denied.status_code == 403 and denied.json()['detail'] == 'asset_unavailable'
+def test_serving_environment_excludes_operator_diagnostic_overrides(monkeypatch,tmp_path):
+    from types import SimpleNamespace
+    from talkinghead_v2.server.claire_media import ClaireMedia
+    flags=['THA_CLAIRE_CAPTURE_TRACE','THA_CLAIRE_PUBLISH_TRACE','THA_CLAIRE_TRACE_FFI_PATH','THA_LK_TRUST_EXTERNAL_RATE_CONTROL']
+    for key in flags:monkeypatch.setenv(key,'unqualified-parent-override')
+    media=ClaireMedia.__new__(ClaireMedia)
+    media.device_lease=SimpleNamespace(fileno=42)
+    media.settings=SimpleNamespace(private_dir=tmp_path)
+    media.config=SimpleNamespace(paths={'bridge_library':tmp_path/'bridge/lib.so','runtime_manifest':tmp_path/'runtime/runtime.json'})
+    assert not set(flags)&media._environment().keys()

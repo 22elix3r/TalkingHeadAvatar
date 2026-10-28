@@ -1,0 +1,795 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-28",
+  "evidence_class": "local_observation",
+  "scope": "Local per-frame SDK transformer-boundary and receiver observations under an explicit external-controller opt-in. No constrained-network, stable loss-rate, latency, physical A/V, human quality, capacity or release claim.",
+  "source_sha256": {
+    "native/media/claire_session_worker.cpp": "3c85c0db19e747957e6f6ad2d26b3d30b910ae9fa535992ce2a81a47bd4c27bc",
+    "native/media/publish_trace.h": "07c16f06c38f64101f647bc7a58118a1a5ae475564802a85364095303b2e0779",
+    "native/media/publish_trace_contract.cpp": "a94a88c1df6927060bddd9adf117ba7dc04ad2e556f7fdc476d213238b1a55ad",
+    "native/media/CMakeLists.txt": "b8ccdea3cd18b377193a367da3910e52a449fc68cd9da1e98fe7aa2469b817e4",
+    "scripts/build_publish_trace_ffi.py": "b9309a214b31e558ca19cceb12fdecfd30e2f6324fd9d3636d3f0eb5eba9b85c",
+    "scripts/describe_publish_trace.py": "396f725b3a662932e576a0dd97d41a1b1e22df3058e0bdc14338607a8a275019",
+    "scripts/qualify_claire_session_worker.py": "376b598441a6ee91007d7bf17f06e2b8ace262630ea0628c8f525897fa6b5022",
+    "scripts/qualify_claire_publisher_matrix.py": "574206ad1b859b404966ae21e3bba78e7028d6084bd08f383ad23078bc69a1a7",
+    "src/talkinghead_v2/publish_probe.py": "f52e82d61882db183d957ca7c5381aa096c70844e4ae20862192fdebec7dc27e",
+    "src/talkinghead_v2/server/claire_media.py": "9eec1ffd2c88c6fbfcdcd145a0ba569e593011d24ab692afd0e8d81470606a98",
+    "tests/test_publish_probe.py": "018b2f169ae53b8c73b452efce7643926b47ff18c25023efba75266f32870bab",
+    "runtimes/session-api/tests/test_claire_profile.py": "7ebed62d4b0ca08805a60b91bf388196adfcd7192a0228ecb0e89cfe92f62c48"
+  },
+  "trace_only_build": {
+    "schema_version": 1,
+    "rust_revision": "bae4df2f3d6c8f0f6ce81a7370c445779f1948d2",
+    "cargo_lock_sha256": "f3dbfe24ec94cb2f37eede9962cf50c93673fa44c9c501fcd8c5d820bd93e5a7",
+    "patch_sha256": "5aca3d55bcf694000757e675240d4a23df03590953da60aa7fe2638aca0604c6",
+    "library_sha256": "c2eecb75610a48317cda942a841b974ee45fb4db2948b8438921d6455071017d",
+    "source_sha256": {
+      "livekit/src/room/track/local_video_track.rs": "f0df2bcf859f06c99f78391607abe3bf9c322e3b29131e77f67376553a8f0ae5",
+      "livekit-ffi/src/lib.rs": "587bb5102a8b9bd8b742658c300d20276bd95bcb302f016a9e42c005eafcc939",
+      "livekit-ffi/src/tha_publish_trace.rs": "4101aabe6da6264f3dea550c21a954cc700a5052ec76266e98122951176e3166"
+    },
+    "trace_tests_passed": 5,
+    "abi_version": 1,
+    "max_events": 16384,
+    "max_traces": 8,
+    "build_script_sha256": "27548f66f4c2c1e8d922718c2a840af52fe8cbc9dfccba9b80ef6d8b85ea4d45",
+    "source_guard_script_sha256": "2310a0880b39c83deb86f15034019b39be58279cccda872aac36587f1235220c",
+    "rust_version": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "protoc_sha256": "141906a4a6b76043aea53df26465d2738a72c540d5ef6952ba85676d699c6769",
+    "webrtc_sha256": "daa499c9769ac884380dff248a533b8d1adb9a6c33e1a04f8e605dc0012bcb21",
+    "logs_sha256": {
+      "publish-trace-ffi-build-6-tests.log": "8880ad5d57f11d8b3b42c0631007eb9082c66221ea8a2b8aca4faba8050b91ed",
+      "publish-trace-ffi-build-6-build.log": "88dec4ae7854103658ef7a43fee0637d3ed61342064869382cc7883e665252df"
+    },
+    "model_downloads": false,
+    "offline": true,
+    "scope": "isolated publisher diagnostics; not a serving inbound-runtime replacement"
+  },
+  "rate_control_build": {
+    "schema_version": 1,
+    "rust_revision": "bae4df2f3d6c8f0f6ce81a7370c445779f1948d2",
+    "cargo_lock_sha256": "f3dbfe24ec94cb2f37eede9962cf50c93673fa44c9c501fcd8c5d820bd93e5a7",
+    "patch_sha256": "a08f5363be5ff8166b495c21e738d0647f022d774fec48e070b398a297211cd7",
+    "library_sha256": "084e4f30b6748b3c2434eafedbef142856b56bbb8cc0d97c5353992dcb1e1188",
+    "external_rate_control_opt_in": true,
+    "source_sha256": {
+      "livekit/src/room/track/local_video_track.rs": "f0df2bcf859f06c99f78391607abe3bf9c322e3b29131e77f67376553a8f0ae5",
+      "livekit-ffi/src/lib.rs": "587bb5102a8b9bd8b742658c300d20276bd95bcb302f016a9e42c005eafcc939",
+      "livekit-ffi/src/tha_publish_trace.rs": "4101aabe6da6264f3dea550c21a954cc700a5052ec76266e98122951176e3166",
+      "webrtc-sys/src/passthrough_video_encoder.cpp": "1efb67763260808919f8913e9a8263562949e33965fb75a94ee074f8c5753957"
+    },
+    "trace_tests_passed": 5,
+    "abi_version": 1,
+    "max_events": 16384,
+    "max_traces": 8,
+    "build_script_sha256": "b9309a214b31e558ca19cceb12fdecfd30e2f6324fd9d3636d3f0eb5eba9b85c",
+    "source_guard_script_sha256": "2310a0880b39c83deb86f15034019b39be58279cccda872aac36587f1235220c",
+    "rust_version": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "protoc_sha256": "141906a4a6b76043aea53df26465d2738a72c540d5ef6952ba85676d699c6769",
+    "webrtc_sha256": "daa499c9769ac884380dff248a533b8d1adb9a6c33e1a04f8e605dc0012bcb21",
+    "logs_sha256": {
+      "publish-rate-control-ffi-build-1-tests.log": "8188c15f34012aa697d61c3f19678f7a896407639c5e70e51993ad4e497cf9e9",
+      "publish-rate-control-ffi-build-1-build.log": "956ebdae04c5b08d2b6aed2e118d8e599b7e842590402f6cf66044f6a6401dc5"
+    },
+    "webrtc_encoder_header_sha256": "1851fe2b463234544bbd65f11199f8a427d592ed627d71450063697e9e5c10a8",
+    "model_downloads": false,
+    "offline": true,
+    "scope": "isolated publisher diagnostics; not a serving inbound-runtime replacement"
+  },
+  "software_provisioning": {
+    "packages": [
+      {
+        "name": "hmac",
+        "version": "0.12.1",
+        "sha256": "6c49c37c09c17a53d937dfbb742eb3a961d65a994e6bcdcf37e7399d0cc8ab5e",
+        "bytes": 42657
+      },
+      {
+        "name": "jsonwebtoken",
+        "version": "10.4.0",
+        "sha256": "eba32bfb4ffdeaca3e34431072faf01745c9b26d25504aa7a6cf5684334fc4fc",
+        "bytes": 65301
+      },
+      {
+        "name": "rand_core",
+        "version": "0.6.4",
+        "sha256": "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c",
+        "bytes": 22666
+      },
+      {
+        "name": "sha2",
+        "version": "0.10.9",
+        "sha256": "a7507d819769d01a365ab707794a4084392c824f54a7a6a7862f8c3d0892b283",
+        "bytes": 29271
+      },
+      {
+        "name": "signature",
+        "version": "2.2.0",
+        "sha256": "77549399552de45a898a580c1b41d445bf730df867cc44e6c0233bbc4b8329de",
+        "bytes": 15531
+      }
+    ],
+    "model_downloads": false,
+    "scope": "isolated Cargo test dependency archives, exact existing lock checksums"
+  },
+  "initial_trace": {
+    "private_receipt_sha256": "4987ccf564b87d4f82f1a88d3af0be980db2f55663382cf7085cba6fda732189",
+    "qualifier_sha256": "6ba7e5fef82500a4627ee08a2b6e07e753cbb7d6d3440f18d4671cb5b059c1b7",
+    "scope": "earlier trace-only overlay and qualifier revision",
+    "runtime": {
+      "descriptor_sha256": "c7b4dedd36b2dd6a644a3b170c5d308071133a9b7f0c9f5731bfb7a1d08bb8fb",
+      "ffi_sha256": "c2eecb75610a48317cda942a841b974ee45fb4db2948b8438921d6455071017d",
+      "cpp_sha256": "5f7a0e95d3046f3c004ec69289ee42fcefc9580170f718d96dd5c8fa3308c175",
+      "executable_sha256": "56d316ca5e0e4429b32761a39e76ff68c15163825dd5a01dfb9b8ae0ca1386cd",
+      "serving_runtime": false
+    },
+    "accepted_source_frames": 324,
+    "source_stage_counts": {
+      "1": 324,
+      "2": 323,
+      "3": 323
+    },
+    "missing_frame_ids_at_encoder_output": [
+      245
+    ],
+    "missing_receiver_source_indices": [
+      224
+    ]
+  },
+  "cohorts": [
+    {
+      "name": "matched_three_pairs",
+      "scope": "preceding batch runner; no interruption occurred",
+      "private_receipt_sha256": "484bdeb8d564d21ff541c9df094edb84262985d0bc97a6249f3a50a6e0559eac",
+      "qualifier_sha256": "376b598441a6ee91007d7bf17f06e2b8ace262630ea0628c8f525897fa6b5022",
+      "runner_sha256": "aa05c677e904b3cc88ad479c738bd65773ecd1719e5c134472da96bcc19f7fb3",
+      "cases": [
+        {
+          "name": "sdk-default-1",
+          "trusted_external_rate_control": false,
+          "process_exit": 0,
+          "panic_detected": false,
+          "source_report_sha256": "7f7893c6ee272b9564e749c6feaacd475fdc1859e2a7bc8dfb575936b9f288e2",
+          "source_frames": 324,
+          "captured_source_frames": 324,
+          "received_source_frames": 323,
+          "missing_source_indices_at_encoder_output": [
+            224
+          ],
+          "missing_source_indices_at_packetizer": [
+            224
+          ],
+          "missing_source_indices_at_receiver": [
+            224
+          ],
+          "source_payload_average_bps": 1203752.2936843936,
+          "all_source_frames_at_all_observed_boundaries": false,
+          "sender_rtp_stats": {
+            "video_frames_accepted_total": 357,
+            "frames_sent": 353,
+            "frames_encoded": 353,
+            "packets_sent": 2072,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 18
+          },
+          "receiver_video_rtp_stats": [
+            {
+              "frames_received": 352,
+              "frames_decoded": 351,
+              "frames_dropped": 0,
+              "packets_received": 2023,
+              "packets_lost": 0,
+              "packets_discarded": 0,
+              "retransmitted_packets_received": 0,
+              "nack_count": 0,
+              "pli_count": 0,
+              "fir_count": 0,
+              "decoder_family": "nvidia_h264",
+              "power_efficient_decoder": true
+            }
+          ],
+          "publisher_runtime": {
+            "descriptor_sha256": "e0726d09c2dc243a75fa63645bd18c9db1d465f93bda4799c47c9e64480b3968",
+            "ffi_sha256": "084e4f30b6748b3c2434eafedbef142856b56bbb8cc0d97c5353992dcb1e1188",
+            "cpp_sha256": "5f7a0e95d3046f3c004ec69289ee42fcefc9580170f718d96dd5c8fa3308c175",
+            "executable_sha256": "56d316ca5e0e4429b32761a39e76ff68c15163825dd5a01dfb9b8ae0ca1386cd",
+            "serving_runtime": false,
+            "trusted_external_rate_control": false
+          },
+          "receiver_runtime": {
+            "library_sha256": "16eb6e043651eb1c509bf515f512abac2c0e079035cc24928f72d3daa9866d03",
+            "source_matched": true,
+            "descriptor_sha256": "ec5d27245548829391ab745b136b4a7899d020cc251a2c771802edbbe6afe233",
+            "native_audio_queue_frames": 25,
+            "python_audio_queue_frames_10ms": 30,
+            "native_video_queue_frames": 1,
+            "python_video_queue_frames": 30,
+            "nvdec_disabled_by_environment": false
+          },
+          "observed_source_stage_counts": {
+            "1": 324,
+            "2": 323,
+            "3": 323
+          },
+          "non_source_or_unidentified_events_by_stage": {
+            "1": 33,
+            "2": 30,
+            "3": 30
+          }
+        },
+        {
+          "name": "external-trusted-1",
+          "trusted_external_rate_control": true,
+          "process_exit": 0,
+          "panic_detected": false,
+          "source_report_sha256": "7b1ddb5a84d560fc1ff8509970f3110fe858e67b1eadae82554b9505431e3dc5",
+          "source_frames": 324,
+          "captured_source_frames": 324,
+          "received_source_frames": 324,
+          "missing_source_indices_at_encoder_output": [],
+          "missing_source_indices_at_packetizer": [],
+          "missing_source_indices_at_receiver": [],
+          "source_payload_average_bps": 1192497.8252044308,
+          "all_source_frames_at_all_observed_boundaries": true,
+          "sender_rtp_stats": {
+            "video_frames_accepted_total": 357,
+            "frames_sent": 354,
+            "frames_encoded": 354,
+            "packets_sent": 2086,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 19
+          },
+          "receiver_video_rtp_stats": [
+            {
+              "frames_received": 353,
+              "frames_decoded": 351,
+              "frames_dropped": 0,
+              "packets_received": 2033,
+              "packets_lost": 0,
+              "packets_discarded": 0,
+              "retransmitted_packets_received": 0,
+              "nack_count": 0,
+              "pli_count": 0,
+              "fir_count": 0,
+              "decoder_family": "nvidia_h264",
+              "power_efficient_decoder": true
+            }
+          ],
+          "publisher_runtime": {
+            "descriptor_sha256": "e0726d09c2dc243a75fa63645bd18c9db1d465f93bda4799c47c9e64480b3968",
+            "ffi_sha256": "084e4f30b6748b3c2434eafedbef142856b56bbb8cc0d97c5353992dcb1e1188",
+            "cpp_sha256": "5f7a0e95d3046f3c004ec69289ee42fcefc9580170f718d96dd5c8fa3308c175",
+            "executable_sha256": "56d316ca5e0e4429b32761a39e76ff68c15163825dd5a01dfb9b8ae0ca1386cd",
+            "serving_runtime": false,
+            "trusted_external_rate_control": true
+          },
+          "receiver_runtime": {
+            "library_sha256": "16eb6e043651eb1c509bf515f512abac2c0e079035cc24928f72d3daa9866d03",
+            "source_matched": true,
+            "descriptor_sha256": "ec5d27245548829391ab745b136b4a7899d020cc251a2c771802edbbe6afe233",
+            "native_audio_queue_frames": 25,
+            "python_audio_queue_frames_10ms": 30,
+            "native_video_queue_frames": 1,
+            "python_video_queue_frames": 30,
+            "nvdec_disabled_by_environment": false
+          },
+          "observed_source_stage_counts": {
+            "1": 324,
+            "2": 324,
+            "3": 324
+          },
+          "non_source_or_unidentified_events_by_stage": {
+            "1": 33,
+            "2": 30,
+            "3": 30
+          }
+        },
+        {
+          "name": "sdk-default-2",
+          "trusted_external_rate_control": false,
+          "process_exit": 0,
+          "panic_detected": false,
+          "source_report_sha256": "b19ce923cd669b674aab5a1a631ee46f52e30b17385ce3feffc28ad8adde5a22",
+          "source_frames": 324,
+          "captured_source_frames": 324,
+          "received_source_frames": 323,
+          "missing_source_indices_at_encoder_output": [
+            224
+          ],
+          "missing_source_indices_at_packetizer": [
+            224
+          ],
+          "missing_source_indices_at_receiver": [
+            224
+          ],
+          "source_payload_average_bps": 1180753.4187786349,
+          "all_source_frames_at_all_observed_boundaries": false,
+          "sender_rtp_stats": {
+            "video_frames_accepted_total": 357,
+            "frames_sent": 353,
+            "frames_encoded": 353,
+            "packets_sent": 2043,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 17
+          },
+          "receiver_video_rtp_stats": [
+            {
+              "frames_received": 352,
+              "frames_decoded": 351,
+              "frames_dropped": 0,
+              "packets_received": 1999,
+              "packets_lost": 0,
+              "packets_discarded": 0,
+              "retransmitted_packets_received": 0,
+              "nack_count": 0,
+              "pli_count": 0,
+              "fir_count": 0,
+              "decoder_family": "nvidia_h264",
+              "power_efficient_decoder": true
+            }
+          ],
+          "publisher_runtime": {
+            "descriptor_sha256": "e0726d09c2dc243a75fa63645bd18c9db1d465f93bda4799c47c9e64480b3968",
+            "ffi_sha256": "084e4f30b6748b3c2434eafedbef142856b56bbb8cc0d97c5353992dcb1e1188",
+            "cpp_sha256": "5f7a0e95d3046f3c004ec69289ee42fcefc9580170f718d96dd5c8fa3308c175",
+            "executable_sha256": "56d316ca5e0e4429b32761a39e76ff68c15163825dd5a01dfb9b8ae0ca1386cd",
+            "serving_runtime": false,
+            "trusted_external_rate_control": false
+          },
+          "receiver_runtime": {
+            "library_sha256": "16eb6e043651eb1c509bf515f512abac2c0e079035cc24928f72d3daa9866d03",
+            "source_matched": true,
+            "descriptor_sha256": "ec5d27245548829391ab745b136b4a7899d020cc251a2c771802edbbe6afe233",
+            "native_audio_queue_frames": 25,
+            "python_audio_queue_frames_10ms": 30,
+            "native_video_queue_frames": 1,
+            "python_video_queue_frames": 30,
+            "nvdec_disabled_by_environment": false
+          },
+          "observed_source_stage_counts": {
+            "1": 324,
+            "2": 323,
+            "3": 323
+          },
+          "non_source_or_unidentified_events_by_stage": {
+            "1": 33,
+            "2": 30,
+            "3": 30
+          }
+        },
+        {
+          "name": "external-trusted-2",
+          "trusted_external_rate_control": true,
+          "process_exit": 0,
+          "panic_detected": false,
+          "source_report_sha256": "e12167cfa4009879d80dfdb28cad9c1a93cf773f938dfc0423d5626f6a1be306",
+          "source_frames": 324,
+          "captured_source_frames": 324,
+          "received_source_frames": 324,
+          "missing_source_indices_at_encoder_output": [],
+          "missing_source_indices_at_packetizer": [],
+          "missing_source_indices_at_receiver": [],
+          "source_payload_average_bps": 1205723.9227512614,
+          "all_source_frames_at_all_observed_boundaries": true,
+          "sender_rtp_stats": {
+            "video_frames_accepted_total": 358,
+            "frames_sent": 355,
+            "frames_encoded": 355,
+            "packets_sent": 2099,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 18
+          },
+          "receiver_video_rtp_stats": [
+            {
+              "frames_received": 354,
+              "frames_decoded": 353,
+              "frames_dropped": 0,
+              "packets_received": 2046,
+              "packets_lost": 0,
+              "packets_discarded": 0,
+              "retransmitted_packets_received": 0,
+              "nack_count": 0,
+              "pli_count": 0,
+              "fir_count": 0,
+              "decoder_family": "nvidia_h264",
+              "power_efficient_decoder": true
+            }
+          ],
+          "publisher_runtime": {
+            "descriptor_sha256": "e0726d09c2dc243a75fa63645bd18c9db1d465f93bda4799c47c9e64480b3968",
+            "ffi_sha256": "084e4f30b6748b3c2434eafedbef142856b56bbb8cc0d97c5353992dcb1e1188",
+            "cpp_sha256": "5f7a0e95d3046f3c004ec69289ee42fcefc9580170f718d96dd5c8fa3308c175",
+            "executable_sha256": "56d316ca5e0e4429b32761a39e76ff68c15163825dd5a01dfb9b8ae0ca1386cd",
+            "serving_runtime": false,
+            "trusted_external_rate_control": true
+          },
+          "receiver_runtime": {
+            "library_sha256": "16eb6e043651eb1c509bf515f512abac2c0e079035cc24928f72d3daa9866d03",
+            "source_matched": true,
+            "descriptor_sha256": "ec5d27245548829391ab745b136b4a7899d020cc251a2c771802edbbe6afe233",
+            "native_audio_queue_frames": 25,
+            "python_audio_queue_frames_10ms": 30,
+            "native_video_queue_frames": 1,
+            "python_video_queue_frames": 30,
+            "nvdec_disabled_by_environment": false
+          },
+          "observed_source_stage_counts": {
+            "1": 324,
+            "2": 324,
+            "3": 324
+          },
+          "non_source_or_unidentified_events_by_stage": {
+            "1": 34,
+            "2": 31,
+            "3": 31
+          }
+        },
+        {
+          "name": "sdk-default-3",
+          "trusted_external_rate_control": false,
+          "process_exit": 0,
+          "panic_detected": false,
+          "source_report_sha256": "e32f7ec0764d51e097f7f9940d8f2956142554dbd9ee40329cd9c4962ef1bb09",
+          "source_frames": 324,
+          "captured_source_frames": 324,
+          "received_source_frames": 319,
+          "missing_source_indices_at_encoder_output": [
+            221,
+            225,
+            228,
+            233,
+            246
+          ],
+          "missing_source_indices_at_packetizer": [
+            221,
+            225,
+            228,
+            233,
+            246
+          ],
+          "missing_source_indices_at_receiver": [
+            221,
+            225,
+            228,
+            233,
+            246
+          ],
+          "source_payload_average_bps": 1224424.7056776662,
+          "all_source_frames_at_all_observed_boundaries": false,
+          "sender_rtp_stats": {
+            "video_frames_accepted_total": 359,
+            "frames_sent": 352,
+            "frames_encoded": 352,
+            "packets_sent": 2116,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 20
+          },
+          "receiver_video_rtp_stats": [
+            {
+              "frames_received": 351,
+              "frames_decoded": 349,
+              "frames_dropped": 0,
+              "packets_received": 2065,
+              "packets_lost": 0,
+              "packets_discarded": 0,
+              "retransmitted_packets_received": 0,
+              "nack_count": 0,
+              "pli_count": 0,
+              "fir_count": 0,
+              "decoder_family": "nvidia_h264",
+              "power_efficient_decoder": true
+            }
+          ],
+          "publisher_runtime": {
+            "descriptor_sha256": "e0726d09c2dc243a75fa63645bd18c9db1d465f93bda4799c47c9e64480b3968",
+            "ffi_sha256": "084e4f30b6748b3c2434eafedbef142856b56bbb8cc0d97c5353992dcb1e1188",
+            "cpp_sha256": "5f7a0e95d3046f3c004ec69289ee42fcefc9580170f718d96dd5c8fa3308c175",
+            "executable_sha256": "56d316ca5e0e4429b32761a39e76ff68c15163825dd5a01dfb9b8ae0ca1386cd",
+            "serving_runtime": false,
+            "trusted_external_rate_control": false
+          },
+          "receiver_runtime": {
+            "library_sha256": "16eb6e043651eb1c509bf515f512abac2c0e079035cc24928f72d3daa9866d03",
+            "source_matched": true,
+            "descriptor_sha256": "ec5d27245548829391ab745b136b4a7899d020cc251a2c771802edbbe6afe233",
+            "native_audio_queue_frames": 25,
+            "python_audio_queue_frames_10ms": 30,
+            "native_video_queue_frames": 1,
+            "python_video_queue_frames": 30,
+            "nvdec_disabled_by_environment": false
+          },
+          "observed_source_stage_counts": {
+            "1": 324,
+            "2": 319,
+            "3": 319
+          },
+          "non_source_or_unidentified_events_by_stage": {
+            "1": 35,
+            "2": 33,
+            "3": 33
+          }
+        },
+        {
+          "name": "external-trusted-3",
+          "trusted_external_rate_control": true,
+          "process_exit": 0,
+          "panic_detected": false,
+          "source_report_sha256": "ce6f27f37fd972acd660c4b5dafa3ad01c9a656b0b480a46bd0e1b8d5622c4a9",
+          "source_frames": 324,
+          "captured_source_frames": 324,
+          "received_source_frames": 324,
+          "missing_source_indices_at_encoder_output": [],
+          "missing_source_indices_at_packetizer": [],
+          "missing_source_indices_at_receiver": [],
+          "source_payload_average_bps": 1233287.3861856984,
+          "all_source_frames_at_all_observed_boundaries": true,
+          "sender_rtp_stats": {
+            "video_frames_accepted_total": 357,
+            "frames_sent": 354,
+            "frames_encoded": 354,
+            "packets_sent": 2118,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 21
+          },
+          "receiver_video_rtp_stats": [
+            {
+              "frames_received": 353,
+              "frames_decoded": 351,
+              "frames_dropped": 0,
+              "packets_received": 2070,
+              "packets_lost": 0,
+              "packets_discarded": 0,
+              "retransmitted_packets_received": 0,
+              "nack_count": 0,
+              "pli_count": 0,
+              "fir_count": 0,
+              "decoder_family": "nvidia_h264",
+              "power_efficient_decoder": true
+            }
+          ],
+          "publisher_runtime": {
+            "descriptor_sha256": "e0726d09c2dc243a75fa63645bd18c9db1d465f93bda4799c47c9e64480b3968",
+            "ffi_sha256": "084e4f30b6748b3c2434eafedbef142856b56bbb8cc0d97c5353992dcb1e1188",
+            "cpp_sha256": "5f7a0e95d3046f3c004ec69289ee42fcefc9580170f718d96dd5c8fa3308c175",
+            "executable_sha256": "56d316ca5e0e4429b32761a39e76ff68c15163825dd5a01dfb9b8ae0ca1386cd",
+            "serving_runtime": false,
+            "trusted_external_rate_control": true
+          },
+          "receiver_runtime": {
+            "library_sha256": "16eb6e043651eb1c509bf515f512abac2c0e079035cc24928f72d3daa9866d03",
+            "source_matched": true,
+            "descriptor_sha256": "ec5d27245548829391ab745b136b4a7899d020cc251a2c771802edbbe6afe233",
+            "native_audio_queue_frames": 25,
+            "python_audio_queue_frames_10ms": 30,
+            "native_video_queue_frames": 1,
+            "python_video_queue_frames": 30,
+            "nvdec_disabled_by_environment": false
+          },
+          "observed_source_stage_counts": {
+            "1": 324,
+            "2": 324,
+            "3": 324
+          },
+          "non_source_or_unidentified_events_by_stage": {
+            "1": 33,
+            "2": 30,
+            "3": 30
+          }
+        }
+      ]
+    },
+    {
+      "name": "fenced_final_pair",
+      "scope": "current batch runner with explicit SIGTERM cleanup",
+      "private_receipt_sha256": "4dcba2138e0d1c83dd3f073a88d9e297b89931f1f097539441ab651a52bab957",
+      "qualifier_sha256": "376b598441a6ee91007d7bf17f06e2b8ace262630ea0628c8f525897fa6b5022",
+      "runner_sha256": "574206ad1b859b404966ae21e3bba78e7028d6084bd08f383ad23078bc69a1a7",
+      "cases": [
+        {
+          "name": "sdk-default-1",
+          "trusted_external_rate_control": false,
+          "process_exit": 0,
+          "panic_detected": false,
+          "source_report_sha256": "a0115aa146df5addfc9dde8abd4d71325e8d95791ae9ef2bf4ae86974a69a6f9",
+          "source_frames": 324,
+          "captured_source_frames": 324,
+          "received_source_frames": 319,
+          "missing_source_indices_at_encoder_output": [
+            218,
+            223,
+            228,
+            231,
+            235
+          ],
+          "missing_source_indices_at_packetizer": [
+            218,
+            223,
+            228,
+            231,
+            235
+          ],
+          "missing_source_indices_at_receiver": [
+            218,
+            223,
+            228,
+            231,
+            235
+          ],
+          "source_payload_average_bps": 1194817.6071449283,
+          "all_source_frames_at_all_observed_boundaries": false,
+          "sender_rtp_stats": {
+            "video_frames_accepted_total": 357,
+            "frames_sent": 349,
+            "frames_encoded": 349,
+            "packets_sent": 2078,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 18
+          },
+          "receiver_video_rtp_stats": [
+            {
+              "frames_received": 348,
+              "frames_decoded": 347,
+              "frames_dropped": 0,
+              "packets_received": 2025,
+              "packets_lost": 0,
+              "packets_discarded": 0,
+              "retransmitted_packets_received": 0,
+              "nack_count": 0,
+              "pli_count": 0,
+              "fir_count": 0,
+              "decoder_family": "nvidia_h264",
+              "power_efficient_decoder": true
+            }
+          ],
+          "publisher_runtime": {
+            "descriptor_sha256": "e0726d09c2dc243a75fa63645bd18c9db1d465f93bda4799c47c9e64480b3968",
+            "ffi_sha256": "084e4f30b6748b3c2434eafedbef142856b56bbb8cc0d97c5353992dcb1e1188",
+            "cpp_sha256": "5f7a0e95d3046f3c004ec69289ee42fcefc9580170f718d96dd5c8fa3308c175",
+            "executable_sha256": "56d316ca5e0e4429b32761a39e76ff68c15163825dd5a01dfb9b8ae0ca1386cd",
+            "serving_runtime": false,
+            "trusted_external_rate_control": false
+          },
+          "receiver_runtime": {
+            "library_sha256": "16eb6e043651eb1c509bf515f512abac2c0e079035cc24928f72d3daa9866d03",
+            "source_matched": true,
+            "descriptor_sha256": "ec5d27245548829391ab745b136b4a7899d020cc251a2c771802edbbe6afe233",
+            "native_audio_queue_frames": 25,
+            "python_audio_queue_frames_10ms": 30,
+            "native_video_queue_frames": 1,
+            "python_video_queue_frames": 30,
+            "nvdec_disabled_by_environment": false
+          },
+          "observed_source_stage_counts": {
+            "1": 324,
+            "2": 319,
+            "3": 319
+          },
+          "non_source_or_unidentified_events_by_stage": {
+            "1": 33,
+            "2": 30,
+            "3": 30
+          }
+        },
+        {
+          "name": "external-trusted-1",
+          "trusted_external_rate_control": true,
+          "process_exit": 0,
+          "panic_detected": false,
+          "source_report_sha256": "dade6089d0d4be38924334e664f3e05ab10964af951e53be5c515cff5fe9d8b2",
+          "source_frames": 324,
+          "captured_source_frames": 324,
+          "received_source_frames": 324,
+          "missing_source_indices_at_encoder_output": [],
+          "missing_source_indices_at_packetizer": [],
+          "missing_source_indices_at_receiver": [],
+          "source_payload_average_bps": 1225475.1029403235,
+          "all_source_frames_at_all_observed_boundaries": true,
+          "sender_rtp_stats": {
+            "video_frames_accepted_total": 358,
+            "frames_sent": 356,
+            "frames_encoded": 356,
+            "packets_sent": 2093,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 19
+          },
+          "receiver_video_rtp_stats": [
+            {
+              "frames_received": 355,
+              "frames_decoded": 354,
+              "frames_dropped": 0,
+              "packets_received": 2042,
+              "packets_lost": 0,
+              "packets_discarded": 0,
+              "retransmitted_packets_received": 0,
+              "nack_count": 0,
+              "pli_count": 0,
+              "fir_count": 0,
+              "decoder_family": "nvidia_h264",
+              "power_efficient_decoder": true
+            }
+          ],
+          "publisher_runtime": {
+            "descriptor_sha256": "e0726d09c2dc243a75fa63645bd18c9db1d465f93bda4799c47c9e64480b3968",
+            "ffi_sha256": "084e4f30b6748b3c2434eafedbef142856b56bbb8cc0d97c5353992dcb1e1188",
+            "cpp_sha256": "5f7a0e95d3046f3c004ec69289ee42fcefc9580170f718d96dd5c8fa3308c175",
+            "executable_sha256": "56d316ca5e0e4429b32761a39e76ff68c15163825dd5a01dfb9b8ae0ca1386cd",
+            "serving_runtime": false,
+            "trusted_external_rate_control": true
+          },
+          "receiver_runtime": {
+            "library_sha256": "16eb6e043651eb1c509bf515f512abac2c0e079035cc24928f72d3daa9866d03",
+            "source_matched": true,
+            "descriptor_sha256": "ec5d27245548829391ab745b136b4a7899d020cc251a2c771802edbbe6afe233",
+            "native_audio_queue_frames": 25,
+            "python_audio_queue_frames_10ms": 30,
+            "native_video_queue_frames": 1,
+            "python_video_queue_frames": 30,
+            "nvdec_disabled_by_environment": false
+          },
+          "observed_source_stage_counts": {
+            "1": 324,
+            "2": 324,
+            "3": 324
+          },
+          "non_source_or_unidentified_events_by_stage": {
+            "1": 34,
+            "2": 32,
+            "3": 32
+          }
+        }
+      ]
+    }
+  ],
+  "junit": {
+    "core": {
+      "tests": 372,
+      "failures": 0,
+      "errors": 0,
+      "time_seconds": 7.715,
+      "receipt_sha256": "e15fea6334a178049ea7735f2a6aed2ccac384338aec1e1ac59d160d120792f3"
+    },
+    "api": {
+      "tests": 46,
+      "failures": 0,
+      "errors": 0,
+      "time_seconds": 4.102,
+      "receipt_sha256": "9cdbed59719c53e2b1ef2c6dda85f8a2e7da7a72dc50af5e4ea1bf4b6969bff1"
+    }
+  },
+  "serving_configuration_changed": false,
+  "model_downloads": false,
+  "physical_av_qualified": false,
+  "quality_qualified": false,
+  "release_qualified": false,
+  "legacy_sdk_default_off_regression": {
+    "cases": 19,
+    "recorded_source_frames": 84,
+    "received_source_frames": 84,
+    "private_receipt_sha256": "6bf86881c33469d2392c2b9e7cfd46fccc468ee4b792e6c76da211497a90eaff",
+    "scope": "new worker hook disabled, original SDK; not the opt-in SDK lifecycle qualification"
+  }
+}

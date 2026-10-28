@@ -164,3 +164,9 @@ Final offline suites passed **356 core** and **45 API** tests. No model/software
 download, native sender rebuild, preview mutation or V1 change occurred.
 Physical A/V, complete live delivery, independent quality, capacity and release
 remain open; no phase or decoder-winner claim is made from these diagnostics.
+
+The subsequent [publisher-stage comparison](p06-publisher-stage.md) matched
+the observed missing IDs to the WebRTC upload/output handoff and qualified a
+default-off external-rate-control candidate in short local fixtures. It is not
+enabled in the serving previews; lifecycle, rate-pressure and browser rollout
+qualification remain separate next steps.

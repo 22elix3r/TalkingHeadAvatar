@@ -1,0 +1,230 @@
+diff --git a/livekit-ffi/src/lib.rs b/livekit-ffi/src/lib.rs
+index 1514b36..c019fbd 100644
+--- a/livekit-ffi/src/lib.rs
++++ b/livekit-ffi/src/lib.rs
+@@ -24,6 +24,8 @@ pub mod build_info;
+ pub mod cabi;
+ pub mod proto;
+ pub mod server;
++#[cfg(not(target_arch = "wasm32"))]
++mod tha_publish_trace;
+ 
+ uniffi::setup_scaffolding!();
+ 
+diff --git a/livekit-ffi/src/tha_publish_trace.rs b/livekit-ffi/src/tha_publish_trace.rs
+new file mode 100644
+index 0000000..527039d
+--- /dev/null
++++ b/livekit-ffi/src/tha_publish_trace.rs
+@@ -0,0 +1,198 @@
++// Copyright 2026 TalkingHeadAvatar contributors.
++// SPDX-License-Identifier: Apache-2.0
++// Isolated research instrumentation, not an upstream SDK API.
++
++use crate::{server::room::FfiTrack, FFI_SERVER};
++use lazy_static::lazy_static;
++use livekit::{
++    prelude::Track,
++    webrtc::native::packet_trailer::{
++        PacketTrailerHandler, PublishTimingEvent, PublishTimingStage,
++    },
++};
++use parking_lot::Mutex;
++use std::{
++    collections::HashMap,
++    sync::{
++        atomic::{AtomicU64, Ordering},
++        Arc,
++    },
++};
++
++const MAX_EVENTS: usize = 16384;
++const MAX_TRACES: usize = 8;
++
++#[repr(C)]
++#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
++pub struct TraceRow {
++    stage: u32,
++    has_frame_id: u32,
++    frame_id: u32,
++    reserved: u32,
++    user_timestamp_us: u64,
++    observed_unix_us: u64,
++}
++
++struct Buffer {
++    rows: Vec<TraceRow>,
++    overflow: u64,
++    sealed: bool,
++}
++impl Buffer {
++    fn new() -> Self {
++        Self { rows: Vec::with_capacity(MAX_EVENTS), overflow: 0, sealed: false }
++    }
++    fn record(&mut self, event: PublishTimingEvent) {
++        if self.sealed {
++            return;
++        }
++        if self.rows.len() == MAX_EVENTS {
++            self.overflow = self.overflow.saturating_add(1);
++            return;
++        }
++        self.rows.push(TraceRow {
++            stage: match event.stage {
++                PublishTimingStage::EncoderUpload => 1,
++                PublishTimingStage::EncoderOutput => 2,
++                PublishTimingStage::WebrtcPacketize => 3,
++            },
++            has_frame_id: u32::from(event.frame_id.is_some()),
++            frame_id: event.frame_id.unwrap_or(0),
++            reserved: 0,
++            user_timestamp_us: event.capture_timestamp_us,
++            observed_unix_us: event.timestamp_us,
++        });
++    }
++}
++struct Trace {
++    buffer: Arc<Mutex<Buffer>>,
++    handler: PacketTrailerHandler,
++}
++lazy_static! {
++    static ref TRACES: Mutex<HashMap<u64, Trace>> = Mutex::new(HashMap::new());
++}
++static NEXT: AtomicU64 = AtomicU64::new(1);
++
++#[no_mangle]
++pub extern "C" fn tha_lk_publish_trace_abi() -> u32 {
++    1
++}
++
++#[no_mangle]
++pub extern "C" fn tha_lk_publish_trace_begin(track_handle: u64) -> u64 {
++    std::panic::catch_unwind(|| {
++        if track_handle == 0 {
++            return 0;
++        }
++        let track = match FFI_SERVER.retrieve_handle::<FfiTrack>(track_handle) {
++            Ok(track) => track.track.clone(),
++            Err(_) => return 0,
++        };
++        let Track::LocalVideo(track) = track else {
++            return 0;
++        };
++        let Some(handler) = track.packet_trailer_handler() else {
++            return 0;
++        };
++        let mut traces = TRACES.lock();
++        if traces.len() >= MAX_TRACES {
++            return 0;
++        }
++        let Ok(id) =
++            NEXT.fetch_update(Ordering::Relaxed, Ordering::Relaxed, |value| value.checked_add(1))
++        else {
++            return 0;
++        };
++        let buffer = Arc::new(Mutex::new(Buffer::new()));
++        let target = buffer.clone();
++        handler
++            .set_publish_timing_observer(Some(Arc::new(move |event| target.lock().record(event))));
++        traces.insert(id, Trace { buffer, handler });
++        id
++    })
++    .unwrap_or(0)
++}
++
++/// End the explicit observation window. The caller supplies MAX_EVENTS aligned
++/// writable rows and one writable overflow counter, all owned by this process.
++/// The SDK owner must have stopped capturing and settled before sealing. This
++/// is a snapshot boundary, not a guarantee of packet or physical presentation.
++#[no_mangle]
++pub unsafe extern "C" fn tha_lk_publish_trace_end(
++    id: u64,
++    output: *mut TraceRow,
++    capacity: usize,
++    overflow: *mut u64,
++) -> usize {
++    std::panic::catch_unwind(|| {
++        if output.is_null() || overflow.is_null() || capacity != MAX_EVENTS {
++            return usize::MAX;
++        }
++        let Some(trace) = TRACES.lock().remove(&id) else {
++            return usize::MAX;
++        };
++        let mut buffer = trace.buffer.lock();
++        buffer.sealed = true;
++        trace.handler.set_publish_timing_observer(None);
++        std::ptr::copy_nonoverlapping(buffer.rows.as_ptr(), output, buffer.rows.len());
++        *overflow = buffer.overflow;
++        buffer.rows.len()
++    })
++    .unwrap_or(usize::MAX)
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    fn event(stage: PublishTimingStage, id: Option<u32>) -> PublishTimingEvent {
++        PublishTimingEvent { stage, timestamp_us: 20, capture_timestamp_us: 10, frame_id: id }
++    }
++    #[test]
++    fn abi_layout_and_empty_handle_are_explicit() {
++        assert_eq!(std::mem::size_of::<TraceRow>(), 32);
++        assert_eq!(tha_lk_publish_trace_abi(), 1);
++        assert_eq!(tha_lk_publish_trace_begin(0), 0);
++    }
++    #[test]
++    fn stage_and_zero_frame_identity_survive() {
++        let mut buffer = Buffer::new();
++        for stage in [
++            PublishTimingStage::EncoderUpload,
++            PublishTimingStage::EncoderOutput,
++            PublishTimingStage::WebrtcPacketize,
++        ] {
++            buffer.record(event(stage, Some(0)));
++        }
++        assert_eq!(buffer.rows.iter().map(|row| row.stage).collect::<Vec<_>>(), vec![1, 2, 3]);
++        assert!(buffer
++            .rows
++            .iter()
++            .all(|row| row.has_frame_id == 1 && row.frame_id == 0 && row.user_timestamp_us == 10));
++    }
++    #[test]
++    fn missing_frame_id_is_not_invented() {
++        let mut buffer = Buffer::new();
++        buffer.record(event(PublishTimingStage::EncoderUpload, None));
++        assert_eq!(buffer.rows[0].has_frame_id, 0);
++    }
++    #[test]
++    fn overflow_is_counted_without_growth_and_seal_stops_observation() {
++        let mut buffer = Buffer::new();
++        for _ in 0..MAX_EVENTS + 2 {
++            buffer.record(event(PublishTimingStage::EncoderUpload, Some(1)));
++        }
++        assert_eq!(buffer.rows.len(), MAX_EVENTS);
++        assert_eq!(buffer.overflow, 2);
++        buffer.sealed = true;
++        buffer.record(event(PublishTimingStage::EncoderUpload, Some(2)));
++        assert_eq!(buffer.overflow, 2);
++    }
++    #[test]
++    fn invalid_end_arguments_do_not_touch_foreign_memory() {
++        let mut overflow = 0;
++        assert_eq!(
++            unsafe { tha_lk_publish_trace_end(1, std::ptr::null_mut(), MAX_EVENTS, &mut overflow) },
++            usize::MAX
++        );
++    }
++}
+diff --git a/livekit/src/room/track/local_video_track.rs b/livekit/src/room/track/local_video_track.rs
+index 20084fd..f48269b 100644
+--- a/livekit/src/room/track/local_video_track.rs
++++ b/livekit/src/room/track/local_video_track.rs
+@@ -261,7 +261,7 @@ impl LocalVideoTrack {
+     /// Returns the packet trailer handler associated with this track, if any.
+     /// When present on the sender side, callers can store per-frame user
+     /// timestamps which will be embedded into encoded frames.
+-    pub(crate) fn packet_trailer_handler(&self) -> Option<PacketTrailerHandler> {
++    pub fn packet_trailer_handler(&self) -> Option<PacketTrailerHandler> {
+         self.packet_trailer_handler.lock().clone()
+     }
+ 

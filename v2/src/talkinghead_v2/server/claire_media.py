@@ -168,6 +168,9 @@ class ClaireMedia(NativeMedia):
         environment.pop('LD_PRELOAD', None)
         environment.pop('LD_AUDIT', None)
         environment.pop('THA_CLAIRE_CAPTURE_TRACE', None)
+        environment.pop('THA_CLAIRE_PUBLISH_TRACE', None)
+        environment.pop('THA_CLAIRE_TRACE_FFI_PATH', None)
+        environment.pop('THA_LK_TRUST_EXTERNAL_RATE_CONTROL', None)
         return environment
 
     def _visual_mode(self): return 'claire_vendor_research'

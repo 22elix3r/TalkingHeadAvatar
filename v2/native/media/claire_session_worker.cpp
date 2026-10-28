@@ -1,6 +1,7 @@
 // One research epoch/process. GPU SDK+geometry+NVENC share an owner; the CPU
 // audio clock does not wait for a render. SIGTERM bypasses producer backpressure.
 #include "../motion/claire_bridge.h"
+#include "publish_trace.h"
 #include <livekit/livekit.h>
 #include <livekit/room.h>
 #include <livekit/local_participant.h>
@@ -192,6 +193,7 @@ int main(int argc,char** argv){
       livekit::FrameMetadataFeatures features;features.user_timestamp=true;features.frame_id=true;features.user_data=true;options.frame_metadata_features=features;
       participant->publishTrack(vt,options);auto at=participant->publishAudioTrack("claire-answer-"+std::to_string(epoch),audio,livekit::TrackSource::SOURCE_MICROPHONE);
       require(vt->publication()&&at->publication(),"publication binding missing");const auto audio_sid=at->publication()->sid(),video_sid=vt->publication()->sid();require(identifier(audio_sid)&&identifier(video_sid),"invalid publication identity");
+      PublishStageTrace publisher_trace(vt->ffiHandleId());
       State state;std::promise<void> gpu_ready;auto available=gpu_ready.get_future();
       std::thread gpu(render,std::ref(state),argv[2],argv[3],argv[4],video,std::move(gpu_ready),epoch,std::cref(session),std::cref(turn));std::thread input;
       try {
@@ -248,6 +250,7 @@ int main(int argc,char** argv){
         std::this_thread::sleep_for(std::chrono::milliseconds(300));
         snapshot("THA_SENDER_RTP_AFTER_300MS");
       }
+      publisher_trace.finish();
       participant->unpublishTrack(audio_sid);participant->unpublishTrack(video_sid);audio->clearQueue();room.disconnect();
     }
     livekit::shutdown();close(protocol);return 0;
