@@ -40,6 +40,7 @@
 
 namespace {
 using Clock=std::chrono::steady_clock;
+uint64_t clock_us(){return std::chrono::duration_cast<std::chrono::microseconds>(Clock::now().time_since_epoch()).count();}
 constexpr auto unset=std::numeric_limits<uint64_t>::max();
 std::atomic<bool> stopped{false};static_assert(std::atomic<bool>::is_always_lock_free);
 int protocol=-1;
@@ -60,6 +61,24 @@ struct State {
   std::deque<Motion> motions;uint64_t received=0;bool eof=false;std::string failure;
   std::atomic<uint64_t> base_us{0},first{unset},source_samples{0},stream_samples{0},pose_end{0};
   std::atomic<uint64_t> video_frames{0},source_frames{0},idle_frames{0},preroll_frames{0},video_skipped{0},pose_peak{0},key_requests{0},rate_updates{0},eof_padding{0};std::atomic<bool> video_eof{false};
+  // Best-effort owner observations, read only on a terminal readiness fault.
+  // 0=waiting, 1=push/metrics, 2=render/encode, 3=SDK capture, 4=rate control.
+  std::atomic<uint64_t> offered{0},owner_stage{0},stage_since{0},progress_at{0};
+  std::atomic<uint64_t> push_last{0},push_max{0},render_last{0},render_max{0},capture_last{0},capture_max{0};
+  void begin(uint64_t stage){stage_since.store(clock_us());owner_stage.store(stage);}
+  void end(){progress_at.store(clock_us());owner_stage.store(0);}
+  void duration(std::atomic<uint64_t>& last,std::atomic<uint64_t>& maximum){const auto elapsed=clock_us()-stage_since.load();last.store(elapsed);maximum.store(std::max(maximum.load(),elapsed));end();}
+  // Caller holds mutex: audio/input counters are coherent; owner atomics may
+  // advance independently. No PCM, coefficients, text, IDs or vendor strings.
+  void readiness(uint64_t valid,double late){
+    const auto now=clock_us();const auto age=[&](uint64_t at){return at&&at<=now?now-at:0;};
+    std::ostringstream out;out<<"THA_CLAIRE_READINESS_V1";
+    for(const auto value:std::array<uint64_t,20>{valid,received,count,motions.size(),offered.load(),pose_end.load(),eof?1ULL:0ULL,
+        owner_stage.load(),age(stage_since.load()),age(progress_at.load()),push_last.load(),push_max.load(),render_last.load(),render_max.load(),
+        capture_last.load(),capture_max.load(),source_frames.load(),video_skipped.load(),failure=="claire_gpu_media_failure"?1ULL:0ULL,
+        static_cast<uint64_t>(std::max(0.,late)*1000)})out<<' '<<value;
+    std::cerr<<out.str()<<'\n';
+  }
   void fail(const char* reason){std::lock_guard<std::mutex> lock(mutex);if(failure.empty())failure=reason;stopped.store(true);space.notify_all();}
 };
 void receive(State& state,uint64_t epoch){
@@ -114,12 +133,14 @@ void render(State& state,const char* ptx,const char* scene,const char* model,con
         if(!state.motions.empty()&&offered*3<state.source_samples.load()+38400){chunk=state.motions.front();state.motions.pop_front();feed=true;state.space.notify_all();}
       }
       if(feed){
+        state.begin(1);
         owner.check(tha_claire_push(owner.handle,chunk.samples.data(),chunk.count,chunk.start,chunk.eof?1:0,owner.error,sizeof(owner.error)));
-        offered+=chunk.count;motion_eof=chunk.eof;
+        offered+=chunk.count;state.offered.store(offered);motion_eof=chunk.eof;
         if(motion_eof)owner.check(tha_claire_audio_end(owner.handle,total,owner.error,sizeof(owner.error)));
         tha_claire_metrics metrics{};owner.check(tha_claire_get_metrics(owner.handle,&metrics,owner.error,sizeof(owner.error)));
         state.pose_end.store(((metrics.neural_frames+1)/2-metrics.eof_padding_frames)*1600);
         state.pose_peak.store(metrics.queue_peak_frames);state.eof_padding.store(metrics.eof_padding_frames);
+        state.duration(state.push_last,state.push_max);
       }
       uint64_t first=0,cursor=0,stream_sample=0;
       {std::lock_guard<std::mutex> lock(state.mutex);first=state.first.load();cursor=state.source_samples.load();stream_sample=state.stream_samples.load();}
@@ -147,7 +168,7 @@ void render(State& state,const char* ptx,const char* scene,const char* model,con
         auto bitrate=static_cast<int>(std::clamp<uint64_t>(last_requested,100000,8000000));
         if(state.probe_bitrate)bitrate=std::min(bitrate,ceiling);
         const auto fps=rate_feedback&&feedback.rate_control->framerate_fps>0?std::clamp(feedback.rate_control->framerate_fps,1.,60.):encoder_fps;
-        owner.check(tha_claire_rate(owner.handle,bitrate,fps,owner.error,sizeof(owner.error)));rate_changed=std::abs(fps-encoder_fps)>.01;encoder_fps=fps;
+        state.begin(4);owner.check(tha_claire_rate(owner.handle,bitrate,fps,owner.error,sizeof(owner.error)));state.end();rate_changed=std::abs(fps-encoder_fps)>.01;encoder_fps=fps;
         active_ceiling=ceiling;
         if(state.probe_bitrate){
           require(rates.size()<256,"Claire rate feedback trace bound exceeded");
@@ -157,10 +178,11 @@ void render(State& state,const char* ptx,const char* scene,const char* model,con
       pending_key=pending_key||rate_changed;
       tha_claire_packet packet{};const auto pts=state.base_us.load()+((preroll?0:first)+target)*1000000/48000;
       const auto force=frame_id==0||(!preroll&&!idle&&state.source_frames.load()==0)||pending_key||(target>=last_key&&target-last_key>=48000);
+      state.begin(2);
       const auto result=preroll?tha_claire_preroll(owner.handle,pts,force,&packet,owner.error,sizeof(owner.error)):
         idle?tha_claire_hold(owner.handle,pts,force,&packet,owner.error,sizeof(owner.error)):
           tha_claire_render(owner.handle,target,pts,force,&packet,owner.error,sizeof(owner.error));
-      owner.check(result);if(!result){std::this_thread::sleep_for(std::chrono::milliseconds(1));continue;}if(stopped.load())break;
+      owner.check(result);state.duration(state.render_last,state.render_max);if(!result){std::this_thread::sleep_for(std::chrono::milliseconds(1));continue;}if(stopped.load())break;
       if(!preroll&&!idle&&target>next)state.video_skipped.fetch_add((target-next)/1600);
       if(idle)state.idle_frames.fetch_add(1);
       if(packet.keyframe){last_key=target;pending_key=false;}
@@ -171,7 +193,7 @@ void render(State& state,const char* ptx,const char* scene,const char* model,con
       metadata.user_data=std::vector<uint8_t>(identity.begin(),identity.end());frame.metadata=metadata;
       uint64_t trace_start=0;
       if(trace_enabled&&!preroll&&!idle)trace_start=std::chrono::duration_cast<std::chrono::microseconds>(Clock::now().time_since_epoch()).count();
-      require(source->captureFrame(frame),"Claire encoded frame rejected");state.video_frames.fetch_add(1);
+      state.begin(3);require(source->captureFrame(frame),"Claire encoded frame rejected");state.duration(state.capture_last,state.capture_max);state.video_frames.fetch_add(1);
       if(trace_enabled&&!preroll&&!idle){
         require(trace.size()<3600,"Claire capture trace bound exceeded");
         const auto trace_end=std::chrono::duration_cast<std::chrono::microseconds>(Clock::now().time_since_epoch()).count();
@@ -243,7 +265,8 @@ int main(int argc,char** argv){
             if(playing&&!done){
               if(flush){++flush;padding+=480;if(flush==3)done=true;}
               else {
-                require(state.count>=480||state.eof,"active Claire audio underrun; retire epoch");require(state.pose_end.load()>valid,"Claire motion underrun; retire epoch");
+                if(!(state.count>=480||state.eof)){state.readiness(valid,maximum_late);throw std::runtime_error("active Claire audio underrun; retire epoch");}
+                if(state.pose_end.load()<=valid){state.readiness(valid,maximum_late);throw std::runtime_error("Claire motion underrun; retire epoch");}
                 const auto count=std::min<size_t>(480,state.count);for(size_t i=0;i<count;++i){pcm[i]=state.audio[state.head];state.head=(state.head+1)%state.audio.size();}
                 state.count-=count;valid+=count;padding+=480-count;state.source_samples.store(valid);
                 if(state.eof&&state.count==0)flush=count==0?2:1;

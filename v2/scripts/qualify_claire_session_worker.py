@@ -26,7 +26,7 @@ from talkinghead_v2.contracts import AudioChunk,AudioEOF,Envelope,GenerationKey,
 from talkinghead_v2.providers.motion.paired import ClaireInputMux
 from talkinghead_v2.providers.tts.native import QwenNativeProvider,load_native_config
 from talkinghead_v2.server.config import Settings
-from talkinghead_v2.server.native_media import private_write
+from talkinghead_v2.server.native_media import private_write,parse_claire_readiness
 from talkinghead_v2.server.transport import CheckedReceiveQueue,grant
 from talkinghead_v2.session.device import DeviceLease
 from talkinghead_v2.publish_probe import PublisherTraceConfig,publish_stage_trace,publisher_rate_probe
@@ -207,6 +207,8 @@ async def main(args):
         raise ValueError('rate probing requires an explicit live publisher stage/source trace')
     if args.trust_encoded_rate_control and (publisher is None or not publisher.supports_external_rate_control):
         raise ValueError('external-rate-control selection requires an explicit compatible publisher probe')
+    if args.starve_motion_input and (args.live_qwen or publisher_tracing or args.trace_source_captures):
+        raise ValueError('motion-readiness positive control requires recorded PCM and probes disabled')
     if publisher_tracing and (not args.trace_source_captures or not args.live_qwen):raise ValueError('publisher stage tracing requires the explicit live source trace')
     if args.trace_receiver_ffi and selected is None:raise ValueError('FFI tracing requires an explicit source-matched receiver runtime')
     if args.stall_video_ffi_ms and not args.trace_receiver_ffi:raise ValueError('callback stall requires the explicit FFI trace')
@@ -265,6 +267,7 @@ async def main(args):
             ('partial',481,None),('quantum',960,None),('tail',961,None),('grid_before',1599,None),('grid_exact',1600,None),
             ('grid_after',1601,None),('grid_second',3200,None),('grid_third',4800,None),('empty',0,'empty'),('wrong_epoch',960,'epoch'),
             ('gap',960,'gap'),('sequence',960,'sequence'),('wrong_motion',960,'motion'),('backpressure_cancel',960,'cancel')]
+        if args.starve_motion_input:selected_cases=[('motion_input_starvation',48000,'starvation')]
         for name,count,fault in selected_cases:
             directory=args.directory/name;directory.mkdir(mode=0o700);sid='claire-worker-'+name;room_name='claire-worker-'+name
             tts=None;live_metrics=None
@@ -389,7 +392,7 @@ async def main(args):
                         if fault=='motion':data=packet(index,offset,selected_audio[offset:offset+960],selected_motion[:319])
                         process.stdin.write(data);await process.stdin.drain();offset+=960;index+=1
                         if name=='segmented_gap' and offset==19200:await asyncio.sleep(.3)
-                        if fault:break
+                        if fault and fault!='starvation':break
                     if not name.startswith('qwen_') and (not fault or fault=='empty'):
                         process.stdin.write(packet(index,offset,selected_audio[offset:],selected_motion[offset//3:],True));await process.stdin.drain()
                     result=await event()
@@ -397,7 +400,15 @@ async def main(args):
                         if result!={'kind':'error','code':'claire_media_failed'}:raise ValueError('malformed Claire protocol accepted')
                         await asyncio.wait_for(process.wait(),5)
                         if process.returncode!=1:raise ValueError('protocol fault did not retire worker')
-                        cases.append({'name':name,'rejected':True,'process_exit':1})
+                        record={'name':name,'rejected':True,'process_exit':1}
+                        if fault=='starvation':
+                            readiness=parse_claire_readiness((directory/'stderr.log').read_text().splitlines())
+                            if (readiness is None or readiness['input_eof'] or readiness['owner_failed'] or
+                                readiness['pose_end_samples']>readiness['valid_samples'] or readiness['queued_audio_samples']==0 or
+                                readiness['received_samples']!=48000 or readiness['offered_motion_samples']!=16000):
+                                raise ValueError('motion starvation did not expose bounded readiness diagnostics')
+                            record['claire_readiness']=readiness
+                        cases.append(record)
                     else:
                         if (result.get('kind')!='eof' or result.get('valid_samples')!=count or result.get('padding_samples')!=(-count)%480+960 or
                             result.get('presentation_ack') is not False or result.get('preroll_video_frames',0)<3 or result.get('pose_queue_peak_frames',33)>32 or result.get('motion_queue_peak_packets',51)>50 or
@@ -517,7 +528,7 @@ async def main(args):
         report['recorded_preflight_fixture_pcm_sha256']=report.pop('source_pcm_24k_sha256')
         report['tts_runtime_descriptor_sha256']=digest(settings.tts_runtime)
         report['source_sha256']['src/talkinghead_v2/providers/tts/native.py']=digest(ROOT/'src/talkinghead_v2/providers/tts/native.py')
-    args.report.write_text(json.dumps(report,indent=2)+'\n');print(json.dumps({'worker_cases':len(cases),'receiver_video_frames':len(cases[0]['receiver']['video']),'physical_av':False}))
+    args.report.write_text(json.dumps(report,indent=2)+'\n');print(json.dumps({'worker_cases':len(cases),'receiver_video_frames':len(cases[0].get('receiver',{}).get('video',[])),'physical_av':False}))
 
 
 async def run(args):
@@ -545,6 +556,7 @@ async def run(args):
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--live-qwen',action='store_true',help='execute one pinned cached-Qwen/SFU/Claire co-load case instead of recorded/fault cohort')
+    parser.add_argument('--starve-motion-input',action='store_true',help='positive control: withhold EOF after one second of paired recorded PCM; require terminal readiness diagnostics')
     parser.add_argument('--trace-source-captures',action='store_true',help='live qualification only: privately trace source capture timing and payload sizes')
     parser.add_argument('--native-video-queue-frames',type=int,choices=(1,8),default=1,help='request bounded native receiver queue for research comparison')
     parser.add_argument('--receiver-runtime',type=Path,help='explicit qualified source-matched FFI descriptor; no provisioning')

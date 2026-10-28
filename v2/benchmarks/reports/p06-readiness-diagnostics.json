@@ -1,0 +1,215 @@
+{
+  "schema_version": 1,
+  "status": "instrumentation_qualified",
+  "date": "2026-10-29",
+  "source_sha256": {
+    "native/media/claire_session_worker.cpp": "6a9f65b51970dacd8a3214dd9affbf70c790c1f74ed68ea627ee6323fb8175f9",
+    "scripts/qualify_claire_session_worker.py": "350d884223e2f3b00e171385c606b2677c81a7827ff331b81a5550600117479a",
+    "src/talkinghead_v2/server/native_media.py": "8a8f12234e968c92b0d90848cbbbe9bd3d5704dec945bf4e0aab2f850906d088",
+    "tests/test_native_media.py": "293046c2bf6aa968b61f601927cfe636e090f7ae36f2d7060d8451595236ccf3",
+    "scripts/qualify_claire_session_soak.py": "7b96b04071552868a19d07f5f2df3fdd12fc966a3f83e28b54b17aa2d663cb3d",
+    "web/tests/claire-soak.spec.ts": "864e88f202fb1024eb78f73f91eee7ef80fae0a9178b8bea9a53eb8a7a4cea90"
+  },
+  "runtime": {
+    "binary_sha256": "006cd0b386b2050b9c8f13d11e59140de506f1aaa1c24c74ab4fcb960717d99e",
+    "bridge_sha256": "4b02399fc919053e20569df45d78e0cff684a11a2a500778ae6f2be5e5db2d83",
+    "ptx_sha256": "5cf29df273ed9e18d5d617b59317564b9276b709315d80a4d26325c0d0c4199b",
+    "engine_sha256": "69b7d0951ded6bae1a5b12e02c582cafc37fa221b098e0c2364849881167ab9b",
+    "scene_sha256": "9dd13fb06c7a46c06e51ae6ad8630a8ff18b828ab1299aafb5e1902d41b33b1a",
+    "publisher_trace_runtime": {
+      "descriptor_sha256": "cc68cca11d1b3cbdf70f250ad95ae26498f4e484a21ae6a1306a39a020823a1c",
+      "ffi_sha256": "084e4f30b6748b3c2434eafedbef142856b56bbb8cc0d97c5353992dcb1e1188",
+      "cpp_sha256": "5f7a0e95d3046f3c004ec69289ee42fcefc9580170f718d96dd5c8fa3308c175",
+      "executable_sha256": "006cd0b386b2050b9c8f13d11e59140de506f1aaa1c24c74ab4fcb960717d99e",
+      "serving_runtime": false,
+      "trusted_external_rate_control": true
+    },
+    "receiver_runtime": {
+      "library_sha256": "16eb6e043651eb1c509bf515f512abac2c0e079035cc24928f72d3daa9866d03",
+      "source_matched": true,
+      "descriptor_sha256": "ec5d27245548829391ab745b136b4a7899d020cc251a2c771802edbbe6afe233",
+      "native_audio_queue_frames": 25,
+      "python_audio_queue_frames_10ms": 30,
+      "native_video_queue_frames": 1,
+      "python_video_queue_frames": 30,
+      "nvdec_disabled_by_environment": false
+    }
+  },
+  "serving_descriptor_sha256": "6dfb44e952bbe05788b2fcbe0d47c142a30486b8cedf9efc3bbcd9e1486b37bc",
+  "positive_control": {
+    "scope": "Withhold further paired recorded PCM and EOF after one second; deliberate starvation validates diagnostics and fail-closed retirement, not original failure cause.",
+    "name": "motion_input_starvation",
+    "native_exit": 1,
+    "admission_reacquired": true,
+    "readiness": {
+      "valid_samples": 36960,
+      "received_samples": 48000,
+      "queued_audio_samples": 11040,
+      "motion_packets": 0,
+      "offered_motion_samples": 16000,
+      "pose_end_samples": 36800,
+      "input_eof": 0,
+      "owner_stage": 0,
+      "owner_stage_age_us": 700,
+      "owner_progress_age_us": 700,
+      "push_last_us": 1539,
+      "push_max_us": 77991,
+      "render_last_us": 0,
+      "render_max_us": 9193,
+      "capture_last_us": 27,
+      "capture_max_us": 54,
+      "source_frames": 23,
+      "video_skipped": 0,
+      "owner_failed": 0,
+      "audio_late_max_us": 70
+    },
+    "owner": {
+      "process_exit": 0,
+      "log_sha256": "c7548afa40b1dc78daef9ee5d649c24c4460999829cc4d40b48a54b16a16f8ea",
+      "report_sha256": "4ffbb61747daf0ae83f0a6a83c17fa7bb6e2588309e13fdbbcb60749d8d99b03"
+    }
+  },
+  "native_regression": {
+    "lifecycle_cases": 19,
+    "lifecycle_recorded_source_frames": 84,
+    "lifecycle_recorded_received_frames": 84,
+    "live_source_frames": 324,
+    "live_received_frames": 324,
+    "live_missing_source_indices": [],
+    "lifecycle_owner": {
+      "schema_version": 1,
+      "process_exit": 0,
+      "panic_detected": false,
+      "report_sha256": "66da77af32a1fab8ffd0206d1db49fb3e2d32e3a5bf391e1b4e74ae4e08f19b6",
+      "log_sha256": "690aacf77d6a668525d8431a2571d582b42e8af0d4dfdda6f5b54ff81c2e61f4",
+      "qualifier_sha256": "350d884223e2f3b00e171385c606b2677c81a7827ff331b81a5550600117479a",
+      "ownership_runner_sha256": "c1289bd6acb2794a22ff051d59530e8fb7fbefa020b9f13ca72a925f5e45341a",
+      "source_stable": true
+    },
+    "live_owner": {
+      "schema_version": 1,
+      "process_exit": 0,
+      "panic_detected": false,
+      "report_sha256": "9d099e9295aa9395193781be25c58a86fc482cfa9e08adf5b048942f010abe2c",
+      "log_sha256": "062abb1749291cd0be3e4b849fba3a9c8c781bec6883266b262082877b573224",
+      "qualifier_sha256": "350d884223e2f3b00e171385c606b2677c81a7827ff331b81a5550600117479a",
+      "ownership_runner_sha256": "c1289bd6acb2794a22ff051d59530e8fb7fbefa020b9f13ca72a925f5e45341a",
+      "source_stable": true
+    },
+    "trace_probes_disabled": true
+  },
+  "injected_rate_checks": {
+    "status": "completed",
+    "owner": {
+      "process_exit": 0,
+      "log_sha256": "3d6b116f40d194eaa31a952eff191c430e89a0fe6d16e4328e56a748bf886390",
+      "report_sha256": "5a0e66015e354bbeeb4c248b9ace943c4ce92f64c1231e031eae167de2d812d3"
+    },
+    "schedule": "down-up",
+    "scope": "Injected external encoder ceilings, no constrained-network acceptance.",
+    "cases": [
+      {
+        "process_exit": 0,
+        "diagnostic_completed": true,
+        "source_frames": 324,
+        "captured_source_frames": 324,
+        "received_source_frames": 324,
+        "missing_at_encoder_output": [],
+        "missing_at_packetizer": [],
+        "missing_at_receiver": []
+      },
+      {
+        "process_exit": 0,
+        "diagnostic_completed": true,
+        "source_frames": 324,
+        "captured_source_frames": 324,
+        "received_source_frames": 324,
+        "missing_at_encoder_output": [],
+        "missing_at_packetizer": [],
+        "missing_at_receiver": []
+      },
+      {
+        "process_exit": 0,
+        "diagnostic_completed": true,
+        "source_frames": 324,
+        "captured_source_frames": 324,
+        "received_source_frames": 324,
+        "missing_at_encoder_output": [],
+        "missing_at_packetizer": [],
+        "missing_at_receiver": []
+      }
+    ]
+  },
+  "validation": {
+    "core": {
+      "passed": 438,
+      "seconds": 7.96,
+      "junit_sha256": "64f90876bcfa9b4d3d13a71a8d2064551f43fef378da3dbe651ae6f3154bacf3"
+    },
+    "api": {
+      "passed": 47,
+      "seconds": 5.57,
+      "junit_sha256": "6d0da76f74323ec64c25eb1dd283dbfeb6722a93f6be58d0aaad87326fcc8eb5"
+    },
+    "web_typecheck_exit": 0,
+    "web_unit_tests_passed": 2
+  },
+  "original_underrun_fixed": false,
+  "sustained_stability_qualified": false,
+  "physical_av_qualified": false,
+  "quality_qualified": false,
+  "release_qualified": false,
+  "buffer_or_guard_policy_changed": false,
+  "preview_descriptor_unchanged": true,
+  "model_downloads": false,
+  "software_downloads": false,
+  "subagents_used": false,
+  "isolated_profile_selection": {
+    "database_unchanged": true,
+    "database_tables": 15,
+    "only_profile_changed": "p06-publisher",
+    "receipt_sha256": "708246d8d6d8ef4641ce1cccc6ef9874dd930dd480f8162f0334de767a1ae0a6",
+    "descriptor_sha256": "6dfb44e952bbe05788b2fcbe0d47c142a30486b8cedf9efc3bbcd9e1486b37bc"
+  },
+  "browser_smoke": {
+    "status": "completed",
+    "process_exit": 0,
+    "source_and_runtime_stable": true,
+    "summary": {
+      "passed": true,
+      "close_confirmed": true,
+      "requested_seconds": 60,
+      "measured_node_elapsed_ms": 70961.282943,
+      "completed": 5,
+      "interrupted": 2,
+      "attempts": 7,
+      "browser_version": "154.0.8037.57",
+      "microphone_input": "none; typed closed-loop workload"
+    },
+    "telemetry": {
+      "samples": 313,
+      "query_failures": 0,
+      "failure_types": [],
+      "sampled_maxima_are_not_guaranteed_peaks": true,
+      "subqueries_are_sequential": true,
+      "target_pause_after_queries_ms": 200,
+      "co_load_samples": 269,
+      "device_used_sampled_max_mib": 9328,
+      "native_process_samples_without_gpu_attribution": 12,
+      "per_role_sampled_gpu_max_mib": {
+        "qwen": 4376,
+        "media": 1215
+      },
+      "per_role_sampled_rss_max_bytes": {
+        "api": 646660096,
+        "qwen": 835670016,
+        "media": 1232400384
+      },
+      "qwen_process_lifetimes": 1,
+      "media_process_lifetimes": 7,
+      "media_lifetimes_with_verified_policy": 7,
+      "remaining_api_child_count": 0
+    },
+    "receipt_sha256": "489258b2b9b194d7c2860a61ac6b4bb2701c589c282d3d4c7eadc59206e3a18f"
+  }
+}

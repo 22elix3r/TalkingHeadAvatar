@@ -100,7 +100,18 @@ test('Claire typed session sustains completion, interruption and fresh playback'
     expect(completed).toBeGreaterThan(0); expect(interrupted).toBeGreaterThan(0);
     passed = true;
   } finally {
-    if (attempt) await appendFile(progress, JSON.stringify({ ...attempt, status: 'failed' }) + '\n');
+    if (attempt) {
+      // Keep the bounded observation window even when snapshot() rejects it.
+      // No transcript, media data, DOM text or arbitrary exception messages.
+      const failureObservation = await page.evaluate(() => {
+        const state = (window as any).__claireSoak;
+        const audio = document.querySelector('audio');
+        return { events: state?.events ?? [], overflow: state?.overflow ?? null, recovery: state?.recovery ?? null,
+          alert_present: Boolean(document.querySelector('[role="alert"]')),
+          audio_muted: audio?.muted ?? null, audio_attached: audio ? audio.srcObject !== null : null };
+      }).catch(() => ({ observation_unavailable: true }));
+      await appendFile(progress, JSON.stringify({ ...attempt, status: 'failed', failure_observation: failureObservation }) + '\n');
+    }
     try {
       if (sid && csrf) {
         const closed = await context.request.post(`/v1/sessions/${sid}/close`, { data: {}, headers: { Origin: baseURL!, 'X-CSRF-Token': csrf } });

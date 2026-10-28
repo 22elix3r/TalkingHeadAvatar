@@ -115,3 +115,12 @@ After explicit close, a fresh Chromium typed/microphone recovery cohort passed
 This qualifies post-close reuse in those short journeys, not a fix for the
 underrun or a passing sustained cohort. All four local profile endpoints were
 ready afterward.
+
+## Instrumented retry
+
+[Bounded readiness diagnostics](p06-readiness-diagnostics.md) now retain numeric
+source/motion/owner state on a terminal guard failure. A deliberate input-starvation
+control, native lifecycle/live/rate checks and a new seven-turn isolated browser
+smoke passed. The new 1,800-second cohort `chromium-readiness-30m-20261029` is
+running without the earlier overlapping packaging build. The original failed
+cohort remains a failure; diagnostics and smoke do not close sustained stability.

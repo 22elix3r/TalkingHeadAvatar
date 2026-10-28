@@ -23,7 +23,7 @@ def main(args):
     children=Path(f'/proc/{api["pid"]}/task/{api["pid"]}/children')
     if children.read_text().split():raise ValueError('profile has active native children; preserve existing conversation')
     sources=['scripts/qualify_claire_session_soak.py','scripts/qualify_claire_receiver_matrix.py','src/talkinghead_v2/resource_probe.py',
-        'src/talkinghead_v2/server/actor.py','src/talkinghead_v2/server/claire_media.py','src/talkinghead_v2/providers/tts/native.py',
+        'src/talkinghead_v2/server/actor.py','src/talkinghead_v2/server/claire_media.py','src/talkinghead_v2/server/native_media.py','src/talkinghead_v2/providers/tts/native.py',
         'web/src/client.ts','web/tests/claire-soak.spec.ts','web/playwright.claire.soak.config.ts','web/playwright.claire-profile.ts']
     before={p:file_hash(ROOT/p) for p in sources}
     args.directory.mkdir(parents=True,mode=0o700);stop=threading.Event();samples=[];failures=[];seen={};observed_native={}

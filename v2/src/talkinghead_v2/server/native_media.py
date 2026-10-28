@@ -24,6 +24,29 @@ from talkinghead_v2.rendering.projected import project_neutral
 
 SDK_REVISION = 'df8319db2f459d194ae0bb7a5d04920ce5641f81'
 IDENTIFIER = re.compile(r'[A-Za-z0-9_-]{1,100}\Z')
+CLAIRE_READINESS_FIELDS = (
+    ('valid_samples', 5760000), ('received_samples', 5760000), ('queued_audio_samples', 48000),
+    ('motion_packets', 50), ('offered_motion_samples', 1920000), ('pose_end_samples', 5763200),
+    ('input_eof', 1), ('owner_stage', 4), ('owner_stage_age_us', 3600000000),
+    ('owner_progress_age_us', 3600000000), ('push_last_us', 3600000000), ('push_max_us', 3600000000),
+    ('render_last_us', 3600000000), ('render_max_us', 3600000000), ('capture_last_us', 3600000000),
+    ('capture_max_us', 3600000000), ('source_frames', 108000), ('video_skipped', 108000),
+    ('owner_failed', 1), ('audio_late_max_us', 3600000000))
+
+
+def parse_claire_readiness(lines):
+    """Fault-only numeric schema; never copy arbitrary native/vendor diagnostics."""
+    for line in reversed(lines):
+        if not line.startswith('THA_CLAIRE_READINESS_V1 ') or len(line) > 512:
+            continue
+        values = line.removeprefix('THA_CLAIRE_READINESS_V1 ').split(' ')
+        if len(values) != len(CLAIRE_READINESS_FIELDS) or any(
+                re.fullmatch(r'0|[1-9][0-9]{0,9}', value) is None for value in values):
+            continue
+        numeric = list(map(int, values))
+        if all(value <= bound for value, (_, bound) in zip(numeric, CLAIRE_READINESS_FIELDS)):
+            return {name: value for (name, _), value in zip(CLAIRE_READINESS_FIELDS, numeric)}
+    return None
 
 
 def private_write(path, value):
@@ -270,8 +293,8 @@ class NativeMedia:
         if self.state is state: self.state = None
 
     def _retain_failure(self, state):
-        # Retain only known fixed fault strings, not vendor stderr, credentials,
-        # model paths, PCM or arbitrary exception text. Cleanup remains primary.
+        # Retain fixed fault strings and a bounded numeric readiness schema,
+        # never vendor stderr, credentials, model paths, PCM or exception text.
         allowed = {'active Claire audio underrun; retire epoch', 'Claire motion underrun; retire epoch',
                    'claire_input_protocol_failure', 'claire_gpu_media_failure', 'Claire encoded frame rejected',
                    'local SFU connection failed', 'native_gpu_media_failure', 'pcm_protocol_failure',
@@ -287,8 +310,11 @@ class NativeMedia:
             key = state['key']
             descriptor, name = tempfile.mkstemp(prefix='native-failure-', suffix='.json', dir=self.settings.private_dir)
             with os.fdopen(descriptor, 'w') as target:
-                json.dump({'session_id': key.session_id, 'turn_id': key.turn_id, 'epoch': key.epoch,
-                           'process_exit': state['process'].returncode, 'code': reason}, target)
+                record = {'session_id': key.session_id, 'turn_id': key.turn_id, 'epoch': key.epoch,
+                          'process_exit': state['process'].returncode, 'code': reason}
+                readiness = parse_claire_readiness(lines)
+                if readiness is not None: record['claire_readiness'] = readiness
+                json.dump(record, target)
         except OSError:
             pass
 

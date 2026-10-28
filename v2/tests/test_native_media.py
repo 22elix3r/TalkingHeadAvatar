@@ -14,6 +14,24 @@ from talkinghead_v2.contracts import AudioChunk, AudioEOF, ContractError, Envelo
 from talkinghead_v2.server.native_media import NativeMedia, NativeMediaConfig, SDK_REVISION
 
 
+def test_readiness_snapshot_is_numeric_bounded_and_does_not_retain_vendor_text():
+    from talkinghead_v2.server.native_media import parse_claire_readiness
+    values = [24000, 48000, 24000, 13, 16000, 24000, 0, 3, 900, 1200,
+              120, 130, 200, 300, 500, 600, 15, 0, 0, 250]
+    line = 'THA_CLAIRE_READINESS_V1 ' + ' '.join(map(str, values))
+    snapshot = parse_claire_readiness(['PRIVATE_TOKEN', line, 'Claire GPU owner: private/path'])
+    assert snapshot == dict(zip(('valid_samples', 'received_samples', 'queued_audio_samples', 'motion_packets',
+        'offered_motion_samples', 'pose_end_samples', 'input_eof', 'owner_stage', 'owner_stage_age_us',
+        'owner_progress_age_us', 'push_last_us', 'push_max_us', 'render_last_us', 'render_max_us',
+        'capture_last_us', 'capture_max_us', 'source_frames', 'video_skipped', 'owner_failed', 'audio_late_max_us'), values))
+    for invalid in (line + ' PRIVATE_TOKEN', line.replace(' 900 ', ' -1 '), line.replace(' 900 ', ' 1.2 '),
+                    line.replace(' 900 ', ' 999999999999999999999999 '), line.replace(' 13 ', ' 51 '),
+                    line.replace(' 3 ', ' 5 '), line.replace(' 900 ', ' 0900 '), ' ' + line, line + '\nPRIVATE_TOKEN'):
+        assert parse_claire_readiness([invalid]) is None
+    assert parse_claire_readiness(['THA_CLAIRE_READINESS_V2 0']) is None
+    assert 'PRIVATE_TOKEN' not in json.dumps(snapshot)
+
+
 def descriptor(tmp_path):
     records = {}
     for name in ('executable', 'ptx', 'livekit_library', 'ffi_library'):
@@ -132,7 +150,9 @@ def test_failed_worker_retains_only_bounded_known_diagnostics_and_purges_bootstr
         directory = tmp_path / 'native-epoch'
         directory.mkdir(mode=0o700)
         (directory / 'bootstrap.txt').write_text('PRIVATE_SECRET_TOKEN')
-        (directory / 'diagnostics.log').write_text('PRIVATE_SECRET_TOKEN\n' * 5000 + 'Claire session: Claire motion underrun; retire epoch\n')
+        (directory / 'diagnostics.log').write_text('PRIVATE_SECRET_TOKEN\n' * 5000 +
+            'THA_CLAIRE_READINESS_V1 24000 48000 24000 13 16000 24000 0 3 900 1200 120 130 200 300 500 600 15 0 0 250\n' +
+            'Claire session: Claire motion underrun; retire epoch\n')
         state.update(directory=directory, reader=None, failed=True,
                      process=SimpleNamespace(returncode=1, stdin=None, wait=AsyncMock(return_value=1)))
         state['ready'] = asyncio.get_running_loop().create_future()
@@ -143,5 +163,6 @@ def test_failed_worker_retains_only_bounded_known_diagnostics_and_purges_bootstr
         assert len(retained) == 1 and not directory.exists() and instance.state is None
         assert 'PRIVATE_SECRET_TOKEN' not in retained[0].read_text()
         assert json.loads(retained[0].read_text())['code'] == 'Claire motion underrun; retire epoch'
+        assert json.loads(retained[0].read_text())['claire_readiness']['owner_stage'] == 3
         assert retained[0].stat().st_mode & 0o077 == 0
     asyncio.run(run())
