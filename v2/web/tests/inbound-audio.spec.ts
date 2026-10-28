@@ -123,6 +123,8 @@ test('unpublished microphone fails the real session and releases admission', asy
 
 test('Firefox synthetic microphone barge-in resumes after mute', async ({ page, context, baseURL, browserName, browser }) => {
   test.skip(browserName !== 'firefox', 'Firefox capture compatibility cohort');
+  const idleMs = Number(process.env.THA_INBOUND_IDLE_MS ?? '0');
+  if (!Number.isInteger(idleMs) || idleMs < 0 || idleMs > 60000) throw new Error('Idle fixture must be 0..60000 ms');
   let sid = '', csrf = '';
   await page.addInitScript(() => {
     (window as any).__inbound = [];
@@ -159,13 +161,36 @@ test('Firefox synthetic microphone barge-in resumes after mute', async ({ page, 
       const barge = events.filter((event: any) => event.kind === 'interrupted' && event.reason === 'vad_barge_in').at(-1);
       return barge && events.some((event: any) => event.kind === 'cancel_ack' && event.epoch === barge.epoch);
     })).toBe(true);
+    // Deliberately cross multiple SSE and browser-lease heartbeat intervals.
+    if (idleMs) await page.waitForTimeout(idleMs);
+    await expect(page.getByRole('alert')).toHaveCount(0);
+    expect(await page.evaluate(() => (window as any).__inbound.some((event: any) => event.kind === 'receiver_recovery_required'))).toBe(false);
     await page.getByLabel('Your message').fill('Say hello again.');
+    const before = await page.evaluate(() => {
+      const bindings = (window as any).__inbound.filter((event: any) => event.kind === 'playback_binding');
+      return { count: bindings.length, epoch: bindings.at(-1)?.epoch ?? -1 };
+    });
+    const response = page.waitForResponse(value => value.url().endsWith('/controls') &&
+      value.request().method() === 'POST' && value.request().postDataJSON()?.kind === 'text' &&
+      value.request().postDataJSON()?.text === 'Say hello again.');
     await page.getByRole('button', { name: 'Send message' }).click();
-    await expect.poll(() => page.evaluate(() => (window as any).__inbound.some((event: any) => event.kind === 'decoded_audio_observed')), { timeout: 60000 }).toBe(true);
+    const sent = await response;
+    expect(sent.ok()).toBe(true);
+    const freshEpoch = (await sent.json()).epoch;
+    expect(freshEpoch).toBeGreaterThan(before.epoch);
+    await expect.poll(() => page.evaluate(({ count, epoch }) => {
+      const events = (window as any).__inbound;
+      const binding = events.filter((event: any) => event.kind === 'playback_binding').slice(count)
+        .find((event: any) => event.epoch === epoch);
+      return !!binding && events.some((event: any) => event.kind === 'decoded_audio_observed' &&
+        event.epoch === epoch && event.audio_sid === binding.audio_sid);
+    }, { count: before.count, epoch: freshEpoch }), { timeout: 60000 }).toBe(true);
     await expect(page.getByRole('button', { name: 'End conversation' })).toBeVisible();
     await expect(page.getByRole('alert')).toHaveCount(0);
     await evidence('firefox-microphone', { browser_version: browser.version(), real_providers: true, synthetic_microphone: true,
-      vad_barge_in_observed: true, muted_resume_answer_decoded: true, input_queue: 'native_fail_closed', asr_quality_qualified: false, physical_av_qualified: false });
+      vad_barge_in_observed: true, muted_resume_answer_decoded: true, controlled_idle_ms: idleMs,
+      fresh_control_epoch_verified: true,
+      input_queue: 'native_fail_closed', asr_quality_qualified: false, physical_av_qualified: false });
     await page.getByRole('button', { name: 'End conversation' }).click();
   } finally {
     await evidence('firefox-microphone-attempt', await page.evaluate(() => ({

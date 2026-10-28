@@ -151,7 +151,8 @@ Playwright 1.64.1 before failing for a missing config. The final cohorts used
 the already-installed project executable shown above. No model weights or
 browser binaries were downloaded for this checkpoint.
 
-The ordinary previews at ports 18700 and 18730 retain their previous input
-configuration until separately upgraded. Physical A/V, independent voice/avatar
+The initial qualification left ordinary previews unchanged. Their subsequent
+[idle upgrade/rollback checkpoint](p06-inbound-upgrade.md) migrated ports
+18700 and 18730 to this runtime and exercised browser recovery. Physical A/V, independent voice/avatar
 quality, complete receiver frame delivery and the remaining P03–P08 gates stay
 open.

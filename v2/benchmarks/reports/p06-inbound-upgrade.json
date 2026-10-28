@@ -1,0 +1,259 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-28",
+  "evidence_class": "local_observation",
+  "scope": "Idle local preview upgrade, exact-config rollback/reapply, preserved database tables, real-provider browser regression and muted Firefox idle fixture. Not active drain, bare-machine install, hosted release, physical A/V or human quality.",
+  "base_commit": "661d5e7befb0b0ce974bb8d958eca1b5267f794d",
+  "source_sha256": {
+    "web/tests/inbound-audio.spec.ts": "9cc1c8c3d48e6620d1e5be8473bbdd9c2ce8f25ed201b647adeaec2ff93e4452",
+    "web/tests/claire-session.spec.ts": "d5979a8677b04f40805073387598802ba254c10692eed7327dec0e8b6e490770",
+    "web/tests/browser.spec.ts": "c5ae4c64dbbb3cb4a80d980f3ce9be584b19920ecc95e163e5a05801ef22e0f4",
+    "web/tests/firefox.spec.ts": "7c79152ce9ef2a52ef47816c611e324bb1549bb0cbf68fc53779c7869defaa3f",
+    "src/talkinghead_v2/server/inbound_audio.py": "92ffb95adf58f2e3a41d5115c8c6f2ed208a6f932d585426585574e2c367a3c5",
+    "src/talkinghead_v2/server/inbound_config.py": "16278db49927ba7f1da6dfb7cd6434c918d47d95dae8f172af30d65e3ed62e5e",
+    "src/talkinghead_v2/local.py": "ec525b6a90f9494fd72de06bcfc57e87cb491b1372b1099e30b92aef3b85b545",
+    "src/talkinghead_v2/local_server.py": "061b991dc96f742aeee956a3c784c550b5f933e41caf40a148648a95c8403f60",
+    "scripts/serve_p04.py": "c61bc608e41e9e029bf0fa342de13e9e4988aabb4f2d7a99d65d472d93eea619"
+  },
+  "descriptor_sha256": "ec5d27245548829391ab745b136b4a7899d020cc251a2c771802edbbe6afe233",
+  "profiles": {
+    "audio_reference": {
+      "origin": "http://127.0.0.1:18700",
+      "changed_config_keys": [
+        "inbound_audio_runtime"
+      ],
+      "cycles": [
+        {
+          "action": "upgrade",
+          "database_unchanged": true,
+          "before_config_sha256": "81ff71f524ce0c0027b8550c8565a5dcdf7e67e7192ecb30ebfb6501f21e98a3",
+          "after_config_sha256": "f4240171a74f4995629e722989c31ff5277e6e59d38941c3273065cb3cc66f81",
+          "ready": {
+            "ready": true,
+            "profile": "audio_reference",
+            "avatar_ready": false,
+            "visual_quality_qualified": false,
+            "inbound_audio_queue": "native_fail_closed"
+          },
+          "receipt_sha256": "6d1c5c5fe56425cf99b2f76344bca821496a8e659850f264d2a4e6d22651632a"
+        },
+        {
+          "action": "rollback",
+          "database_unchanged": true,
+          "before_config_sha256": "f4240171a74f4995629e722989c31ff5277e6e59d38941c3273065cb3cc66f81",
+          "after_config_sha256": "81ff71f524ce0c0027b8550c8565a5dcdf7e67e7192ecb30ebfb6501f21e98a3",
+          "ready": {
+            "ready": true,
+            "profile": "audio_reference",
+            "avatar_ready": false,
+            "visual_quality_qualified": false,
+            "inbound_audio_queue": "python_checked_native_unqualified"
+          },
+          "receipt_sha256": "1cf7f2bc5d8c50c1b32a069010aa968143382a8a52c598942e2ee5e4a433b7d4"
+        },
+        {
+          "action": "reapply",
+          "database_unchanged": true,
+          "before_config_sha256": "81ff71f524ce0c0027b8550c8565a5dcdf7e67e7192ecb30ebfb6501f21e98a3",
+          "after_config_sha256": "f4240171a74f4995629e722989c31ff5277e6e59d38941c3273065cb3cc66f81",
+          "ready": {
+            "ready": true,
+            "profile": "audio_reference",
+            "avatar_ready": false,
+            "visual_quality_qualified": false,
+            "inbound_audio_queue": "native_fail_closed"
+          },
+          "receipt_sha256": "c799dd756db25ddee1fa9f51a33f242dc8c128f584df20801621d40e1c8f08a5"
+        }
+      ],
+      "database_table_counts_during_switches": {
+        "alembic_version": 1,
+        "asset_revisions": 131,
+        "audit_events": 24,
+        "consent_records": 4,
+        "idempotency_records": 79,
+        "job_attempts": 3,
+        "jobs": 4,
+        "lifecycle_operations": 16,
+        "managed_assets": 4,
+        "managed_revisions": 4,
+        "outbox_events": 4,
+        "principals": 127,
+        "session_controls": 78,
+        "sessions": 79,
+        "uploads": 4
+      },
+      "browsers": {
+        "chromium": {
+          "stats": {
+            "startTime": "2026-10-28T07:18:58.689Z",
+            "duration": 50732.903999999995,
+            "expected": 8,
+            "skipped": 0,
+            "unexpected": 0,
+            "flaky": 0
+          },
+          "receipt_sha256": "defaafb9f8a0ef9a97395b944a57d90073391d12e758e27a7f15c0347f9d45e2"
+        },
+        "firefox": {
+          "stats": {
+            "startTime": "2026-10-28T07:19:49.724Z",
+            "duration": 7098.797,
+            "expected": 1,
+            "skipped": 0,
+            "unexpected": 0,
+            "flaky": 0
+          },
+          "receipt_sha256": "b0155983faeea3b090463a893039f74b0278e0e372219e39a3b859a6896d9bb2"
+        }
+      },
+      "current_ready": {
+        "ready": true,
+        "profile": "audio_reference",
+        "avatar_ready": false,
+        "visual_quality_qualified": false,
+        "inbound_audio_queue": "native_fail_closed"
+      }
+    },
+    "claire_vendor_research": {
+      "origin": "http://127.0.0.1:18730",
+      "changed_config_keys": [
+        "inbound_audio_runtime"
+      ],
+      "cycles": [
+        {
+          "action": "upgrade",
+          "database_unchanged": true,
+          "before_config_sha256": "0e36d5396cd835002f7c1b10007f5b6d33ebabe51287a9e89f9317adfe1dfae9",
+          "after_config_sha256": "20ab4f0a14049314e97d670b3ba8293affc6ac39825f431d957f314d462564c4",
+          "ready": {
+            "ready": true,
+            "profile": "claire_vendor_research",
+            "avatar_ready": true,
+            "visual_quality_qualified": false,
+            "inbound_audio_queue": "native_fail_closed"
+          },
+          "receipt_sha256": "168f9440beb833fc846953fc27b6d1b5645064381226497257beb64d79d68700"
+        },
+        {
+          "action": "rollback",
+          "database_unchanged": true,
+          "before_config_sha256": "20ab4f0a14049314e97d670b3ba8293affc6ac39825f431d957f314d462564c4",
+          "after_config_sha256": "0e36d5396cd835002f7c1b10007f5b6d33ebabe51287a9e89f9317adfe1dfae9",
+          "ready": {
+            "ready": true,
+            "profile": "claire_vendor_research",
+            "avatar_ready": true,
+            "visual_quality_qualified": false,
+            "inbound_audio_queue": "python_checked_native_unqualified"
+          },
+          "receipt_sha256": "b4c3856de487b2cc8ff730fe4fffc49d0d0640b475546b4a9d816b4fe683c056"
+        },
+        {
+          "action": "reapply",
+          "database_unchanged": true,
+          "before_config_sha256": "0e36d5396cd835002f7c1b10007f5b6d33ebabe51287a9e89f9317adfe1dfae9",
+          "after_config_sha256": "20ab4f0a14049314e97d670b3ba8293affc6ac39825f431d957f314d462564c4",
+          "ready": {
+            "ready": true,
+            "profile": "claire_vendor_research",
+            "avatar_ready": true,
+            "visual_quality_qualified": false,
+            "inbound_audio_queue": "native_fail_closed"
+          },
+          "receipt_sha256": "7e2a9502ff2c21f580b46b3f4c5887e807dcd5f4b40b38a9e5e47b37317618c0"
+        }
+      ],
+      "database_table_counts_during_switches": {
+        "alembic_version": 1,
+        "asset_revisions": 10,
+        "audit_events": 0,
+        "consent_records": 0,
+        "idempotency_records": 5,
+        "job_attempts": 0,
+        "jobs": 0,
+        "lifecycle_operations": 0,
+        "managed_assets": 0,
+        "managed_revisions": 0,
+        "outbox_events": 0,
+        "principals": 5,
+        "session_controls": 9,
+        "sessions": 5,
+        "uploads": 0
+      },
+      "browsers": {
+        "chromium": {
+          "stats": {
+            "startTime": "2026-10-28T07:22:58.147Z",
+            "duration": 37766.181,
+            "expected": 2,
+            "skipped": 0,
+            "unexpected": 0,
+            "flaky": 0
+          },
+          "receipt_sha256": "a606ce4468721be8086a8c695b9b2e66bae2958051d56d4e9fdb6d0ae83aeb72"
+        },
+        "firefox": {
+          "stats": {
+            "startTime": "2026-10-28T07:23:36.206Z",
+            "duration": 19362.151,
+            "expected": 1,
+            "skipped": 0,
+            "unexpected": 0,
+            "flaky": 0
+          },
+          "receipt_sha256": "9810260aab9da9f2f5e5111d499832b09d444cc6f36066fb98f9d760cc199fe2"
+        }
+      },
+      "profile_marker_changed_fields": [
+        "files.runtime.json"
+      ],
+      "current_ready": {
+        "ready": true,
+        "profile": "claire_vendor_research",
+        "avatar_ready": true,
+        "visual_quality_qualified": false,
+        "inbound_audio_queue": "native_fail_closed"
+      }
+    }
+  },
+  "model_downloads": false,
+  "software_downloads": false,
+  "physical_presentation_qualified": false,
+  "quality_qualified": false,
+  "active_session_drain_qualified": false,
+  "firefox_muted_idle": {
+    "stats": {
+      "startTime": "2026-10-28T07:26:10.616Z",
+      "duration": 32267.337,
+      "expected": 1,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "receipt_sha256": "5df2964646d066e06c47649ba0d660f986126d1fe125fcf5571fa95d1d6d0c0d",
+    "observation": {
+      "browser_version": "157.0",
+      "real_providers": true,
+      "synthetic_microphone": true,
+      "vad_barge_in_observed": true,
+      "muted_resume_answer_decoded": true,
+      "controlled_idle_ms": 25000,
+      "fresh_control_epoch_verified": true,
+      "input_queue": "native_fail_closed",
+      "asr_quality_qualified": false,
+      "physical_av_qualified": false
+    },
+    "observation_receipt_sha256": "295d805bf0b9a2131207c050dd7f2c34a1a7f4b2ec8e92879bec882b8810927f",
+    "assertion": "Snapshot pre-send bindings, require epoch from exact fresh text-control response, then appended binding and decoded audio matching that epoch and audio SID.",
+    "limitation": "Continuous unmuted synthetic-input earlier control-connection failure remains unexplained; this passes only muted idle then fresh speech."
+  },
+  "remaining": [
+    "complete native receiver delivery",
+    "physical audio/video presentation and suppression",
+    "natural human microphone/voice/avatar quality",
+    "Gaussian retarget and human enrollment",
+    "resource/capacity and hosted release",
+    "general supported migration CLI and crash-atomic profile metadata upgrade"
+  ]
+}

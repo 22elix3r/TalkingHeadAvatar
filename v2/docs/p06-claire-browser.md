@@ -17,6 +17,10 @@ v2/.venv/bin/tha local down --root v2 --name p06-claire-v2
 
 This profile depends on the already provisioned and qualified private Claire descriptor, cached Qwen/ASR/LLM, native binaries, isolated TensorRT and local service images. It is not a general fresh-install recipe. Local profile setup can explicitly reuse the checkout's locked API environment using `tha local provision --borrow-runtime v2/runtimes/session-api/.venv`; the provisioner audits installed file hashes and an offline lock dry run. Profile metadata and credentials remain private under `v2/var/`.
 
+The existing profile also selects the bounded native microphone runtime after
+an [idle upgrade, rollback and browser checkpoint](p06-inbound-upgrade.md).
+That input change preserves its pinned Claire media runtime and database.
+
 Browser qualification used the real loopback API, database, SFU and cached providers:
 
 ```sh
