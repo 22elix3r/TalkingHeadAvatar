@@ -26,7 +26,7 @@ def main(args):
             shutil.copyfileobj(source,destination,1024*1024)
     descriptor={'schema_version':1,'purpose':'isolated_publisher_stage_trace','rust_revision':RUST_REVISION,
         'patch_sha256':expected,'abi_version':1,'max_events':MAX_EVENTS,'external_rate_control_opt_in':expected==RATE_PATCH_SHA256,
-        'worker_source_sha256':{p:file_hash(ROOT/p) for p in ['native/media/claire_session_worker.cpp','native/media/publish_trace.h','native/media/CMakeLists.txt']},
+        'worker_source_sha256':{p:file_hash(ROOT/p) for p in ['native/media/claire_session_worker.cpp','native/media/publish_trace.h','native/media/probe_rate.h','native/media/CMakeLists.txt']},
         'files':{role:{'path':str(p.relative_to(args.output.parent)),'size':p.stat().st_size,'sha256':file_hash(p)} for role,p in paths.items()}}
     with open(args.output,'x',opener=lambda p,f:os.open(p,f|os.O_NOFOLLOW,0o600)) as target:target.write(json.dumps(descriptor,indent=2)+'\n')
     config=PublisherTraceConfig.load(args.output)

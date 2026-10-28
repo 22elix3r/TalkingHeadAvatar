@@ -2,6 +2,7 @@
 // audio clock does not wait for a render. SIGTERM bypasses producer backpressure.
 #include "../motion/claire_bridge.h"
 #include "publish_trace.h"
+#include "probe_rate.h"
 #include <livekit/livekit.h>
 #include <livekit/room.h>
 #include <livekit/local_participant.h>
@@ -53,6 +54,7 @@ uint32_t u32(const unsigned char* bytes){uint32_t value=0;for(int i=3;i>=0;--i)v
 bool exact(unsigned char* bytes,size_t count){size_t offset=0;while(offset<count&&!stopped.load()){pollfd fd{STDIN_FILENO,POLLIN,0};const auto ready=poll(&fd,1,50);if(ready<0){if(stopped.load())return false;throw std::runtime_error("input poll failed");}if(!ready)continue;const auto n=read(STDIN_FILENO,bytes+offset,count-offset);if(n<=0)return false;offset+=n;}return offset==count;}
 struct Motion {std::array<float,320> samples{};size_t count=0;uint64_t start=0;bool eof=false;};
 struct State {
+  int probe_bitrate=0;
   std::mutex mutex;std::condition_variable space;
   std::array<int16_t,48000> audio{};size_t head=0,tail=0,count=0,peak=0,motion_peak=0;
   std::deque<Motion> motions;uint64_t received=0;bool eof=false;std::string failure;
@@ -91,8 +93,12 @@ void render(State& state,const char* ptx,const char* scene,const char* model,con
             std::promise<void> ready,uint64_t epoch,const std::string& session,const std::string& turn){
   bool announced=false;
   try {
-    ClaireOwner owner(ptx,scene,model);ready.set_value();announced=true;
+    ClaireOwner owner(ptx,scene,model);
+    if(state.probe_bitrate)owner.check(tha_claire_rate(owner.handle,state.probe_bitrate,30,owner.error,sizeof(owner.error)));
+    ready.set_value();announced=true;
     struct CaptureTrace {uint64_t frame_id,source,pts_us,start_us,end_us,bytes,key;};
+    struct RateFeedback {uint64_t stream_sample,requested;int applied;double fps;};
+    std::vector<RateFeedback> rates;if(state.probe_bitrate)rates.reserve(256);
     const char* trace_setting=std::getenv("THA_CLAIRE_CAPTURE_TRACE");
     const bool trace_enabled=trace_setting&&std::strcmp(trace_setting,"1")==0;
     std::vector<CaptureTrace> trace;if(trace_enabled)trace.reserve(3600);
@@ -132,9 +138,14 @@ void render(State& state,const char* ptx,const char* scene,const char* model,con
       pending_key=pending_key||feedback.keyframe_requested;
       if(feedback.rate_control&&feedback.rate_control->target_bitrate_bps>0){
         state.rate_updates.fetch_add(1);
-        const auto bitrate=static_cast<int>(std::clamp<uint64_t>(feedback.rate_control->target_bitrate_bps,100000,8000000));
+        auto bitrate=static_cast<int>(std::clamp<uint64_t>(feedback.rate_control->target_bitrate_bps,100000,8000000));
+        if(state.probe_bitrate)bitrate=std::min(bitrate,state.probe_bitrate);
         const auto fps=feedback.rate_control->framerate_fps>0?std::clamp(feedback.rate_control->framerate_fps,1.,60.):encoder_fps;
         owner.check(tha_claire_rate(owner.handle,bitrate,fps,owner.error,sizeof(owner.error)));rate_changed=std::abs(fps-encoder_fps)>.01;encoder_fps=fps;
+        if(state.probe_bitrate){
+          require(rates.size()<256,"Claire rate feedback trace bound exceeded");
+          rates.push_back({stream_sample,feedback.rate_control->target_bitrate_bps,bitrate,fps});
+        }
       }
       pending_key=pending_key||rate_changed;
       tha_claire_packet packet{};const auto pts=state.base_us.load()+((preroll?0:first)+target)*1000000/48000;
@@ -168,6 +179,12 @@ void render(State& state,const char* ptx,const char* scene,const char* model,con
       for(const auto& row:trace)output<<"THA_CAPTURE_TRACE "<<row.frame_id<<' '<<row.source<<' '<<row.pts_us<<' '<<row.start_us<<' '<<row.end_us<<' '<<row.bytes<<' '<<row.key<<'\n';
       std::cerr<<output.str();
     }
+    if(state.probe_bitrate){
+      std::ostringstream output;output.precision(17);
+      output<<"THA_RATE_PROBE "<<state.probe_bitrate<<' '<<rates.size()<<'\n';
+      for(const auto& row:rates)output<<"THA_RATE_FEEDBACK "<<row.stream_sample<<' '<<row.requested<<' '<<row.applied<<' '<<row.fps<<'\n';
+      std::cerr<<output.str();
+    }
   }catch(const std::exception& error){std::cerr<<"Claire GPU owner: "<<error.what()<<'\n';if(!announced){try{ready.set_exception(std::current_exception());}catch(...){}}state.fail("claire_gpu_media_failure");}
 }
 }
@@ -176,6 +193,7 @@ int main(int argc,char** argv){
   bool initialized=false;
   try {
     require(argc==5,"usage: tha_claire_session_media private-bootstrap.txt kernels.ptx research-scene.bin model.json");
+    const auto probe_bitrate=publisher_probe_bitrate();
     struct stat info{};require(lstat(argv[1],&info)==0&&S_ISREG(info.st_mode)&&info.st_uid==getuid()&&!(info.st_mode&0077)&&info.st_size<16384,"private operator bootstrap required");
     std::ifstream bootstrap(argv[1]);require(line(bootstrap,64)=="THA_CLAIRE_MEDIA_2","Claire bootstrap version mismatch");
     const auto url=line(bootstrap,128),token=line(bootstrap,8192),session=line(bootstrap,100),turn=line(bootstrap,100);const auto epoch=number(line(bootstrap,32)),prebuffer=number(line(bootstrap,32));
@@ -189,12 +207,12 @@ int main(int argc,char** argv){
       auto audio=std::make_shared<livekit::AudioSource>(48000,1,0);auto video=std::make_shared<livekit::EncodedVideoSource>(livekit::VideoCodec::H264,512,512);
       auto vt=livekit::LocalVideoTrack::createLocalVideoTrack("claire-vendor-research-"+std::to_string(epoch),video);
       livekit::TrackPublishOptions options;options.video_codec=livekit::VideoCodec::H264;options.video_encoder=livekit::VideoEncoderBackend::PreEncoded;options.simulcast=false;options.source=livekit::TrackSource::SOURCE_CAMERA;options.stream="claire-"+std::to_string(epoch);
-      livekit::VideoEncodingOptions encoding;encoding.max_bitrate=1200000;encoding.max_framerate=30;options.video_encoding=encoding;
+      livekit::VideoEncodingOptions encoding;encoding.max_bitrate=probe_bitrate?probe_bitrate:1200000;encoding.max_framerate=30;options.video_encoding=encoding;
       livekit::FrameMetadataFeatures features;features.user_timestamp=true;features.frame_id=true;features.user_data=true;options.frame_metadata_features=features;
       participant->publishTrack(vt,options);auto at=participant->publishAudioTrack("claire-answer-"+std::to_string(epoch),audio,livekit::TrackSource::SOURCE_MICROPHONE);
       require(vt->publication()&&at->publication(),"publication binding missing");const auto audio_sid=at->publication()->sid(),video_sid=vt->publication()->sid();require(identifier(audio_sid)&&identifier(video_sid),"invalid publication identity");
       PublishStageTrace publisher_trace(vt->ffiHandleId());
-      State state;std::promise<void> gpu_ready;auto available=gpu_ready.get_future();
+      State state;state.probe_bitrate=probe_bitrate;std::promise<void> gpu_ready;auto available=gpu_ready.get_future();
       std::thread gpu(render,std::ref(state),argv[2],argv[3],argv[4],video,std::move(gpu_ready),epoch,std::cref(session),std::cref(turn));std::thread input;
       try {
         available.get();input=std::thread(receive,std::ref(state),epoch);const auto origin=Clock::now();state.base_us.store(std::chrono::duration_cast<std::chrono::microseconds>(origin.time_since_epoch()).count());

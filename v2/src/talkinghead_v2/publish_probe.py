@@ -1,5 +1,6 @@
 """Offline provenance and bounded metadata for an isolated publisher probe."""
 from dataclasses import dataclass
+import math
 import os
 from pathlib import Path
 import re
@@ -11,6 +12,35 @@ from talkinghead_v2.server.inbound_config import private_json,file_hash,RUST_REV
 PATCH_SHA256='5aca3d55bcf694000757e675240d4a23df03590953da60aa7fe2638aca0604c6'
 RATE_PATCH_SHA256='a08f5363be5ff8166b495c21e738d0647f022d774fec48e070b398a297211cd7'
 MAX_EVENTS=16384
+
+
+def publisher_rate_probe(lines,expected):
+    """Observe requested/applied encoder settings, not network rate compliance."""
+    if type(expected) is not int or expected not in (300000,600000,1200000,2400000):
+        raise ContractError('unsupported rate-probe ceiling')
+    bounds=[];rows=[]
+    for line in lines:
+        if line.startswith('THA_RATE_PROBE '):
+            fields=line.split()
+            try:
+                if len(fields)!=3:raise ValueError
+                bounds.append(tuple(map(int,fields[1:])))
+            except ValueError:raise ContractError('invalid rate-probe bound') from None
+        elif line.startswith('THA_RATE_FEEDBACK '):
+            fields=line.split()
+            try:
+                if len(fields)!=5:raise ValueError
+                sample,requested,applied=map(int,fields[1:4]);fps=float(fields[4])
+            except ValueError:raise ContractError('invalid rate feedback') from None
+            if (len(rows)>=256 or not 0<=sample<=48000*130 or not 0<requested<=2**64-1 or
+                applied!=min(max(requested,100000),expected) or not math.isfinite(fps) or not 1<=fps<=60 or
+                (rows and sample<rows[-1]['stream_sample'])):
+                raise ContractError('rate feedback outside declared bounds')
+            rows.append({'stream_sample':sample,'requested_bitrate_bps':requested,'applied_bitrate_bps':applied,'framerate_fps':fps})
+    if len(bounds)!=1 or bounds[0]!=(expected,len(rows)) or not rows:
+        raise ContractError('rate feedback missing or truncated')
+    return {'initial_bitrate_bps':expected,'feedback':rows,'clock':'publisher_stream_samples_48000hz',
+        'scope':'Requested SDK target and accepted external-encoder API settings; not hardware execution, RTP rate or pacer compliance.'}
 
 
 @dataclass(frozen=True)

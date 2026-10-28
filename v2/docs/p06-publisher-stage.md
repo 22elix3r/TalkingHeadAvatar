@@ -160,3 +160,8 @@ the research preview, qualify the patched SDK's full lifecycle, rate-pressure
 behavior, actor configuration and browser cancellation/recovery, then pin an
 explicit serving policy. Physical A/V, human quality, capacity and release
 criteria remain open.
+
+The [2026-10-29 lifecycle and fixed-ceiling follow-up](p06-publisher-lifecycle-rate.md)
+now exercises the patched SDK with hooks disabled and records payload overshoot
+at four ceilings. Controlled in-turn/network response and serving/browser
+qualification remain pending.

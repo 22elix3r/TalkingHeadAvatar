@@ -89,7 +89,8 @@ async def test_serving_revision_cannot_change_under_active_session_and_revocatio
 def test_serving_environment_excludes_operator_diagnostic_overrides(monkeypatch,tmp_path):
     from types import SimpleNamespace
     from talkinghead_v2.server.claire_media import ClaireMedia
-    flags=['THA_CLAIRE_CAPTURE_TRACE','THA_CLAIRE_PUBLISH_TRACE','THA_CLAIRE_TRACE_FFI_PATH','THA_LK_TRUST_EXTERNAL_RATE_CONTROL']
+    flags=['THA_CLAIRE_CAPTURE_TRACE','THA_CLAIRE_PUBLISH_TRACE','THA_CLAIRE_TRACE_FFI_PATH','THA_LK_TRUST_EXTERNAL_RATE_CONTROL',
+           'THA_CLAIRE_RATE_PROBE','THA_CLAIRE_PROBE_BITRATE_BPS']
     for key in flags:monkeypatch.setenv(key,'unqualified-parent-override')
     media=ClaireMedia.__new__(ClaireMedia)
     media.device_lease=SimpleNamespace(fileno=42)
