@@ -1,0 +1,1547 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-28",
+  "evidence_class": "local_observation",
+  "scope": "Real cached-Qwen/Claire source captures, source-matched Python FFI callback, consumer, decoder selection and deliberate native-queue control. Correlation only, not a cause, stable loss rate, browser or physical-presentation pass.",
+  "source_sha256": {
+    "scripts/qualify_claire_session_worker.py": "3ec234bf10ad55e05890c310fe63ae26025f90018566868273a20ef47554a9b1",
+    "scripts/qualify_claire_receiver_matrix.py": "c1289bd6acb2794a22ff051d59530e8fb7fbefa020b9f13ca72a925f5e45341a",
+    "tests/test_receiver_matrix_process.py": "2336263d9d8116750f52dbf0aa2516734cadea4ac583d6a6188952e9cf42d479",
+    "runtimes/session-api/tests/test_claire_receiver_stats.py": "33664aee5651369b9f6189bd76c2e1e534d383e06a6d6bc1722edc51fc92303d",
+    "src/talkinghead_v2/server/inbound_config.py": "16278db49927ba7f1da6dfb7cd6434c918d47d95dae8f172af30d65e3ed62e5e",
+    "src/talkinghead_v2/server/inbound_audio.py": "92ffb95adf58f2e3a41d5115c8c6f2ed208a6f932d585426585574e2c367a3c5"
+  },
+  "receiver_library_sha256": "16eb6e043651eb1c509bf515f512abac2c0e079035cc24928f72d3daa9866d03",
+  "receiver_descriptor_sha256": "ec5d27245548829391ab745b136b4a7899d020cc251a2c771802edbbe6afe233",
+  "native_rust_revision": "bae4df2f3d6c8f0f6ce81a7370c445779f1948d2",
+  "identities": {
+    "binary_sha256": "9ba6d3748f2a1375a5756d7dd0f3e48df2c727de84766f5dbee94690b4c399e2",
+    "bridge_sha256": "4b02399fc919053e20569df45d78e0cff684a11a2a500778ae6f2be5e5db2d83",
+    "ptx_sha256": "5cf29df273ed9e18d5d617b59317564b9276b709315d80a4d26325c0d0c4199b",
+    "engine_sha256": "69b7d0951ded6bae1a5b12e02c582cafc37fa221b098e0c2364849881167ab9b",
+    "scene_sha256": "9dd13fb06c7a46c06e51ae6ad8630a8ff18b828ab1299aafb5e1902d41b33b1a",
+    "tts_runtime_descriptor_sha256": "a6a33b0821183f0605ed22727e2ea6219139fc9701c91c66cceede188f76c0c4",
+    "qwen": {
+      "voice_kind": "synthetic_fixture",
+      "model_revision": "fd4b254389122332181a7c3db7f27e918eec64e3",
+      "runtime_revision": "74422bab4998ad69e0a67ba105654dadbeec9b3a+linux-player-metrics-v1",
+      "text_sha256": "3c61a78ed1c859b960b94bbdb42708141f8b70d9bae22e6e12e8a4eec3588ef5"
+    }
+  },
+  "cohorts": [
+    {
+      "name": "initial",
+      "runner_revision_scope": "preceding runner before owned timeout fencing; normal child exits all verified",
+      "runner_sha256": "4fda772dbc3c9c09d9a27ce7153193d422dc73cd09936800084ec028e485ec64",
+      "private_receipt_sha256": "01939dd6fb81bc10dfc89fe2a2c5dabb81148b736b1915e9b6e371ad749454ff",
+      "cases": [
+        {
+          "name": "auto-1-1",
+          "requested_decoder": "auto",
+          "native_video_queue_frames": 1,
+          "process_exit": 0,
+          "panic_detected": false,
+          "source_report_sha256": "a2e5415bf058ec3e77fbc13b12170cd268745dd65468b1a10398bbae0fd06856",
+          "sender_source_frames": 324,
+          "consumer_source_frames": 319,
+          "ffi_source_frames": 319,
+          "missing_before_ffi_callback": [
+            218,
+            223,
+            228,
+            231,
+            235
+          ],
+          "ffi_callbacks_missing_at_consumer": [],
+          "native_video_warning_events": 0,
+          "native_video_drop_reported_lower_bound": 0,
+          "injected_callback_stall_ns": null,
+          "checked_queue_peak_frames": {
+            "audio": 5,
+            "video": 1
+          },
+          "video_rtp_stats": [
+            {
+              "frames_received": 348,
+              "frames_decoded": 346,
+              "frames_dropped": 0,
+              "packets_received": 2038,
+              "packets_lost": 0,
+              "packets_discarded": 0,
+              "retransmitted_packets_received": 0,
+              "nack_count": 0,
+              "pli_count": 0,
+              "fir_count": 0,
+              "decoder_family": "nvidia_h264",
+              "power_efficient_decoder": true
+            }
+          ],
+          "sender_rtp_stats": {
+            "video_frames_accepted_total": 357,
+            "frames_sent": 349,
+            "frames_encoded": 349,
+            "packets_sent": 2087,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 19
+          },
+          "sender_rtp_after_300ms": {
+            "video_frames_accepted_total": 357,
+            "frames_sent": 349,
+            "frames_encoded": 349,
+            "packets_sent": 2087,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 19
+          },
+          "receiver_sampled_max_mib": 746
+        },
+        {
+          "name": "disable-nvdec-1-1",
+          "requested_decoder": "disable-nvdec",
+          "native_video_queue_frames": 1,
+          "process_exit": 0,
+          "panic_detected": false,
+          "source_report_sha256": "2edf8798bf846c32b0b9c32dc2c3d6c0f64173a8b02e1b4fbf69a525924214f2",
+          "sender_source_frames": 324,
+          "consumer_source_frames": 324,
+          "ffi_source_frames": 324,
+          "missing_before_ffi_callback": [],
+          "ffi_callbacks_missing_at_consumer": [],
+          "native_video_warning_events": 0,
+          "native_video_drop_reported_lower_bound": 0,
+          "injected_callback_stall_ns": null,
+          "checked_queue_peak_frames": {
+            "audio": 5,
+            "video": 1
+          },
+          "video_rtp_stats": [
+            {
+              "frames_received": 353,
+              "frames_decoded": 352,
+              "frames_dropped": 0,
+              "packets_received": 2041,
+              "packets_lost": 0,
+              "packets_discarded": 0,
+              "retransmitted_packets_received": 0,
+              "nack_count": 0,
+              "pli_count": 0,
+              "fir_count": 0,
+              "decoder_family": "ffmpeg",
+              "power_efficient_decoder": false
+            }
+          ],
+          "sender_rtp_stats": {
+            "video_frames_accepted_total": 357,
+            "frames_sent": 354,
+            "frames_encoded": 354,
+            "packets_sent": 2094,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 1,
+            "fir_count": 0,
+            "key_frames_encoded": 20
+          },
+          "sender_rtp_after_300ms": {
+            "video_frames_accepted_total": 357,
+            "frames_sent": 354,
+            "frames_encoded": 354,
+            "packets_sent": 2094,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 1,
+            "fir_count": 0,
+            "key_frames_encoded": 20
+          },
+          "receiver_sampled_max_mib": 420
+        },
+        {
+          "name": "auto-8-1",
+          "requested_decoder": "auto",
+          "native_video_queue_frames": 8,
+          "process_exit": 0,
+          "panic_detected": false,
+          "source_report_sha256": "93d1a55abe846b059fda9e405912ddf5c335aadde21154ffb08c2667269e8439",
+          "sender_source_frames": 324,
+          "consumer_source_frames": 324,
+          "ffi_source_frames": 324,
+          "missing_before_ffi_callback": [],
+          "ffi_callbacks_missing_at_consumer": [],
+          "native_video_warning_events": 0,
+          "native_video_drop_reported_lower_bound": 0,
+          "injected_callback_stall_ns": null,
+          "checked_queue_peak_frames": {
+            "audio": 5,
+            "video": 1
+          },
+          "video_rtp_stats": [
+            {
+              "frames_received": 353,
+              "frames_decoded": 351,
+              "frames_dropped": 0,
+              "packets_received": 2032,
+              "packets_lost": 0,
+              "packets_discarded": 0,
+              "retransmitted_packets_received": 0,
+              "nack_count": 0,
+              "pli_count": 0,
+              "fir_count": 0,
+              "decoder_family": "nvidia_h264",
+              "power_efficient_decoder": true
+            }
+          ],
+          "sender_rtp_stats": {
+            "video_frames_accepted_total": 357,
+            "frames_sent": 354,
+            "frames_encoded": 354,
+            "packets_sent": 2081,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 1,
+            "fir_count": 0,
+            "key_frames_encoded": 18
+          },
+          "sender_rtp_after_300ms": {
+            "video_frames_accepted_total": 357,
+            "frames_sent": 354,
+            "frames_encoded": 354,
+            "packets_sent": 2081,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 1,
+            "fir_count": 0,
+            "key_frames_encoded": 18
+          },
+          "receiver_sampled_max_mib": 746
+        },
+        {
+          "name": "disable-nvdec-8-1",
+          "requested_decoder": "disable-nvdec",
+          "native_video_queue_frames": 8,
+          "process_exit": 0,
+          "panic_detected": false,
+          "source_report_sha256": "753be19f7abda3a72dcb93d5f5e6bcf06f873b5ad8fd3df17e062cd321da0243",
+          "sender_source_frames": 324,
+          "consumer_source_frames": 318,
+          "ffi_source_frames": 318,
+          "missing_before_ffi_callback": [
+            213,
+            223,
+            228,
+            229,
+            302,
+            304
+          ],
+          "ffi_callbacks_missing_at_consumer": [],
+          "native_video_warning_events": 0,
+          "native_video_drop_reported_lower_bound": 0,
+          "injected_callback_stall_ns": null,
+          "checked_queue_peak_frames": {
+            "video": 1,
+            "audio": 5
+          },
+          "video_rtp_stats": [
+            {
+              "frames_received": 347,
+              "frames_decoded": 345,
+              "frames_dropped": 1,
+              "packets_received": 2015,
+              "packets_lost": 0,
+              "packets_discarded": 0,
+              "retransmitted_packets_received": 0,
+              "nack_count": 0,
+              "pli_count": 1,
+              "fir_count": 0,
+              "decoder_family": "ffmpeg",
+              "power_efficient_decoder": false
+            }
+          ],
+          "sender_rtp_stats": {
+            "video_frames_accepted_total": 356,
+            "frames_sent": 348,
+            "frames_encoded": 348,
+            "packets_sent": 2068,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 1,
+            "fir_count": 0,
+            "key_frames_encoded": 18
+          },
+          "sender_rtp_after_300ms": {
+            "video_frames_accepted_total": 356,
+            "frames_sent": 348,
+            "frames_encoded": 348,
+            "packets_sent": 2068,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 1,
+            "fir_count": 0,
+            "key_frames_encoded": 18
+          },
+          "receiver_sampled_max_mib": 420
+        },
+        {
+          "name": "auto-1-2",
+          "requested_decoder": "auto",
+          "native_video_queue_frames": 1,
+          "process_exit": 0,
+          "panic_detected": false,
+          "source_report_sha256": "1dbaf5b020c0313b858d674da42383fa1fb27fa12bfd790cb500ef07313c6a79",
+          "sender_source_frames": 324,
+          "consumer_source_frames": 324,
+          "ffi_source_frames": 324,
+          "missing_before_ffi_callback": [],
+          "ffi_callbacks_missing_at_consumer": [],
+          "native_video_warning_events": 0,
+          "native_video_drop_reported_lower_bound": 0,
+          "injected_callback_stall_ns": null,
+          "checked_queue_peak_frames": {
+            "video": 1,
+            "audio": 8
+          },
+          "video_rtp_stats": [
+            {
+              "frames_received": 353,
+              "frames_decoded": 351,
+              "frames_dropped": 0,
+              "packets_received": 2024,
+              "packets_lost": 0,
+              "packets_discarded": 0,
+              "retransmitted_packets_received": 0,
+              "nack_count": 0,
+              "pli_count": 0,
+              "fir_count": 0,
+              "decoder_family": "nvidia_h264",
+              "power_efficient_decoder": true
+            }
+          ],
+          "sender_rtp_stats": {
+            "video_frames_accepted_total": 357,
+            "frames_sent": 354,
+            "frames_encoded": 354,
+            "packets_sent": 2077,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 19
+          },
+          "sender_rtp_after_300ms": {
+            "video_frames_accepted_total": 357,
+            "frames_sent": 354,
+            "frames_encoded": 354,
+            "packets_sent": 2077,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 19
+          },
+          "receiver_sampled_max_mib": 746
+        },
+        {
+          "name": "disable-nvdec-1-2",
+          "requested_decoder": "disable-nvdec",
+          "native_video_queue_frames": 1,
+          "process_exit": 0,
+          "panic_detected": false,
+          "source_report_sha256": "3c149a0991b8bae6a94312254219c5983a7d8ae0582cbe8c9d5fd6430c4ab3d6",
+          "sender_source_frames": 324,
+          "consumer_source_frames": 324,
+          "ffi_source_frames": 324,
+          "missing_before_ffi_callback": [],
+          "ffi_callbacks_missing_at_consumer": [],
+          "native_video_warning_events": 0,
+          "native_video_drop_reported_lower_bound": 0,
+          "injected_callback_stall_ns": null,
+          "checked_queue_peak_frames": {
+            "audio": 7,
+            "video": 1
+          },
+          "video_rtp_stats": [
+            {
+              "frames_received": 354,
+              "frames_decoded": 354,
+              "frames_dropped": 0,
+              "packets_received": 2054,
+              "packets_lost": 0,
+              "packets_discarded": 0,
+              "retransmitted_packets_received": 0,
+              "nack_count": 0,
+              "pli_count": 0,
+              "fir_count": 0,
+              "decoder_family": "ffmpeg",
+              "power_efficient_decoder": false
+            }
+          ],
+          "sender_rtp_stats": {
+            "video_frames_accepted_total": 357,
+            "frames_sent": 355,
+            "frames_encoded": 355,
+            "packets_sent": 2105,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 20
+          },
+          "sender_rtp_after_300ms": {
+            "video_frames_accepted_total": 357,
+            "frames_sent": 355,
+            "frames_encoded": 355,
+            "packets_sent": 2105,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 20
+          },
+          "receiver_sampled_max_mib": 420
+        },
+        {
+          "name": "auto-8-2",
+          "requested_decoder": "auto",
+          "native_video_queue_frames": 8,
+          "process_exit": 0,
+          "panic_detected": false,
+          "source_report_sha256": "eaac90a471db0783845870771029a7165a7ee2ed15a62cb3e86ac48d01b5f3bf",
+          "sender_source_frames": 324,
+          "consumer_source_frames": 324,
+          "ffi_source_frames": 324,
+          "missing_before_ffi_callback": [],
+          "ffi_callbacks_missing_at_consumer": [],
+          "native_video_warning_events": 0,
+          "native_video_drop_reported_lower_bound": 0,
+          "injected_callback_stall_ns": null,
+          "checked_queue_peak_frames": {
+            "audio": 6,
+            "video": 1
+          },
+          "video_rtp_stats": [
+            {
+              "frames_received": 352,
+              "frames_decoded": 350,
+              "frames_dropped": 0,
+              "packets_received": 2040,
+              "packets_lost": 0,
+              "packets_discarded": 0,
+              "retransmitted_packets_received": 0,
+              "nack_count": 0,
+              "pli_count": 0,
+              "fir_count": 0,
+              "decoder_family": "nvidia_h264",
+              "power_efficient_decoder": true
+            }
+          ],
+          "sender_rtp_stats": {
+            "video_frames_accepted_total": 356,
+            "frames_sent": 353,
+            "frames_encoded": 353,
+            "packets_sent": 2089,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 18
+          },
+          "sender_rtp_after_300ms": {
+            "video_frames_accepted_total": 356,
+            "frames_sent": 353,
+            "frames_encoded": 353,
+            "packets_sent": 2089,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 18
+          },
+          "receiver_sampled_max_mib": 746
+        },
+        {
+          "name": "disable-nvdec-8-2",
+          "requested_decoder": "disable-nvdec",
+          "native_video_queue_frames": 8,
+          "process_exit": 0,
+          "panic_detected": false,
+          "source_report_sha256": "f2f12f6a1ca152c7521d5ba93c7c0e4337face694596122689fabf3b5382087e",
+          "sender_source_frames": 324,
+          "consumer_source_frames": 310,
+          "ffi_source_frames": 310,
+          "missing_before_ffi_callback": [
+            262,
+            268,
+            292,
+            296,
+            298,
+            300,
+            301,
+            303,
+            305,
+            307,
+            310,
+            315,
+            316,
+            317
+          ],
+          "ffi_callbacks_missing_at_consumer": [],
+          "native_video_warning_events": 0,
+          "native_video_drop_reported_lower_bound": 0,
+          "injected_callback_stall_ns": null,
+          "checked_queue_peak_frames": {
+            "audio": 5,
+            "video": 2
+          },
+          "video_rtp_stats": [
+            {
+              "frames_received": 342,
+              "frames_decoded": 340,
+              "frames_dropped": 1,
+              "packets_received": 1966,
+              "packets_lost": 0,
+              "packets_discarded": 0,
+              "retransmitted_packets_received": 0,
+              "nack_count": 0,
+              "pli_count": 1,
+              "fir_count": 0,
+              "decoder_family": "ffmpeg",
+              "power_efficient_decoder": false
+            }
+          ],
+          "sender_rtp_stats": {
+            "video_frames_accepted_total": 358,
+            "frames_sent": 343,
+            "frames_encoded": 343,
+            "packets_sent": 2020,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 1,
+            "fir_count": 0,
+            "key_frames_encoded": 19
+          },
+          "sender_rtp_after_300ms": {
+            "video_frames_accepted_total": 358,
+            "frames_sent": 343,
+            "frames_encoded": 343,
+            "packets_sent": 2020,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 1,
+            "fir_count": 0,
+            "key_frames_encoded": 19
+          },
+          "receiver_sampled_max_mib": 420
+        },
+        {
+          "name": "overflow-control",
+          "requested_decoder": "auto",
+          "native_video_queue_frames": 1,
+          "process_exit": 0,
+          "panic_detected": false,
+          "source_report_sha256": "24b4f1787c52b605d34fa17463eab094f1a96ff0275c7e2a2e9dd49e7cb377eb",
+          "sender_source_frames": 324,
+          "consumer_source_frames": 309,
+          "ffi_source_frames": 309,
+          "missing_before_ffi_callback": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            304
+          ],
+          "ffi_callbacks_missing_at_consumer": [],
+          "native_video_warning_events": 1,
+          "native_video_drop_reported_lower_bound": 1,
+          "injected_callback_stall_ns": 500060209,
+          "checked_queue_peak_frames": {
+            "audio": 6,
+            "video": 1
+          },
+          "video_rtp_stats": [
+            {
+              "frames_received": 352,
+              "frames_decoded": 350,
+              "frames_dropped": 0,
+              "packets_received": 2068,
+              "packets_lost": 0,
+              "packets_discarded": 0,
+              "retransmitted_packets_received": 0,
+              "nack_count": 0,
+              "pli_count": 0,
+              "fir_count": 0,
+              "decoder_family": "nvidia_h264",
+              "power_efficient_decoder": true
+            }
+          ],
+          "sender_rtp_stats": {
+            "video_frames_accepted_total": 357,
+            "frames_sent": 353,
+            "frames_encoded": 353,
+            "packets_sent": 2112,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 1,
+            "fir_count": 0,
+            "key_frames_encoded": 18
+          },
+          "sender_rtp_after_300ms": {
+            "video_frames_accepted_total": 357,
+            "frames_sent": 353,
+            "frames_encoded": 353,
+            "packets_sent": 2112,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 1,
+            "fir_count": 0,
+            "key_frames_encoded": 18
+          },
+          "receiver_sampled_max_mib": 746
+        }
+      ]
+    },
+    {
+      "name": "owned_timeout",
+      "runner_revision_scope": "preceding runner before abrupt-exit cleanup hardening; normal child exits all verified",
+      "runner_sha256": "3afe82ed74d9eb84c65773441877b509d9cce780e729ae4a6bdbf147de4b9025",
+      "private_receipt_sha256": "07051cec26477a3298a057b1ae9d13f1a310458fcd7916e1eb5d47bbf3ab2cc7",
+      "cases": [
+        {
+          "name": "auto-1-1",
+          "requested_decoder": "auto",
+          "native_video_queue_frames": 1,
+          "process_exit": 0,
+          "panic_detected": false,
+          "source_report_sha256": "1d77fe65482a3c1a53554ab861b73a624f5ab67e133a8b8984503f74f446f93a",
+          "sender_source_frames": 324,
+          "consumer_source_frames": 324,
+          "ffi_source_frames": 324,
+          "missing_before_ffi_callback": [],
+          "ffi_callbacks_missing_at_consumer": [],
+          "native_video_warning_events": 0,
+          "native_video_drop_reported_lower_bound": 0,
+          "injected_callback_stall_ns": null,
+          "checked_queue_peak_frames": {
+            "video": 2,
+            "audio": 6
+          },
+          "video_rtp_stats": [
+            {
+              "frames_received": 353,
+              "frames_decoded": 352,
+              "frames_dropped": 0,
+              "packets_received": 2039,
+              "packets_lost": 0,
+              "packets_discarded": 0,
+              "retransmitted_packets_received": 0,
+              "nack_count": 0,
+              "pli_count": 0,
+              "fir_count": 0,
+              "decoder_family": "nvidia_h264",
+              "power_efficient_decoder": true
+            }
+          ],
+          "sender_rtp_stats": {
+            "video_frames_accepted_total": 357,
+            "frames_sent": 354,
+            "frames_encoded": 354,
+            "packets_sent": 2087,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 19
+          },
+          "sender_rtp_after_300ms": {
+            "video_frames_accepted_total": 357,
+            "frames_sent": 354,
+            "frames_encoded": 354,
+            "packets_sent": 2087,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 19
+          },
+          "receiver_sampled_max_mib": 746
+        },
+        {
+          "name": "disable-nvdec-1-1",
+          "requested_decoder": "disable-nvdec",
+          "native_video_queue_frames": 1,
+          "process_exit": 0,
+          "panic_detected": false,
+          "source_report_sha256": "767c4aa6db8399d97451e2375f4816e9fa6191d861e2e8c920c9d383e16c27b3",
+          "sender_source_frames": 324,
+          "consumer_source_frames": 324,
+          "ffi_source_frames": 324,
+          "missing_before_ffi_callback": [],
+          "ffi_callbacks_missing_at_consumer": [],
+          "native_video_warning_events": 0,
+          "native_video_drop_reported_lower_bound": 0,
+          "injected_callback_stall_ns": null,
+          "checked_queue_peak_frames": {
+            "audio": 5,
+            "video": 2
+          },
+          "video_rtp_stats": [
+            {
+              "frames_received": 353,
+              "frames_decoded": 352,
+              "frames_dropped": 0,
+              "packets_received": 2059,
+              "packets_lost": 0,
+              "packets_discarded": 0,
+              "retransmitted_packets_received": 0,
+              "nack_count": 0,
+              "pli_count": 0,
+              "fir_count": 0,
+              "decoder_family": "ffmpeg",
+              "power_efficient_decoder": false
+            }
+          ],
+          "sender_rtp_stats": {
+            "video_frames_accepted_total": 357,
+            "frames_sent": 354,
+            "frames_encoded": 354,
+            "packets_sent": 2107,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 20
+          },
+          "sender_rtp_after_300ms": {
+            "video_frames_accepted_total": 357,
+            "frames_sent": 354,
+            "frames_encoded": 354,
+            "packets_sent": 2107,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 20
+          },
+          "receiver_sampled_max_mib": 420
+        },
+        {
+          "name": "auto-8-1",
+          "requested_decoder": "auto",
+          "native_video_queue_frames": 8,
+          "process_exit": 0,
+          "panic_detected": false,
+          "source_report_sha256": "0c540c34bd68e864d69ef0e8b1c8eaac46b132819446926a61e44097d4aabbe5",
+          "sender_source_frames": 324,
+          "consumer_source_frames": 324,
+          "ffi_source_frames": 324,
+          "missing_before_ffi_callback": [],
+          "ffi_callbacks_missing_at_consumer": [],
+          "native_video_warning_events": 0,
+          "native_video_drop_reported_lower_bound": 0,
+          "injected_callback_stall_ns": null,
+          "checked_queue_peak_frames": {
+            "video": 1,
+            "audio": 8
+          },
+          "video_rtp_stats": [
+            {
+              "frames_received": 354,
+              "frames_decoded": 352,
+              "frames_dropped": 0,
+              "packets_received": 2036,
+              "packets_lost": 0,
+              "packets_discarded": 0,
+              "retransmitted_packets_received": 0,
+              "nack_count": 0,
+              "pli_count": 0,
+              "fir_count": 0,
+              "decoder_family": "nvidia_h264",
+              "power_efficient_decoder": true
+            }
+          ],
+          "sender_rtp_stats": {
+            "video_frames_accepted_total": 358,
+            "frames_sent": 355,
+            "frames_encoded": 355,
+            "packets_sent": 2085,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 19
+          },
+          "sender_rtp_after_300ms": {
+            "video_frames_accepted_total": 358,
+            "frames_sent": 355,
+            "frames_encoded": 355,
+            "packets_sent": 2085,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 19
+          },
+          "receiver_sampled_max_mib": 746
+        },
+        {
+          "name": "disable-nvdec-8-1",
+          "requested_decoder": "disable-nvdec",
+          "native_video_queue_frames": 8,
+          "process_exit": 0,
+          "panic_detected": false,
+          "source_report_sha256": "9fee0ec9b1802b60e547bcf75292077ecd71be0317893c335d1c1115a246b388",
+          "sender_source_frames": 324,
+          "consumer_source_frames": 324,
+          "ffi_source_frames": 324,
+          "missing_before_ffi_callback": [],
+          "ffi_callbacks_missing_at_consumer": [],
+          "native_video_warning_events": 0,
+          "native_video_drop_reported_lower_bound": 0,
+          "injected_callback_stall_ns": null,
+          "checked_queue_peak_frames": {
+            "audio": 8,
+            "video": 2
+          },
+          "video_rtp_stats": [
+            {
+              "frames_received": 354,
+              "frames_decoded": 354,
+              "frames_dropped": 0,
+              "packets_received": 2058,
+              "packets_lost": 0,
+              "packets_discarded": 0,
+              "retransmitted_packets_received": 0,
+              "nack_count": 0,
+              "pli_count": 0,
+              "fir_count": 0,
+              "decoder_family": "ffmpeg",
+              "power_efficient_decoder": false
+            }
+          ],
+          "sender_rtp_stats": {
+            "video_frames_accepted_total": 357,
+            "frames_sent": 355,
+            "frames_encoded": 355,
+            "packets_sent": 2109,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 19
+          },
+          "sender_rtp_after_300ms": {
+            "video_frames_accepted_total": 357,
+            "frames_sent": 355,
+            "frames_encoded": 355,
+            "packets_sent": 2109,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 19
+          },
+          "receiver_sampled_max_mib": 420
+        },
+        {
+          "name": "auto-1-2",
+          "requested_decoder": "auto",
+          "native_video_queue_frames": 1,
+          "process_exit": 0,
+          "panic_detected": false,
+          "source_report_sha256": "e1a584b3959bfdbb826445fba4cac24ec293c9c6d3bb2d3ba70e4e671307aa45",
+          "sender_source_frames": 324,
+          "consumer_source_frames": 324,
+          "ffi_source_frames": 324,
+          "missing_before_ffi_callback": [],
+          "ffi_callbacks_missing_at_consumer": [],
+          "native_video_warning_events": 0,
+          "native_video_drop_reported_lower_bound": 0,
+          "injected_callback_stall_ns": null,
+          "checked_queue_peak_frames": {
+            "video": 1,
+            "audio": 7
+          },
+          "video_rtp_stats": [
+            {
+              "frames_received": 352,
+              "frames_decoded": 351,
+              "frames_dropped": 0,
+              "packets_received": 2051,
+              "packets_lost": 0,
+              "packets_discarded": 0,
+              "retransmitted_packets_received": 0,
+              "nack_count": 0,
+              "pli_count": 0,
+              "fir_count": 0,
+              "decoder_family": "nvidia_h264",
+              "power_efficient_decoder": true
+            }
+          ],
+          "sender_rtp_stats": {
+            "video_frames_accepted_total": 356,
+            "frames_sent": 353,
+            "frames_encoded": 353,
+            "packets_sent": 2104,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 19
+          },
+          "sender_rtp_after_300ms": {
+            "video_frames_accepted_total": 356,
+            "frames_sent": 353,
+            "frames_encoded": 353,
+            "packets_sent": 2104,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 19
+          },
+          "receiver_sampled_max_mib": 746
+        },
+        {
+          "name": "disable-nvdec-1-2",
+          "requested_decoder": "disable-nvdec",
+          "native_video_queue_frames": 1,
+          "process_exit": 0,
+          "panic_detected": false,
+          "source_report_sha256": "1a8c97992955f727830c654e00804dc3da829c11f9bca3adf5dad41fc47bcfb3",
+          "sender_source_frames": 324,
+          "consumer_source_frames": 324,
+          "ffi_source_frames": 324,
+          "missing_before_ffi_callback": [],
+          "ffi_callbacks_missing_at_consumer": [],
+          "native_video_warning_events": 0,
+          "native_video_drop_reported_lower_bound": 0,
+          "injected_callback_stall_ns": null,
+          "checked_queue_peak_frames": {
+            "audio": 6,
+            "video": 2
+          },
+          "video_rtp_stats": [
+            {
+              "frames_received": 353,
+              "frames_decoded": 352,
+              "frames_dropped": 0,
+              "packets_received": 2035,
+              "packets_lost": 0,
+              "packets_discarded": 0,
+              "retransmitted_packets_received": 0,
+              "nack_count": 0,
+              "pli_count": 0,
+              "fir_count": 0,
+              "decoder_family": "ffmpeg",
+              "power_efficient_decoder": false
+            }
+          ],
+          "sender_rtp_stats": {
+            "video_frames_accepted_total": 357,
+            "frames_sent": 354,
+            "frames_encoded": 354,
+            "packets_sent": 2084,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 19
+          },
+          "sender_rtp_after_300ms": {
+            "video_frames_accepted_total": 357,
+            "frames_sent": 354,
+            "frames_encoded": 354,
+            "packets_sent": 2084,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 19
+          },
+          "receiver_sampled_max_mib": 420
+        },
+        {
+          "name": "auto-8-2",
+          "requested_decoder": "auto",
+          "native_video_queue_frames": 8,
+          "process_exit": 0,
+          "panic_detected": false,
+          "source_report_sha256": "23c67f6954c1bdd157c4f5116fe5f8f79c8e7f4c4cd4974e57b45655f7c60093",
+          "sender_source_frames": 324,
+          "consumer_source_frames": 322,
+          "ffi_source_frames": 322,
+          "missing_before_ffi_callback": [
+            225,
+            246
+          ],
+          "ffi_callbacks_missing_at_consumer": [],
+          "native_video_warning_events": 0,
+          "native_video_drop_reported_lower_bound": 0,
+          "injected_callback_stall_ns": null,
+          "checked_queue_peak_frames": {
+            "video": 2,
+            "audio": 6
+          },
+          "video_rtp_stats": [
+            {
+              "frames_received": 352,
+              "frames_decoded": 351,
+              "frames_dropped": 0,
+              "packets_received": 2026,
+              "packets_lost": 0,
+              "packets_discarded": 0,
+              "retransmitted_packets_received": 0,
+              "nack_count": 0,
+              "pli_count": 0,
+              "fir_count": 0,
+              "decoder_family": "nvidia_h264",
+              "power_efficient_decoder": true
+            }
+          ],
+          "sender_rtp_stats": {
+            "video_frames_accepted_total": 357,
+            "frames_sent": 353,
+            "frames_encoded": 353,
+            "packets_sent": 2077,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 19
+          },
+          "sender_rtp_after_300ms": {
+            "video_frames_accepted_total": 357,
+            "frames_sent": 353,
+            "frames_encoded": 353,
+            "packets_sent": 2077,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 19
+          },
+          "receiver_sampled_max_mib": 746
+        },
+        {
+          "name": "disable-nvdec-8-2",
+          "requested_decoder": "disable-nvdec",
+          "native_video_queue_frames": 8,
+          "process_exit": 0,
+          "panic_detected": false,
+          "source_report_sha256": "5501be3fe9cb3b891e808821045cd5b7a2d0a47255338ab5ac0c4363bad18648",
+          "sender_source_frames": 324,
+          "consumer_source_frames": 321,
+          "ffi_source_frames": 321,
+          "missing_before_ffi_callback": [
+            227,
+            228,
+            229
+          ],
+          "ffi_callbacks_missing_at_consumer": [],
+          "native_video_warning_events": 0,
+          "native_video_drop_reported_lower_bound": 0,
+          "injected_callback_stall_ns": null,
+          "checked_queue_peak_frames": {
+            "video": 1,
+            "audio": 6
+          },
+          "video_rtp_stats": [
+            {
+              "frames_received": 353,
+              "frames_decoded": 350,
+              "frames_dropped": 1,
+              "packets_received": 2028,
+              "packets_lost": 0,
+              "packets_discarded": 0,
+              "retransmitted_packets_received": 0,
+              "nack_count": 0,
+              "pli_count": 1,
+              "fir_count": 0,
+              "decoder_family": "ffmpeg",
+              "power_efficient_decoder": false
+            }
+          ],
+          "sender_rtp_stats": {
+            "video_frames_accepted_total": 358,
+            "frames_sent": 354,
+            "frames_encoded": 354,
+            "packets_sent": 2076,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 1,
+            "fir_count": 0,
+            "key_frames_encoded": 18
+          },
+          "sender_rtp_after_300ms": {
+            "video_frames_accepted_total": 358,
+            "frames_sent": 354,
+            "frames_encoded": 354,
+            "packets_sent": 2076,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 1,
+            "fir_count": 0,
+            "key_frames_encoded": 18
+          },
+          "receiver_sampled_max_mib": 420
+        },
+        {
+          "name": "overflow-control",
+          "requested_decoder": "auto",
+          "native_video_queue_frames": 1,
+          "process_exit": 0,
+          "panic_detected": false,
+          "source_report_sha256": "b293753ca2ed0bd6c8d35317331c2ae290d702e3aaafe0ad16dc52fb1a4fb531",
+          "sender_source_frames": 324,
+          "consumer_source_frames": 298,
+          "ffi_source_frames": 298,
+          "missing_before_ffi_callback": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            263,
+            268,
+            292,
+            296,
+            298,
+            300,
+            301,
+            303,
+            305,
+            307,
+            310,
+            315
+          ],
+          "ffi_callbacks_missing_at_consumer": [],
+          "native_video_warning_events": 1,
+          "native_video_drop_reported_lower_bound": 1,
+          "injected_callback_stall_ns": 500059479,
+          "checked_queue_peak_frames": {
+            "video": 1,
+            "audio": 8
+          },
+          "video_rtp_stats": [
+            {
+              "frames_received": 342,
+              "frames_decoded": 340,
+              "frames_dropped": 0,
+              "packets_received": 1954,
+              "packets_lost": 0,
+              "packets_discarded": 0,
+              "retransmitted_packets_received": 0,
+              "nack_count": 0,
+              "pli_count": 0,
+              "fir_count": 0,
+              "decoder_family": "nvidia_h264",
+              "power_efficient_decoder": true
+            }
+          ],
+          "sender_rtp_stats": {
+            "video_frames_accepted_total": 358,
+            "frames_sent": 343,
+            "frames_encoded": 343,
+            "packets_sent": 2007,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 16
+          },
+          "sender_rtp_after_300ms": {
+            "video_frames_accepted_total": 358,
+            "frames_sent": 343,
+            "frames_encoded": 343,
+            "packets_sent": 2007,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 16
+          },
+          "receiver_sampled_max_mib": 746
+        }
+      ]
+    },
+    {
+      "name": "fenced_final",
+      "runner_revision_scope": "current runner with timeout, abrupt-exit and premature-success descendant fencing",
+      "runner_sha256": "c1289bd6acb2794a22ff051d59530e8fb7fbefa020b9f13ca72a925f5e45341a",
+      "private_receipt_sha256": "d145a0191fd9f1ec731268bc9c8a5f0ef301dfda3349326ac0c3b7508ab456b0",
+      "cases": [
+        {
+          "name": "auto-1-1",
+          "requested_decoder": "auto",
+          "native_video_queue_frames": 1,
+          "process_exit": 0,
+          "panic_detected": false,
+          "source_report_sha256": "3fdad48cac9e0e22ab916880dbbc1ea38e1b160aa580d81ee35f59b453d31fe4",
+          "sender_source_frames": 324,
+          "consumer_source_frames": 318,
+          "ffi_source_frames": 318,
+          "missing_before_ffi_callback": [
+            227,
+            295,
+            297,
+            300,
+            303,
+            309
+          ],
+          "ffi_callbacks_missing_at_consumer": [],
+          "native_video_warning_events": 0,
+          "native_video_drop_reported_lower_bound": 0,
+          "injected_callback_stall_ns": null,
+          "checked_queue_peak_frames": {
+            "audio": 5,
+            "video": 2
+          },
+          "video_rtp_stats": [
+            {
+              "frames_received": 349,
+              "frames_decoded": 347,
+              "frames_dropped": 0,
+              "packets_received": 2041,
+              "packets_lost": 0,
+              "packets_discarded": 0,
+              "retransmitted_packets_received": 0,
+              "nack_count": 0,
+              "pli_count": 0,
+              "fir_count": 0,
+              "decoder_family": "nvidia_h264",
+              "power_efficient_decoder": true
+            }
+          ],
+          "sender_rtp_stats": {
+            "video_frames_accepted_total": 359,
+            "frames_sent": 350,
+            "frames_encoded": 350,
+            "packets_sent": 2090,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 19
+          },
+          "sender_rtp_after_300ms": {
+            "video_frames_accepted_total": 359,
+            "frames_sent": 350,
+            "frames_encoded": 350,
+            "packets_sent": 2090,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 19
+          },
+          "receiver_sampled_max_mib": 746
+        },
+        {
+          "name": "disable-nvdec-1-1",
+          "requested_decoder": "disable-nvdec",
+          "native_video_queue_frames": 1,
+          "process_exit": 0,
+          "panic_detected": false,
+          "source_report_sha256": "9fd78487d0ea7c598bf5a18c14ea83dd7129629606e193d57b596fc7f1601bfa",
+          "sender_source_frames": 324,
+          "consumer_source_frames": 323,
+          "ffi_source_frames": 323,
+          "missing_before_ffi_callback": [
+            304
+          ],
+          "ffi_callbacks_missing_at_consumer": [],
+          "native_video_warning_events": 0,
+          "native_video_drop_reported_lower_bound": 0,
+          "injected_callback_stall_ns": null,
+          "checked_queue_peak_frames": {
+            "audio": 6,
+            "video": 1
+          },
+          "video_rtp_stats": [
+            {
+              "frames_received": 353,
+              "frames_decoded": 352,
+              "frames_dropped": 0,
+              "packets_received": 2071,
+              "packets_lost": 0,
+              "packets_discarded": 0,
+              "retransmitted_packets_received": 0,
+              "nack_count": 0,
+              "pli_count": 0,
+              "fir_count": 0,
+              "decoder_family": "ffmpeg",
+              "power_efficient_decoder": false
+            }
+          ],
+          "sender_rtp_stats": {
+            "video_frames_accepted_total": 357,
+            "frames_sent": 354,
+            "frames_encoded": 354,
+            "packets_sent": 2122,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 18
+          },
+          "sender_rtp_after_300ms": {
+            "video_frames_accepted_total": 357,
+            "frames_sent": 354,
+            "frames_encoded": 354,
+            "packets_sent": 2122,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 18
+          },
+          "receiver_sampled_max_mib": 420
+        },
+        {
+          "name": "auto-8-1",
+          "requested_decoder": "auto",
+          "native_video_queue_frames": 8,
+          "process_exit": 0,
+          "panic_detected": false,
+          "source_report_sha256": "6fd89223326139f12162f6738828a722ee76109a440b3a7c6cdac70759c12e4b",
+          "sender_source_frames": 324,
+          "consumer_source_frames": 323,
+          "ffi_source_frames": 323,
+          "missing_before_ffi_callback": [
+            224
+          ],
+          "ffi_callbacks_missing_at_consumer": [],
+          "native_video_warning_events": 0,
+          "native_video_drop_reported_lower_bound": 0,
+          "injected_callback_stall_ns": null,
+          "checked_queue_peak_frames": {
+            "video": 2,
+            "audio": 6
+          },
+          "video_rtp_stats": [
+            {
+              "frames_received": 352,
+              "frames_decoded": 350,
+              "frames_dropped": 0,
+              "packets_received": 1990,
+              "packets_lost": 0,
+              "packets_discarded": 0,
+              "retransmitted_packets_received": 0,
+              "nack_count": 0,
+              "pli_count": 0,
+              "fir_count": 0,
+              "decoder_family": "nvidia_h264",
+              "power_efficient_decoder": true
+            }
+          ],
+          "sender_rtp_stats": {
+            "video_frames_accepted_total": 357,
+            "frames_sent": 353,
+            "frames_encoded": 353,
+            "packets_sent": 2038,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 16
+          },
+          "sender_rtp_after_300ms": {
+            "video_frames_accepted_total": 357,
+            "frames_sent": 353,
+            "frames_encoded": 353,
+            "packets_sent": 2038,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 16
+          },
+          "receiver_sampled_max_mib": 746
+        },
+        {
+          "name": "disable-nvdec-8-1",
+          "requested_decoder": "disable-nvdec",
+          "native_video_queue_frames": 8,
+          "process_exit": 0,
+          "panic_detected": false,
+          "source_report_sha256": "21157d60173747c430b69bdcbe6be24b785ab6e4424d89f1fe5711c1996ca0cf",
+          "sender_source_frames": 324,
+          "consumer_source_frames": 324,
+          "ffi_source_frames": 324,
+          "missing_before_ffi_callback": [],
+          "ffi_callbacks_missing_at_consumer": [],
+          "native_video_warning_events": 0,
+          "native_video_drop_reported_lower_bound": 0,
+          "injected_callback_stall_ns": null,
+          "checked_queue_peak_frames": {
+            "video": 2,
+            "audio": 6
+          },
+          "video_rtp_stats": [
+            {
+              "frames_received": 354,
+              "frames_decoded": 353,
+              "frames_dropped": 0,
+              "packets_received": 2028,
+              "packets_lost": 0,
+              "packets_discarded": 0,
+              "retransmitted_packets_received": 0,
+              "nack_count": 0,
+              "pli_count": 0,
+              "fir_count": 0,
+              "decoder_family": "ffmpeg",
+              "power_efficient_decoder": false
+            }
+          ],
+          "sender_rtp_stats": {
+            "video_frames_accepted_total": 358,
+            "frames_sent": 355,
+            "frames_encoded": 355,
+            "packets_sent": 2076,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 19
+          },
+          "sender_rtp_after_300ms": {
+            "video_frames_accepted_total": 358,
+            "frames_sent": 355,
+            "frames_encoded": 355,
+            "packets_sent": 2076,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 19
+          },
+          "receiver_sampled_max_mib": 420
+        },
+        {
+          "name": "overflow-control",
+          "requested_decoder": "auto",
+          "native_video_queue_frames": 1,
+          "process_exit": 0,
+          "panic_detected": false,
+          "source_report_sha256": "430e708c14e5b2704decc30f37091f2776b20e498b266013a44dd9998c247174",
+          "sender_source_frames": 324,
+          "consumer_source_frames": 309,
+          "ffi_source_frames": 309,
+          "missing_before_ffi_callback": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            224
+          ],
+          "ffi_callbacks_missing_at_consumer": [],
+          "native_video_warning_events": 1,
+          "native_video_drop_reported_lower_bound": 1,
+          "injected_callback_stall_ns": 500060379,
+          "checked_queue_peak_frames": {
+            "video": 2,
+            "audio": 5
+          },
+          "video_rtp_stats": [
+            {
+              "frames_received": 352,
+              "frames_decoded": 351,
+              "frames_dropped": 0,
+              "packets_received": 2003,
+              "packets_lost": 0,
+              "packets_discarded": 0,
+              "retransmitted_packets_received": 0,
+              "nack_count": 0,
+              "pli_count": 0,
+              "fir_count": 0,
+              "decoder_family": "nvidia_h264",
+              "power_efficient_decoder": true
+            }
+          ],
+          "sender_rtp_stats": {
+            "video_frames_accepted_total": 357,
+            "frames_sent": 353,
+            "frames_encoded": 353,
+            "packets_sent": 2056,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 17
+          },
+          "sender_rtp_after_300ms": {
+            "video_frames_accepted_total": 357,
+            "frames_sent": 353,
+            "frames_encoded": 353,
+            "packets_sent": 2056,
+            "retransmitted_packets_sent": 0,
+            "nack_count": 0,
+            "pli_count": 0,
+            "fir_count": 0,
+            "key_frames_encoded": 17
+          },
+          "receiver_sampled_max_mib": 746
+        }
+      ]
+    }
+  ],
+  "junit": {
+    "core": {
+      "tests": 356,
+      "failures": 0,
+      "errors": 0,
+      "time_seconds": 7.594,
+      "receipt_sha256": "f01cee6c8bd4c74b896094f357d6a334a31a73e1cf5f3e44e025a71766a70359"
+    },
+    "api": {
+      "tests": 45,
+      "failures": 0,
+      "errors": 0,
+      "time_seconds": 4.081,
+      "receipt_sha256": "2bf740b254d464184b39282d0ef34c04761cd2200112f9121758fb4b437e010c"
+    }
+  },
+  "model_downloads": false,
+  "software_downloads": false,
+  "physical_av_qualified": false,
+  "quality_qualified": false,
+  "lossless_delivery_qualified": false,
+  "preview_configuration_changed": false,
+  "protocol_regression": {
+    "cases": 19,
+    "recorded_source_frames": 84,
+    "received_source_frames": 84,
+    "source_report_sha256": "f3aff476022bb20aa24881a01e8331258ed083720233f749e4a4287f3800c0fd"
+  }
+}

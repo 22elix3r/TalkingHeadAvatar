@@ -17,7 +17,7 @@ import time
 
 from livekit import rtc
 from livekit.rtc._ffi_client import FfiClient
-from livekit.rtc._proto import ffi_pb2,video_frame_pb2
+from livekit.rtc._proto import ffi_pb2,video_frame_pb2,audio_frame_pb2
 from livekit.rtc.log import logger as livekit_logger
 
 from talkinghead_v2.audio.resample import RationalResampler
@@ -31,6 +31,67 @@ from talkinghead_v2.server.transport import CheckedReceiveQueue,grant
 from talkinghead_v2.session.device import DeviceLease
 
 ROOT=Path(__file__).resolve().parents[1]
+
+
+class QualifiedAudioStream(rtc.AudioStream):
+    """Bound the source-matched native receiver without changing PCM cadence."""
+    def _create_owned_stream(self):
+        if self._track is None or self._audio_filter_module is not None or self._processor is not None:
+            raise ValueError('unfiltered explicit receiver track required')
+        request=ffi_pb2.FfiRequest();stream=request.new_audio_stream
+        stream.track_handle=self._track._ffi_handle.handle
+        stream.sample_rate=self._sample_rate;stream.num_channels=self._num_channels
+        stream.frame_size_ms=self._frame_size_ms;stream.queue_size_frames=25
+        stream.type=audio_frame_pb2.AudioStreamType.AUDIO_STREAM_NATIVE
+        return FfiClient.instance.request(request).new_audio_stream.stream
+
+
+class FfiVideoBoundaryTrace:
+    """Qualification-only metadata at the FFI callback, before Python dispatch."""
+    def __init__(self,queue,stall_ms=0):
+        if type(stall_ms) is not int or stall_ms not in (0,500):raise ValueError('unsupported callback-stall fixture')
+        self.queue=queue;self.original=queue.put;self.lock=threading.Lock();self.streams={}
+        self.stall_ms=stall_ms;self.stalled=False;self.actual_stall_ns=None
+        self.queue.put=self.put
+    def register(self,handle,session):
+        with self.lock:
+            if handle in self.streams or len(self.streams)>=20:raise ValueError('receiver trace stream inventory exceeded')
+            self.streams[handle]={'session':session,'rows':[],'preroll':0,'idle':0,'error':False}
+    def put(self,event):
+        stall=False
+        try:
+            if event.WhichOneof('message')=='video_stream_event' and event.video_stream_event.HasField('frame_received'):
+                video=event.video_stream_event
+                with self.lock:
+                    record=self.streams.get(video.stream_handle)
+                    if record is not None:
+                        try:
+                            frame=video.frame_received
+                            if not frame.HasField('metadata') or len(frame.metadata.user_data)>2048:raise ValueError('metadata bound')
+                            identity=json.loads(frame.metadata.user_data)
+                            if (identity['session_id']!=record['session'] or identity['turn_id']!='test' or identity['epoch']!=7):raise ValueError('generation mismatch')
+                            if identity.get('idle_before_audio'):record['preroll']+=1
+                            elif identity.get('idle_after_eof'):record['idle']+=1
+                            else:
+                                sample=identity['source_sample'];fid=frame.metadata.frame_id
+                                if (type(sample) is not int or sample<0 or sample%1600 or not frame.metadata.HasField('frame_id') or
+                                    len(record['rows'])>=3600 or (record['rows'] and sample<=record['rows'][-1]['source_sample'])):raise ValueError('source identity bound/order')
+                                record['rows'].append({'source_sample':sample,'frame_id':fid})
+                                if self.stall_ms and not self.stalled:self.stalled=True;stall=True
+                        except (ValueError,TypeError,KeyError):record['error']=True
+            if stall:
+                began=time.monotonic_ns();time.sleep(self.stall_ms/1000)
+                with self.lock:self.actual_stall_ns=time.monotonic_ns()-began
+        finally:
+            # Observation failure must never suppress or replace an SDK event.
+            self.original(event)
+    def snapshot(self,handle):
+        with self.lock:
+            row=self.streams[handle]
+            if row['error']:raise ValueError('invalid bounded FFI video trace; private metadata excluded')
+            return {'source_frames':deepcopy(row['rows']),'preroll_frames':row['preroll'],'idle_frames':row['idle'],
+                    'injected_callback_stall_ns':self.actual_stall_ns}
+    def close(self):self.queue.put=self.original
 
 
 class QualifiedVideoStream(rtc.VideoStream):
@@ -74,11 +135,17 @@ def receiver_video_stats(stats):
     for stat in stats:
         if stat.WhichOneof('stats')!='inbound_rtp' or stat.inbound_rtp.stream.kind!='video':continue
         inbound=stat.inbound_rtp.inbound;received=stat.inbound_rtp.received
+        # Only known implementation names become public labels. Arbitrary
+        # implementation strings, like transport IDs, stay out of evidence.
+        implementation=inbound.decoder_implementation.strip().lower()
+        family={'nvidia h264 decoder':'nvidia_h264','nvidia h265 decoder':'nvidia_h265',
+                'ffmpeg':'ffmpeg','ffmpeg h264 decoder':'ffmpeg','openh264':'openh264'}.get(implementation,'other_or_unreported')
         rows.append({'frames_received':inbound.frames_received,'frames_decoded':inbound.frames_decoded,
             'frames_dropped':inbound.frames_dropped,'packets_received':received.packets_received,
             'packets_lost':received.packets_lost,'packets_discarded':inbound.packets_discarded,
             'retransmitted_packets_received':inbound.retransmitted_packets_received,
-            'nack_count':inbound.nack_count,'pli_count':inbound.pli_count,'fir_count':inbound.fir_count})
+            'nack_count':inbound.nack_count,'pli_count':inbound.pli_count,'fir_count':inbound.fir_count,
+            'decoder_family':family,'power_efficient_decoder':inbound.power_efficient_decoder})
     return rows
 
 
@@ -128,11 +195,15 @@ def sender_rtp_stats(lines,tag='THA_SENDER_RTP'):
 
 async def main(args):
     if args.trace_source_captures and not args.live_qwen:raise ValueError('source capture tracing requires the live-Qwen case')
-    if args.directory.exists():raise ValueError('preserve previous worker evidence')
+    if args.directory.exists() or args.report.exists():raise ValueError('preserve previous worker evidence')
+    selected=getattr(args,'selected_receiver',None)
+    if args.trace_receiver_ffi and selected is None:raise ValueError('FFI tracing requires an explicit source-matched receiver runtime')
+    if args.stall_video_ffi_ms and not args.trace_receiver_ffi:raise ValueError('callback stall requires the explicit FFI trace')
     bridge=json.loads((ROOT/'benchmarks/reports/p03-claire-bridge.json').read_text())
     build=ROOT/'var/build/native-media';library=build/'libtha_claire_bridge.so';binary=build/'tha_claire_session_media';ptx=build/'media_kernels.ptx'
     sources=['native/media/claire_session_worker.cpp','native/motion/claire_bridge.cpp','native/motion/claire_bridge.h','native/media/CMakeLists.txt',
         'src/talkinghead_v2/providers/motion/paired.py','scripts/qualify_claire_session_worker.py']
+    if selected is not None:sources.extend(['src/talkinghead_v2/server/inbound_config.py','src/talkinghead_v2/server/inbound_audio.py'])
     if args.live_qwen:sources.append('src/talkinghead_v2/providers/tts/native.py')
     source_before={path:digest(ROOT/path) for path in sources}
     binaries_before={str(path):digest(path) for path in (binary,library,ptx)}
@@ -159,6 +230,7 @@ async def main(args):
     args.directory.mkdir(parents=True,mode=0o700);lease=DeviceLease(ROOT/'var/gpu-device-0.lock');lease.acquire('claire-session-worker-qualification')
     cases=[];bindings=[];memory=[];query_failures=[];sample_stop=threading.Event();qwen_pids=set();worker_pids=set()
     video_warnings=NativeVideoDropWarnings();livekit_logger.addHandler(video_warnings)
+    ffi_trace=FfiVideoBoundaryTrace(FfiClient.instance.queue,args.stall_video_ffi_ms) if args.trace_receiver_ffi else None
     owned_tts=[];owned_rooms=[];owned_processes=[]
     def sample_memory():
         while not sample_stop.is_set():
@@ -185,10 +257,12 @@ async def main(args):
                 def subscribed_track(track,publication,participant):
                     async def consume():
                         video=track.kind==rtc.TrackKind.KIND_VIDEO
-                        stream=QualifiedVideoStream(track,args.native_video_queue_frames) if video else rtc.AudioStream(track,sample_rate=48000,num_channels=1,frame_size_ms=10)
+                        audio_stream=QualifiedAudioStream if selected is not None else rtc.AudioStream
+                        stream=QualifiedVideoStream(track,args.native_video_queue_frames) if video else audio_stream(track,sample_rate=48000,num_channels=1,frame_size_ms=10)
                         if type(stream._queue).__name__!='RingQueue':raise ValueError('unqualified receiver queue implementation')
                         stream._queue=CheckedReceiveQueue(30);streams.append(stream)
                         kind='video' if video else 'audio';tracks[kind]=track;queues[kind]=stream._queue;kinds.add(kind)
+                        if video and ffi_trace:ffi_trace.register(stream._ffi_handle.handle,sid)
                         if len(kinds)==2:subscribed.set()
                         async for item in stream:
                             if video:
@@ -211,6 +285,7 @@ async def main(args):
                             else:
                                 values=item.frame.data;receiver['audio_frames']+=1;receiver['audio_samples']+=len(values)
                                 rms=math.sqrt(sum(float(value)**2 for value in values)/max(1,len(values)));receiver['maximum_rms']=max(receiver['maximum_rms'],rms)
+                        if not video and selected is not None:raise ValueError('bounded receiver audio ended unexpectedly')
                     tasks.append(asyncio.create_task(consume()))
                 await receive_room.connect(settings.livekit_url,grant(settings,room_name,'observer-'+sid,'controller'))
             if args.live_qwen:
@@ -222,6 +297,9 @@ async def main(args):
             env=dict(os.environ,THA_DEVICE_LEASE_FD=str(lease.fileno),HF_HUB_OFFLINE='1',TRANSFORMERS_OFFLINE='1',CUDA_VISIBLE_DEVICES='0',
                 LD_LIBRARY_PATH=str(runtime/'lib')+':/usr/local/cuda-12.8/lib64',CUDA_CACHE_PATH=str(ROOT/'var/cache/claire-cuda'))
             env.pop('THA_CLAIRE_CAPTURE_TRACE',None)
+            # This experiment changes only the receiver factory, not the
+            # external NVENC publisher's independently qualified environment.
+            env.pop('LK_DISABLE_NVDEC',None)
             if args.trace_source_captures:env['THA_CLAIRE_CAPTURE_TRACE']='1'
             log=open(directory/'stderr.log','xb',opener=lambda path,flags:os.open(path,flags,0o600))
             process=await asyncio.create_subprocess_exec(str(binary),str(directory/'bootstrap.txt'),str(ptx),str((args.scene/'research-scene.bin').resolve()),
@@ -322,6 +400,14 @@ async def main(args):
                                 positions!=sorted(set(positions)) or positions[0]!=0 or positions[-1]!=(count-1)//1600*1600 or receiver['preroll_frames']<1 or receiver['idle_frames']<1 or any(row['width']!=512 or row['height']!=512 for row in rows)):
                                 raise ValueError('actual receiver did not decode moving Claire/audio')
                             receiver['missing_source_frame_indices']=[index for index in range((count+1599)//1600) if index*1600 not in positions]
+                            if ffi_trace:
+                                boundary=ffi_trace.snapshot(next(stream._ffi_handle.handle for stream in streams if isinstance(stream,QualifiedVideoStream)))
+                                callback_samples=[row['source_sample'] for row in boundary['source_frames']]
+                                expected=set(range(0,count,1600));callbacks=set(callback_samples)
+                                if not set(positions)<=callbacks or not callbacks<=expected:raise ValueError('FFI callback/consumer source identity mismatch')
+                                boundary['missing_before_ffi_callback']=[index for index in range((count+1599)//1600) if index*1600 not in callbacks]
+                                boundary['ffi_callbacks_missing_at_consumer']=[sample//1600 for sample in callback_samples if sample not in positions]
+                                receiver['ffi_video_boundary']=boundary
                             record['receiver']=deepcopy(receiver)
                         cases.append(record);process.send_signal(signal.SIGTERM);await asyncio.wait_for(process.wait(),5)
                         if process.returncode:raise ValueError('post-EOF owner retirement failed')
@@ -331,6 +417,8 @@ async def main(args):
                             sent={row['frame_id']:row['source_sample'] for row in trace}
                             if any(sent.get(row['frame_id'])!=row['source_sample'] for row in receiver['video']):
                                 raise ValueError('receiver source identity differs from capture trace')
+                            if ffi_trace and any(sent.get(row['frame_id'])!=row['source_sample'] for row in record['receiver']['ffi_video_boundary']['source_frames']):
+                                raise ValueError('FFI callback identity differs from source capture trace')
                             record['source_capture_trace']=trace;record['sender_rtp_stats']=sender_rtp_stats(lines)
                             record['sender_rtp_after_300ms']=sender_rtp_stats(lines,'THA_SENDER_RTP_AFTER_300MS')
                 private_write(directory/'result.json',(json.dumps(cases[-1],indent=2)+'\n').encode())
@@ -351,12 +439,15 @@ async def main(args):
             if child.returncode is None:child.kill();await child.wait()
         for provider in owned_tts:await provider.close()
         for room in owned_rooms:await room.disconnect()
+        if ffi_trace:ffi_trace.close()
         sample_stop.set();sampling.join(timeout=10);lease.release();livekit_logger.removeHandler(video_warnings)
         private_write(args.directory/'memory.json',(json.dumps({'samples':memory,'query_failures':query_failures},indent=2)+'\n').encode())
     lease.acquire('claire-session-post-exit');lease.release()
     if len(set(bindings))!=len(bindings):raise ValueError('publication IDs reused across retired epochs')
     if (source_before!={path:digest(ROOT/path) for path in sources} or binaries_before!={str(path):digest(path) for path in (binary,library,ptx)}):
         raise ValueError('source or binary changed during qualification; private observations retained without a passing export')
+    if selected is not None and (digest(selected.library)!=selected.library_sha256 or digest(args.receiver_runtime)!=selected.revision):
+        raise ValueError('selected receiver binary or descriptor changed during qualification')
     report={'schema_version':1,'observation':'local actual Claire SDK/GPU/NVENC/LiveKit sender and Python receiver; '+('live cached Qwen' if args.live_qwen else 'recorded synthetic-reference Qwen PCM'),
         'source_sha256':{path:digest(ROOT/path) for path in sources},'binary_sha256':digest(binary),'bridge_sha256':digest(library),'ptx_sha256':digest(ptx),
         'bridge_report_sha256':digest(ROOT/'benchmarks/reports/p03-claire-bridge.json'),'engine_sha256':engine['engine_sha256'],'scene_sha256':scene['geometry_sha256'],
@@ -365,6 +456,12 @@ async def main(args):
         'eligible_motion_start_buffer_ms':args.prebuffer_ms,'protocol':'THA_CLAIRE_MEDIA_2',
         'live_qwen_streaming':args.live_qwen,'browser_receiver':False,'physical_av_qualified':False,'qwen_coload_qualified':False,'quality_qualified':False,'additional_downloads':False}
     report['source_capture_trace_enabled']=args.trace_source_captures
+    report['receiver_ffi_trace_enabled']=args.trace_receiver_ffi
+    report['receiver_runtime']={'library_sha256':digest(Path(FfiClient.instance._ffi_lib._name)),
+        'source_matched':selected is not None,'descriptor_sha256':selected.revision if selected else None,
+        'native_audio_queue_frames':25 if selected else None,'python_audio_queue_frames_10ms':30,
+        'native_video_queue_frames':args.native_video_queue_frames,'python_video_queue_frames':30,
+        'nvdec_disabled_by_environment':'LK_DISABLE_NVDEC' in os.environ}
     def usage(sample,pids):return sum(process['mib'] for process in sample['processes'] if process['pid'] in pids)
     coload=[sample for sample in memory if usage(sample,qwen_pids)>0 and usage(sample,worker_pids)>0]
     if args.live_qwen and not coload:raise ValueError('no actual Qwen/Claire co-residency memory observation')
@@ -384,11 +481,37 @@ async def main(args):
     args.report.write_text(json.dumps(report,indent=2)+'\n');print(json.dumps({'worker_cases':len(cases),'receiver_video_frames':len(cases[0]['receiver']['video']),'physical_av':False}))
 
 
+async def run(args):
+    config=None
+    if 'LK_DISABLE_NVDEC' in os.environ:raise ValueError('use explicit receiver decoder selection instead of an inherited override')
+    if args.receiver_decoder=='disable-nvdec':
+        if args.receiver_runtime is None:raise ValueError('decoder selection requires the source-matched receiver runtime')
+        os.environ['LK_DISABLE_NVDEC']='1'
+    if args.receiver_runtime is not None:
+        from talkinghead_v2.server.inbound_config import InboundAudioConfig
+        from talkinghead_v2.server.inbound_audio import validate_loaded_runtime
+        config=InboundAudioConfig.load(args.receiver_runtime)
+        selected=config.environment(os.environ)
+        for key in ('LD_PRELOAD','LD_AUDIT'):os.environ.pop(key,None)
+        os.environ['LIVEKIT_LIB_PATH']=selected['LIVEKIT_LIB_PATH']
+        validate_loaded_runtime(config)
+    args.selected_receiver=config
+    try:await main(args)
+    finally:
+        if config is not None:
+            from talkinghead_v2.server.inbound_audio import dispose_owned_runtime
+            await asyncio.to_thread(dispose_owned_runtime,config)
+
+
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--live-qwen',action='store_true',help='execute one pinned cached-Qwen/SFU/Claire co-load case instead of recorded/fault cohort')
     parser.add_argument('--trace-source-captures',action='store_true',help='live qualification only: privately trace source capture timing and payload sizes')
     parser.add_argument('--native-video-queue-frames',type=int,choices=(1,8),default=1,help='request bounded native receiver queue for research comparison')
+    parser.add_argument('--receiver-runtime',type=Path,help='explicit qualified source-matched FFI descriptor; no provisioning')
+    parser.add_argument('--receiver-decoder',choices=('auto','disable-nvdec'),default='auto',help='source-matched receiver factory only; publisher remains unchanged')
+    parser.add_argument('--trace-receiver-ffi',action='store_true',help='qualification-only bounded source identities before Python dispatch')
+    parser.add_argument('--stall-video-ffi-ms',type=int,choices=(0,500),default=0,help='deliberate one-callback stall for an isolated queue positive control')
     parser.add_argument('--prebuffer-ms',type=int,choices=(300,500),default=500)
     for name in ('config','engine','scene','directory','report'):parser.add_argument('--'+name,type=Path,required=True)
-    asyncio.run(main(parser.parse_args()))
+    asyncio.run(run(parser.parse_args()))

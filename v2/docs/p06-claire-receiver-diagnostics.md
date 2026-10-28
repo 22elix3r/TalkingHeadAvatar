@@ -58,6 +58,109 @@ HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 v2/runtimes/session-api/.venv/bin/python
   --report v2/var/p03/claire-nativequeue-8-rep-3-20261028.json
 ```
 
-An additional input boundary remains open: the installed Python SDK requests native audio queue size `0`, which the separately inspected Rust source interprets as unbounded. The application's checked 25-frame Python queue does not bound that earlier queue. A bounded SDK queue that evicts old audio silently would violate the speech-continuity contract; a fail-closed native-audio prototype is being qualified separately and is not used by the previews.
+That cohort also exposed unbounded native audio input. The later
+[bounded-input qualification](p06-inbound-audio.md) and
+[preview upgrade](p06-inbound-upgrade.md) address that separate boundary;
+they do not change the historical receiver observations here.
 
 The current untraced **19-case** native worker/fault cohort passed its existing functional checks, with **83/84** recorded-Qwen source frames observed and one missing intermediate frame. It remains evidence of a receiver gap, not a full-delivery pass. Isolated API/PostgreSQL tests passed **32**; the descriptor was repinned to the latest live observation with explicit receiver-gap opt-in. See the current [worker](../benchmarks/reports/p03-claire-session-worker.json) and [live report](../benchmarks/reports/p03-claire-live-preroll.json).
+
+## Source-matched FFI boundary and decoder comparison
+
+The next qualification explicitly selected the already-built FFI
+`16eb6e043651eb1c509bf515f512abac2c0e079035cc24928f72d3daa9866d03`
+through descriptor
+`ec5d27245548829391ab745b136b4a7899d020cc251a2c771802edbbe6afe233`.
+Its pinned Rust source is `bae4df2f3d6c8f0f6ce81a7370c445779f1948d2`,
+with the separately qualified audio fail-closed patch. This removes the earlier
+wheel/source-identity uncertainty for these new receiver trials. The receiver's
+native audio queue is explicitly 25 decoded frames; its separate checked
+Python queue is 30 output frames at 10 ms. This benchmark receiver differs
+from the serving microphone's 12 × 20 ms Python queue.
+
+An opt-in, bounded metadata observer records source frame IDs at the FFI
+callback before Python dispatch. It always forwards the original event,
+validates the expected generation, rejects malformed/oversized observations
+and retains at most 3,600 source records per stream. It exports no raw metadata,
+images or session/track identifiers. Source captures, callback IDs and consumer
+IDs are checked against each other. Explicit SDK disposal happens while the
+event loop remains alive, and the batch runner checks the entire process exit.
+
+The pinned source supports `LK_DISABLE_NVDEC`. An explicit qualification-only
+option selects that receiver factory behavior; the external NVENC publisher's
+child environment removes the flag. Sanitized RTP stats identify the observed
+decoder as `nvidia_h264` or `ffmpeg`, without exporting arbitrary implementation
+strings. The previews and browser decoder selection were not changed.
+
+The second alternating matched cohort observed:
+
+| Receiver decoder | Requested native video queue | Source frames at FFI and consumer, two repeats |
+|---|---:|---|
+| NVIDIA H.264 | 1 | 324/324; 324/324 |
+| FFmpeg | 1 | 324/324; 324/324 |
+| NVIDIA H.264 | 8 | 324/324; 322/324 |
+| FFmpeg | 8 | 324/324; 321/324 |
+
+All nine processes, including a deliberate 500 ms callback-stall control,
+exited 0 without panic. Every source frame observed at the FFI callback reached
+the Python consumer. The two normal gaps were already absent at that earlier
+boundary. Neither decoder family nor a larger queue consistently eliminated
+gaps: the preceding nine-case cohort also had 319/324 with NVIDIA/queue 1 and
+318/324, 310/324 with FFmpeg/queue 8. Those are same-host observations, not
+independent samples or a stable loss-rate estimate.
+
+The second cohort's deliberate stall measured **500,059,479 ns**, produced a
+native overflow warning and received **298/324** source frames. Its first
+fourteen missing indices follow the injected stall, while twelve later gaps
+remain separately visible. This positive control shows that the observer can
+detect induced native queue overflow. A periodic warning counter is still not
+an exact native drop counter or universal proof that no overflow occurred.
+
+Sender aggregate accepted/encoded/sent totals also differ. For example, one
+normal gap case reported 357 accepted versus 353 encoded/sent, and the control
+reported 358 versus 343. These totals include neutral preroll and post-EOF idle;
+they cannot assign an individual missing source frame to an encoder, network
+or decoder stage. The sender counters were unchanged after the qualification's
+300 ms settling pause. This makes the accepted-source → encoder-output boundary
+the next useful trace target; it does not establish a loss cause.
+
+Review tightened batch ownership: timeout, nonzero exit, signal death and
+premature success with surviving descendants now fence the owned process group
+before reaping the leader, then verify actual descendant termination. This
+prevents a failed qualifier from stranding its Qwen/Claire workers or signaling
+a reused group ID. Five real subprocess tests cover these paths, including a
+descendant that ignores SIGTERM and holds a file lock. An initial timeout test
+assumed immediate lock release after SIGKILL; it now waits for actual release.
+The earlier successful cohorts did not invoke the subsequently corrected
+failure paths and remain separately identified in the report.
+
+With the final runner, a fresh **five-process** recheck (`--repeats 1`) completed
+with exit 0/no panic: NVIDIA/queue 1 **318/324**, FFmpeg/queue 1 **323/324**,
+NVIDIA/queue 8 **323/324**, FFmpeg/queue 8 **324/324**, and the induced-overflow
+control **309/324** with a warning. Again, no observed FFI source callback was
+lost at the consumer. The exact command, from `v2/`, was:
+
+```sh
+HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 runtimes/session-api/.venv/bin/python \
+  scripts/qualify_claire_receiver_matrix.py --repeats 1 \
+  --receiver-runtime var/p06-claire/inbound-runtime-reason-v1.json \
+  --config var/p04/test-runtime.json --engine var/p03/claire-engine-fp32-n1-final \
+  --scene var/p03/claire-render-scene \
+  --directory var/p06-claire/receiver-source-matrix-fenced-final-20261028 \
+  --report var/p06-claire/receiver-source-matrix-fenced-final-20261028.json
+```
+
+Use new paths for another cohort. The default `--repeats 2` runs nine processes;
+the final one-repeat run rechecks the current ownership guard with all four
+decoder/queue settings and the positive control.
+[Sanitized evidence](../benchmarks/reports/p06-claire-source-matched-receiver.json)
+retains all three cohorts, each runner revision, child receipt hashes, exact
+runtime/model/scene identities, missing indices and aggregate counters.
+
+The untraced **19-case** protocol/fault regression also passed with the explicit
+source-matched receiver, observing **84/84** recorded-Qwen source frames in
+[its report](../benchmarks/reports/p03-claire-session-worker-source-matched-20261028.json).
+Final offline suites passed **356 core** and **45 API** tests. No model/software
+download, native sender rebuild, preview mutation or V1 change occurred.
+Physical A/V, complete live delivery, independent quality, capacity and release
+remain open; no phase or decoder-winner claim is made from these diagnostics.
